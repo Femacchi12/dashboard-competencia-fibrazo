@@ -27,32 +27,37 @@
 
   const columns = [
     ["Fecha_Mes","Fecha"],
+    ["Operador_Normalizado","Operador"],
     ["Departamento","Departamento"],
     ["Ciudad","Ciudad"],
     ["Barrio","Barrio"],
-    ["Operador_Normalizado","Operador"],
+    ["Tipo_Servicio","Servicio"],
+    ["TV_Incluida","TV"],
+    ["Tecnologia","Tecnología"],
+    ["Velocidad_Bajada_Mbps","Velocidad"],
+    ["Precio_Usado_COP","Precio"],
+    ["Modalidad","Modalidad"],
+    ["Permanencia_Meses","Permanencia"],
+    ["Telefono_1","Teléfono 1"],
+    ["Telefono_2","Teléfono 2"],
+    ["Telefono_3","Teléfono 3"],
+    ["Telefono_4","Teléfono 4"],
+    ["Telefono_5","Teléfono 5"],
     ["Sitio_Web","Web"],
     ["Instagram","Instagram"],
     ["Facebook","Facebook"],
     ["TikTok","TikTok"],
-    ["WhatsApp","WhatsApp"],
-    ["Material_Publicitario","Material"],
-    ["Segmento","Segmento"],
-    ["Tipo_Servicio","Servicio"],
-    ["Tecnologia","Tecnología"],
-    ["Velocidad_Bajada_Mbps","Bajada Mbps"],
-    ["Velocidad_Subida_Mbps","Subida Mbps"],
-    ["Precio_Usado_COP","Precio usado"],
-    ["Precio_por_Mbps","Precio/Mbps"],
-    ["TV_Incluida","TV"],
-    ["Permanencia_Meses","Permanencia"],
-    ["Estado_Vigencia","Vigencia"],
-    ["Nivel_Confiabilidad","Confiabilidad"]
+    ["Imagenes_Folletos","Imágenes / folletos"]
   ];
-  const linkFields = new Set(["Sitio_Web","Instagram","Facebook","TikTok","WhatsApp","Material_Publicitario"]);
+
+  const phoneFields = new Set(["Telefono_1","Telefono_2","Telefono_3","Telefono_4","Telefono_5"]);
+  const linkFields = new Set(["Sitio_Web","Instagram","Facebook","TikTok","Imagenes_Folletos"]);
   const linkLabels = {
-    Sitio_Web:"Web ↗", Instagram:"Instagram ↗", Facebook:"Facebook ↗", TikTok:"TikTok ↗",
-    WhatsApp:"WhatsApp ↗", Material_Publicitario:"Material ↗"
+    Sitio_Web:"Web ↗",
+    Instagram:"Instagram ↗",
+    Facebook:"Facebook ↗",
+    TikTok:"TikTok ↗",
+    Imagenes_Folletos:"Ver carpeta ↗"
   };
   const months = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
 
@@ -91,28 +96,39 @@
     if(!Number.isNaN(d.getTime()) && /\d{4}/.test(s)) return `${d.getFullYear()}-${months[d.getMonth()]}`;
     return "Sin info";
   }
+
   function dateSortValue(value){
-    const s=clean(value); let m=s.match(/^(\d{4})[-\/]([01]?\d)(?:[-\/]([0-3]?\d))?$/);
+    const s=clean(value);
+    let m=s.match(/^(\d{4})[-\/]([01]?\d)(?:[-\/]([0-3]?\d))?$/);
     if(m) return Number(m[1])*10000 + Number(m[2])*100 + Number(m[3]||1);
     m=s.match(/^(\d{1,2})[\/]([01]?\d)[\/](\d{4})$/);
     if(m) return Number(m[3])*10000 + Number(m[2])*100 + Number(m[1]);
     return 0;
   }
+
   function safeUrl(value, field){
-    let s=clean(value); if(!s) return "";
-    if(field==="WhatsApp" && !/^https?:\/\//i.test(s)){
-      const digits=s.replace(/\D/g,""); if(!digits) return ""; s=`https://wa.me/${digits}`;
-    }
-    if(!/^https?:\/\//i.test(s)) return "";
+    const s=clean(value);
+    if(!s || !/^https?:\/\//i.test(s)) return "";
     if(field==="Sitio_Web" && /(?:docs\.google\.com|drive\.google\.com|facebook\.com|instagram\.com|tiktok\.com)/i.test(s)) return "";
     return s;
   }
+
   function linkCell(value, field){
-    const url=safeUrl(value, field); if(!url) return '<span class="link-empty">—</span>';
+    const url=safeUrl(value, field);
+    if(!url) return '<span class="link-empty">—</span>';
     return `<a class="detail-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(linkLabels[field]||"Abrir ↗")}</a>`;
   }
 
+  function phoneCell(value){
+    const label=clean(value);
+    if(!label) return '<span class="link-empty">—</span>';
+    const dial=label.replace(/[^0-9+*#]/g,"");
+    if(!dial) return escapeHtml(label);
+    return `<a class="phone-link" href="tel:${escapeHtml(dial)}">${escapeHtml(label)}</a>`;
+  }
+
   function csvUrl(gid){ return `https://docs.google.com/spreadsheets/d/${BASE_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}&cb=${Date.now()}`; }
+
   function parseCSV(text){
     const rows=[]; let row=[], field="", quoted=false;
     for(let i=0;i<text.length;i++){
@@ -127,6 +143,7 @@
     const headers=rows[0].map(clean);
     return rows.slice(1).map(r=>Object.fromEntries(headers.map((h,i)=>[h,clean(r[i]??"")])));
   }
+
   async function fetchCsv(source){
     const res=await fetch(csvUrl(source.gid),{cache:"no-store"});
     if(!res.ok) throw new Error(`${source.label}: HTTP ${res.status}`);
@@ -143,16 +160,18 @@
     });
     return rawPlans.filter(r=>clean(r.ID_Plan_Registro)||clean(r.Operador_Normalizado)).map(r=>{
       const op=byId.get(clean(r.ID_Operador)) || byName.get(fold(r.Operador_Normalizado)) || {};
-      const regular=toNum(r.Precio_Regular_COP), promo=toNum(r.Precio_Promocional_COP), speed=toNum(r.Velocidad_Bajada_Mbps);
+      const regular=toNum(r.Precio_Regular_COP), promo=toNum(r.Precio_Promocional_COP);
       const used=promo!=null && promo>0 ? promo : (regular!=null && regular>0 ? regular : null);
       return {
         ...r,
         Fecha_Mes:formatYearMonth(r.Fecha_Relevamiento),
         Barrio:clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ),
         Precio_Usado_COP:used==null?"":String(used),
-        Precio_por_Mbps:used!=null&&speed>0?String(used/speed):"",
-        Sitio_Web:clean(op.Sitio_Web), Instagram:clean(op.Instagram), Facebook:clean(op.Facebook), TikTok:clean(op.TikTok),
-        WhatsApp:clean(op.WhatsApp), Material_Publicitario:clean(op.Material_Publicitario)
+        Sitio_Web:clean(op.Sitio_Web),
+        Telefono_1:clean(op.Telefono_1), Telefono_2:clean(op.Telefono_2), Telefono_3:clean(op.Telefono_3),
+        Telefono_4:clean(op.Telefono_4), Telefono_5:clean(op.Telefono_5),
+        Instagram:clean(op.Instagram), Facebook:clean(op.Facebook), TikTok:clean(op.TikTok),
+        Imagenes_Folletos:clean(op.Imagenes_Folletos)
       };
     });
   }
@@ -182,8 +201,10 @@
       if($("refresh-btn")){ $("refresh-btn").disabled=false; $("refresh-btn").textContent="Actualizar"; }
     }
   }
+
   function showError(message){
-    removeErrorBox(); document.querySelector("main").insertAdjacentHTML("afterbegin",`<div id="source-error" class="error-box"><strong>No fue posible cargar Base General.</strong><br>${escapeHtml(message)}</div>`);
+    removeErrorBox();
+    document.querySelector("main").insertAdjacentHTML("afterbegin",`<div id="source-error" class="error-box"><strong>No fue posible cargar Base General.</strong><br>${escapeHtml(message)}</div>`);
   }
   function removeErrorBox(){ const el=$("source-error"); if(el)el.remove(); }
 
@@ -200,12 +221,21 @@
         options.filter(o=>fold(o).includes(fold(query))).forEach(o=>{
           const row=document.createElement("label"); row.className="filter-option";
           row.innerHTML=`<input type="checkbox" ${state.filters[key].has(o)?"checked":""}><span>${escapeHtml(o)}</span>`;
-          row.querySelector("input").addEventListener("change",e=>{ e.target.checked?state.filters[key].add(o):state.filters[key].delete(o); updateFilterLabel(wrap,key); applyFilters(); });
+          row.querySelector("input").addEventListener("change",e=>{
+            e.target.checked?state.filters[key].add(o):state.filters[key].delete(o);
+            updateFilterLabel(wrap,key); applyFilters();
+          });
           box.appendChild(row);
         });
       };
-      btn.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll(".filter-menu").forEach(m=>{if(m!==menu)m.classList.add("hidden")}); menu.classList.toggle("hidden"); if(!menu.classList.contains("hidden")){search.focus();paint(search.value);} });
-      menu.addEventListener("click",e=>e.stopPropagation()); search.addEventListener("input",()=>paint(search.value));
+      btn.addEventListener("click",e=>{
+        e.stopPropagation();
+        document.querySelectorAll(".filter-menu").forEach(m=>{if(m!==menu)m.classList.add("hidden")});
+        menu.classList.toggle("hidden");
+        if(!menu.classList.contains("hidden")){search.focus();paint(search.value);}
+      });
+      menu.addEventListener("click",e=>e.stopPropagation());
+      search.addEventListener("input",()=>paint(search.value));
       root.appendChild(wrap); paint(); updateFilterLabel(wrap,key);
     });
   }
@@ -238,10 +268,13 @@
   }
   function destroyChart(key){if(state.charts[key]){state.charts[key].destroy();delete state.charts[key];}}
   function countBy(rows,key){const m=new Map();rows.forEach(r=>{const v=clean(r[key])||"No informado";m.set(v,(m.get(v)||0)+1)});return[...m.entries()].sort((a,b)=>b[1]-a[1]);}
+
   function renderCharts(){
     const rows=state.filtered;
-    destroyChart("scatter"); const points=rows.map(r=>({x:toNum(r.Velocidad_Bajada_Mbps),y:toNum(r.Precio_Usado_COP),operator:clean(r.Operador_Normalizado),city:clean(r.Ciudad)})).filter(p=>p.x>0&&p.y>0);
-    let opt=chartDefaults(); state.charts.scatter=new Chart($("scatter-chart"),{type:"scatter",data:{datasets:[{label:"Planes",data:points,pointRadius:4,pointHoverRadius:6,backgroundColor:"rgba(0,242,154,.65)"}]},options:{...opt,plugins:{...opt.plugins,tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.raw.operator} · ${c.raw.city}: ${formatNum(c.raw.x)} Mbps · ${formatCOP(c.raw.y)}`}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,title:{display:true,text:"COP"},ticks:{callback:v=>`$${Math.round(v/1000)}k`}}}}});
+    destroyChart("scatter");
+    const points=rows.map(r=>({x:toNum(r.Velocidad_Bajada_Mbps),y:toNum(r.Precio_Usado_COP),operator:clean(r.Operador_Normalizado),city:clean(r.Ciudad)})).filter(p=>p.x>0&&p.y>0);
+    let opt=chartDefaults();
+    state.charts.scatter=new Chart($("scatter-chart"),{type:"scatter",data:{datasets:[{label:"Planes",data:points,pointRadius:4,pointHoverRadius:6,backgroundColor:"rgba(0,242,154,.65)"}]},options:{...opt,plugins:{...opt.plugins,tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.raw.operator} · ${c.raw.city}: ${formatNum(c.raw.x)} Mbps · ${formatCOP(c.raw.y)}`}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,title:{display:true,text:"COP"},ticks:{callback:v=>`$${Math.round(v/1000)}k`}}}}});
     const op=countBy(rows,"Operador_Normalizado").slice(0,12); destroyChart("operators"); opt=chartDefaults(); state.charts.operators=new Chart($("operators-chart"),{type:"bar",data:{labels:op.map(x=>x[0]),datasets:[{data:op.map(x=>x[1]),backgroundColor:"rgba(0,242,154,.68)",borderRadius:5}]},options:{...opt,indexAxis:"y",plugins:{...opt.plugins,legend:{display:false}}}});
     const city=countBy(rows,"Ciudad").slice(0,12); destroyChart("cities"); opt=chartDefaults(); state.charts.cities=new Chart($("cities-chart"),{type:"bar",data:{labels:city.map(x=>x[0]),datasets:[{data:city.map(x=>x[1]),backgroundColor:"rgba(0,199,125,.65)",borderRadius:5}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}}}});
     const tvMap=new Map([["Sí",0],["No",0],["No informado",0]]); rows.forEach(r=>{const v=normalizeTV(r.TV_Incluida);tvMap.set(v,(tvMap.get(v)||0)+1)}); destroyChart("tv"); opt=chartDefaults(); state.charts.tv=new Chart($("tv-chart"),{type:"doughnut",data:{labels:[...tvMap.keys()],datasets:[{data:[...tvMap.values()],backgroundColor:["#00F29A","#4d7869","#2a3732"],borderColor:"#0B110F",borderWidth:3}]},options:{...opt,cutout:"68%",plugins:{...opt.plugins,legend:{position:"bottom"}}}});
@@ -258,7 +291,7 @@
 
   function tableRows(){
     const q=fold(state.tableSearch);
-    let rows=state.filtered.filter(r=>!q||columns.some(([k])=>fold(r[k]).includes(q)));
+    const rows=state.filtered.filter(r=>!q||columns.some(([k])=>fold(r[k]).includes(q)));
     const {key,dir}=state.sort;
     return [...rows].sort((a,b)=>{
       if(key==="Fecha_Mes") return (dateSortValue(a.Fecha_Relevamiento)-dateSortValue(b.Fecha_Relevamiento))*dir;
@@ -266,29 +299,59 @@
       return clean(a[key]).localeCompare(clean(b[key]),"es",{numeric:true})*dir;
     });
   }
+
+  function diverseInitialRows(rows, limit=10){
+    const picked=[], seenCities=new Set(), used=new Set();
+    for(const r of rows){
+      const city=clean(r.Ciudad)||"Sin ciudad";
+      const id=clean(r.ID_Plan_Registro)||`${city}|${clean(r.Operador_Normalizado)}|${picked.length}`;
+      if(!seenCities.has(city)){
+        picked.push(r); seenCities.add(city); used.add(id);
+        if(picked.length>=limit) return picked;
+      }
+    }
+    for(const r of rows){
+      const id=clean(r.ID_Plan_Registro)||`${clean(r.Ciudad)}|${clean(r.Operador_Normalizado)}|${picked.length}`;
+      if(!used.has(id)){
+        picked.push(r); used.add(id);
+        if(picked.length>=limit) break;
+      }
+    }
+    return picked;
+  }
+
   function formatCell(key,value){
     if(linkFields.has(key)) return linkCell(value,key);
+    if(phoneFields.has(key)) return phoneCell(value);
     const n=toNum(value);
-    if(key==="Precio_Usado_COP"||key==="Precio_por_Mbps") return escapeHtml(formatCOP(n));
-    if(["Velocidad_Bajada_Mbps","Velocidad_Subida_Mbps","Permanencia_Meses"].includes(key)) return n==null?escapeHtml(clean(value)||"—"):escapeHtml(formatNum(n));
+    if(key==="Precio_Usado_COP") return escapeHtml(formatCOP(n));
+    if(["Velocidad_Bajada_Mbps","Permanencia_Meses"].includes(key)) return n==null?escapeHtml(clean(value)||"—"):escapeHtml(formatNum(n));
     if(key==="Fecha_Mes") return escapeHtml(clean(value)||"Sin info");
     return escapeHtml(clean(value)||"—");
   }
+
   function renderTable(){
     const rows=tableRows(), cols=columns.filter(([k])=>!state.hiddenColumns.has(k));
     $("table-head").innerHTML=`<tr>${cols.map(([k,l])=>`<th data-key="${escapeHtml(k)}">${escapeHtml(l)}${state.sort.key===k?`<span class="sort-mark">${state.sort.dir===1?"▲":"▼"}</span>`:""}</th>`).join("")}</tr>`;
     $("table-head").querySelectorAll("th").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.key;if(state.sort.key===k)state.sort.dir*=-1;else state.sort={key:k,dir:1};renderTable()}));
-    const shown=state.expanded?rows:rows.slice(0,10);
+    const shown=state.expanded?rows:diverseInitialRows(rows,10);
     $("table-body").innerHTML=shown.map(r=>`<tr>${cols.map(([k])=>`<td>${formatCell(k,r[k])}</td>`).join("")}</tr>`).join("");
-    $("table-count").textContent=`${formatNum(shown.length)} de ${formatNum(rows.length)} registros`;
-    $("more-btn").textContent=state.expanded?"Ver menos":"Ver más"; $("more-btn").style.display=rows.length>10?"inline-flex":"none";
+    $("table-count").textContent=state.expanded?`${formatNum(rows.length)} de ${formatNum(rows.length)} registros`:`${formatNum(shown.length)} de ${formatNum(rows.length)} registros · muestra inicial por ciudades`;
+    $("more-btn").textContent=state.expanded?"Ver menos":"Ver más";
+    $("more-btn").style.display=rows.length>10?"inline-flex":"none";
   }
+
   function renderColumns(){
-    const menu=$("columns-menu"); menu.innerHTML=columns.map(([k,l])=>`<label class="column-item"><input type="checkbox" data-key="${escapeHtml(k)}" ${state.hiddenColumns.has(k)?"":"checked"}><span>${escapeHtml(l)}</span></label>`).join("");
+    const menu=$("columns-menu");
+    menu.innerHTML=columns.map(([k,l])=>`<label class="column-item"><input type="checkbox" data-key="${escapeHtml(k)}" ${state.hiddenColumns.has(k)?"":"checked"}><span>${escapeHtml(l)}</span></label>`).join("");
     menu.querySelectorAll("input").forEach(i=>i.addEventListener("change",()=>{i.checked?state.hiddenColumns.delete(i.dataset.key):state.hiddenColumns.add(i.dataset.key);renderTable()}));
   }
+
   function injectLinkStyles(){
-    if($("dynamic-link-styles"))return; const style=document.createElement("style");style.id="dynamic-link-styles";style.textContent=`.detail-link{display:inline-flex;align-items:center;min-height:24px;padding:4px 8px;border:1px solid #1B3028;border-radius:8px;background:#0F1714;color:#00F29A!important;text-decoration:none;font-size:10px;font-weight:650;white-space:nowrap}.detail-link:hover{border-color:#00C77D;background:#102019}.link-empty{color:#50665e}.table-scroll td:has(.detail-link){overflow:visible;max-width:none}`;document.head.appendChild(style);
+    if($("dynamic-link-styles"))return;
+    const style=document.createElement("style"); style.id="dynamic-link-styles";
+    style.textContent=`.detail-link{display:inline-flex;align-items:center;min-height:24px;padding:4px 8px;border:1px solid #1B3028;border-radius:8px;background:#0F1714;color:#00F29A!important;text-decoration:none;font-size:10px;font-weight:650;white-space:nowrap}.detail-link:hover{border-color:#00C77D;background:#102019}.phone-link{color:#F4FFF9!important;text-decoration:none;white-space:nowrap;font-variant-numeric:tabular-nums}.phone-link:hover{color:#00F29A!important;text-decoration:underline}.link-empty{color:#50665e}.table-scroll td:has(.detail-link){overflow:visible;max-width:none}`;
+    document.head.appendChild(style);
   }
 
   $("refresh-btn").addEventListener("click",()=>load());
