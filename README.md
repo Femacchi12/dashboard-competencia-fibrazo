@@ -19,4 +19,4 @@ Autenticación Google/Firebase. Se autoriza `@fibrazo.com` y la excepción ya de
 
 ## Publicación
 
-Pensado para GitHub Pages desde la rama `main`, raíz `/`.
+GitHub Pages desde la rama `main`, raíz `/`.
