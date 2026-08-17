@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#050807" />
   <meta name="color-scheme" content="dark" />
-  <title>Competencia | FIBRAZO</title>
+  <title>FIBRAZO · Competencia</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=20260817-3" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -16,59 +17,65 @@
 <body>
   <div id="auth-gate" class="auth-gate">
     <div class="auth-card">
-      <div class="eyebrow">FIBRAZO · INTELIGENCIA COMPETITIVA</div>
+      <div class="auth-brand">FIBRAZO · Growth</div>
       <h1>Dashboard de Competencia</h1>
       <p>Acceso restringido a usuarios autorizados.</p>
-      <button id="login-btn" class="btn primary">Ingresar con Google</button>
+      <button id="login-btn" class="btn primary auth-button">Continuar con Google</button>
       <div id="auth-message" class="auth-message" aria-live="polite"></div>
     </div>
   </div>
 
   <main id="app" class="app hidden">
-    <header class="topbar">
-      <div>
-        <div class="eyebrow">FIBRAZO · INTELIGENCIA COMPETITIVA</div>
-        <h1>Competencia</h1>
-        <p class="subtitle">Planes, precios, enlaces comerciales y cobertura territorial leídos directamente desde Base General Competencia FIBRAZO.</p>
+    <header class="hero-header">
+      <div class="hero-copy">
+        <div class="hero-brand"><span>fibrazo</span><i></i><b>GROWTH</b></div>
+        <h1>Dashboard de Competencia</h1>
+        <p>Inteligencia competitiva de planes, precios, operadores y cobertura territorial.</p>
       </div>
-      <div class="top-actions">
-        <div class="user-block">
-          <span id="user-email">—</span>
-          <button id="logout-btn" class="btn ghost small">Salir</button>
-        </div>
-        <a class="btn ghost small" target="_blank" rel="noreferrer" href="https://docs.google.com/spreadsheets/d/1v2sBVe_w-bTl438b8qWFmvw0gT66bj8TskcXbnY-gbU/edit">Abrir base</a>
-        <button id="refresh-btn" class="btn primary small">Actualizar</button>
+
+      <div class="update-cards single">
+        <article>
+          <span>Última actualización de datos</span>
+          <b id="last-load">—</b>
+          <button id="refresh-btn" class="refresh-button" type="button">↻ Actualizar</button>
+        </article>
       </div>
+
+      <div class="auth-session">
+        <span id="user-email">—</span>
+        <a class="source-link" target="_blank" rel="noreferrer" href="https://docs.google.com/spreadsheets/d/1v2sBVe_w-bTl438b8qWFmvw0gT66bj8TskcXbnY-gbU/edit">Abrir base ↗</a>
+        <button id="logout-btn" type="button">Cerrar sesión</button>
+      </div>
+      <div class="orbit" aria-hidden="true"></div>
     </header>
 
-    <section class="status-strip">
-      <div><span>Última carga</span><strong id="last-load">—</strong></div>
+    <section class="source-strip" aria-label="Estado de fuentes">
       <div><span>Planes fuente</span><strong id="source-plan-count">—</strong></div>
       <div><span>Cobertura fuente</span><strong id="source-coverage-count">—</strong></div>
-      <div><span>Origen</span><strong>Base General</strong></div>
+      <div><span>Origen</span><strong>Base General Competencia FIBRAZO</strong></div>
     </section>
 
-    <section class="section">
-      <div class="section-head">
-        <div><div class="eyebrow">FILTROS GLOBALES</div><h2>Explorar mercado</h2></div>
-        <div class="section-actions">
-          <button id="reset-btn" class="btn ghost small">Restablecer</button>
-          <button id="clear-btn" class="btn ghost small">Borrar filtros</button>
+    <section class="filters panel section">
+      <div class="section-title filters-heading">
+        <div><span>FILTROS</span><h2>Explora el mercado</h2></div>
+        <div class="filter-header-actions">
+          <button id="reset-btn" class="btn outline small" type="button">Restablecer</button>
+          <button id="clear-btn" class="btn outline small" type="button">Limpiar filtros</button>
         </div>
       </div>
       <div id="filters" class="filters-grid"></div>
     </section>
 
     <section class="kpi-grid" aria-label="Indicadores principales">
-      <article class="kpi-card"><span>Planes visibles</span><strong id="kpi-plans">—</strong><small>Registros filtrados</small></article>
+      <article class="kpi-card primary"><span>Planes visibles</span><strong id="kpi-plans">—</strong><small>Registros filtrados</small></article>
       <article class="kpi-card"><span>Operadores</span><strong id="kpi-operators">—</strong><small id="kpi-cities-note">— ciudades/localidades</small></article>
-      <article class="kpi-card"><span>Precio mediano</span><strong id="kpi-price">—</strong><small>COP · precio usado</small></article>
-      <article class="kpi-card"><span>Velocidad mediana</span><strong id="kpi-speed">—</strong><small>Mbps bajada</small></article>
+      <article class="kpi-card accent"><span>Precio mediano</span><strong id="kpi-price">—</strong><small>COP · precio usado</small></article>
+      <article class="kpi-card"><span>Velocidad mediana</span><strong id="kpi-speed">—</strong><small>Mbps de bajada</small></article>
       <article class="kpi-card"><span>Oferta con TV</span><strong id="kpi-tv">—</strong><small>Sobre registros con TV informado</small></article>
     </section>
 
-    <section class="section">
-      <div class="section-head"><div><div class="eyebrow">MERCADO</div><h2>Planes y precios</h2></div></div>
+    <section class="section market-section">
+      <div class="section-title section-heading"><div><span>MERCADO</span><h2>Planes y precios</h2></div></div>
       <div class="charts-grid">
         <article class="panel chart-panel wide"><div class="panel-head"><h3>Precio × velocidad</h3><span>Precio usado vs. Mbps</span></div><canvas id="scatter-chart"></canvas></article>
         <article class="panel chart-panel"><div class="panel-head"><h3>Planes por operador</h3><span>Top operadores filtrados</span></div><canvas id="operators-chart"></canvas></article>
@@ -77,10 +84,10 @@
       </div>
     </section>
 
-    <section class="section">
-      <div class="section-head">
-        <div><div class="eyebrow">COBERTURA TERRITORIAL</div><h2>Presencia observada</h2></div>
-        <div class="coverage-meta"><strong id="coverage-visible">—</strong><span>registros de cobertura compatibles con los filtros</span></div>
+    <section class="section coverage-section">
+      <div class="section-title section-heading">
+        <div><span>COBERTURA TERRITORIAL</span><h2>Presencia observada</h2></div>
+        <div class="coverage-meta"><strong id="coverage-visible">—</strong><span>registros compatibles con los filtros</span></div>
       </div>
       <div class="coverage-grid">
         <article class="panel chart-panel"><div class="panel-head"><h3>Operadores por territorio</h3><span>Registros consolidados</span></div><canvas id="coverage-chart"></canvas></article>
@@ -88,36 +95,40 @@
       </div>
     </section>
 
-    <section class="section">
-      <div class="section-head table-head-row">
-        <div><div class="eyebrow">BASE DETALLADA</div><h2>Planes y competencia consolidada</h2></div>
-        <div class="table-tools">
-          <input id="table-search" class="search-input" type="search" placeholder="Buscar en la tabla…" autocomplete="off" />
+    <section class="section panel records">
+      <div class="section-title records-head">
+        <div><span>BASE DETALLADA</span><h2>Planes y competencia consolidada</h2></div>
+        <input id="table-search" class="search-input" type="search" placeholder="Buscar operador, ciudad, plan o contacto…" autocomplete="off" />
+      </div>
+
+      <div class="table-tools records-tools">
+        <p><b id="table-count">—</b><span>Desplaza la tabla con los botones, el scroll inferior o Shift + rueda del mouse.</span></p>
+        <div class="table-actions">
+          <button id="scroll-left" class="btn outline small" type="button">← Izquierda</button>
+          <button id="scroll-right" class="btn outline small" type="button">Derecha →</button>
           <div class="column-picker-wrap">
-            <button id="columns-btn" class="btn ghost small">Columnas</button>
+            <button id="columns-btn" class="btn outline small" type="button">Columnas ▾</button>
             <div id="columns-menu" class="columns-menu hidden"></div>
           </div>
         </div>
       </div>
-      <div class="table-shell panel">
-        <div class="table-scroll-wrap">
-          <button id="scroll-left" class="scroll-btn left" aria-label="Desplazar tabla a la izquierda">‹</button>
-          <div id="table-scroll" class="table-scroll"><table><thead id="table-head"></thead><tbody id="table-body"></tbody></table></div>
-          <button id="scroll-right" class="scroll-btn right" aria-label="Desplazar tabla a la derecha">›</button>
-        </div>
-        <div class="table-footer">
-          <span id="table-count">—</span>
-          <button id="more-btn" class="btn ghost small">Ver más</button>
-        </div>
+
+      <div id="table-scroll" class="table-scroll table-wrap">
+        <table><thead id="table-head"></thead><tbody id="table-body"></tbody></table>
+      </div>
+
+      <div class="records-more">
+        <button id="more-btn" class="btn outline small show-more-rows" type="button">VER MÁS</button>
       </div>
     </section>
 
     <footer>
-      Fuente única: <strong>Base General Competencia FIBRAZO</strong> · Lectura directa de 01_OPERADORES, 02_PLANES_HISTORICO y 03_COBERTURA.
+      <span>FIBRAZO · Growth & Inteligencia Competitiva</span>
+      <span>Fuente única: <strong>Base General Competencia FIBRAZO</strong></span>
     </footer>
   </main>
 
-  <script src="table-enhancements.js?v=20260817-1"></script>
-  <script src="auth.js?v=20260817-2"></script>
+  <script src="table-enhancements.js?v=20260817-3"></script>
+  <script src="auth.js?v=20260817-3"></script>
 </body>
 </html>
