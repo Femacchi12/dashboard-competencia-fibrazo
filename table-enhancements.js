@@ -105,7 +105,7 @@
     const remaining = Math.max(total - shown, 0);
     const formatted = new Intl.NumberFormat("es-CO").format(remaining);
     const expanded = button.textContent.trim().toLowerCase().startsWith("ver menos");
-    const nextText = expanded ? `Ver menos · ${formatted} filas` : `Ver más · ${formatted} filas`;
+    const nextText = expanded ? `VER MENOS · ${formatted} POR MOSTRAR` : `VER MÁS (${formatted})`;
     if (button.textContent !== nextText) button.textContent = nextText;
   }
 
@@ -128,15 +128,6 @@
   const style = document.createElement("style");
   style.id = "table-enhancement-styles";
   style.textContent = `
-    .table-footer{
-      display:grid!important;
-      grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;
-      align-items:center!important;
-      gap:12px!important;
-    }
-    #table-count{grid-column:1;justify-self:start;}
-    #more-btn{grid-column:2;justify-self:center;min-width:150px;}
-
     #table-head th[data-sticky-column],
     #table-body td[data-sticky-column]{
       position:sticky!important;
@@ -145,18 +136,18 @@
     }
     #table-head th[data-sticky-column]{
       top:0!important;
-      z-index:12!important;
+      z-index:14!important;
+      background:#0d1512!important;
     }
     #table-body td[data-sticky-column]{z-index:7!important;}
     #table-head th[data-sticky-column="3"],
     #table-body td[data-sticky-column="3"]{
-      box-shadow:8px 0 12px -12px rgba(0,242,154,.85);
+      box-shadow:9px 0 14px -13px rgba(0,242,154,.9);
       border-right:1px solid #1B3028!important;
     }
-
-    @media (max-width:760px){
-      .table-footer{grid-template-columns:1fr!important;justify-items:center!important;}
-      #table-count,#more-btn{grid-column:1;justify-self:center;}
+    #table-body tr:hover td[data-sticky-column]{background:#0d1713!important;}
+    @media (max-width:600px){
+      #more-btn{width:100%;}
     }
   `;
   document.head.appendChild(style);
