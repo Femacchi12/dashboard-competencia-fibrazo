@@ -28,10 +28,25 @@
 
   const loadDashboard = () => {
     if (document.querySelector('script[data-dashboard-app]')) return;
-    const script = document.createElement("script");
-    script.src = "app.js";
-    script.dataset.dashboardApp = "true";
-    document.body.appendChild(script);
+
+    const loadApp = () => {
+      const script = document.createElement("script");
+      script.src = "app.js?v=20260817-2";
+      script.dataset.dashboardApp = "true";
+      document.body.appendChild(script);
+    };
+
+    if (document.querySelector('script[data-dashboard-hotfix]')) {
+      loadApp();
+      return;
+    }
+
+    const hotfix = document.createElement("script");
+    hotfix.src = "hotfix.js?v=20260817-2";
+    hotfix.dataset.dashboardHotfix = "true";
+    hotfix.onload = loadApp;
+    hotfix.onerror = loadApp;
+    document.body.appendChild(hotfix);
   };
 
   loginBtn.addEventListener("click", async () => {
