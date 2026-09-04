@@ -3,8 +3,8 @@
 
   const originalFetch = window.fetch.bind(window);
   const rangesByGid = {
-    "1091103584": "A1:Z145",   // 01_OPERADORES
-    "1372196091": "A1:AC1000", // 02_PLANES_HISTORICO
+    "1091103584": "A1:AA145",  // 01_OPERADORES
+    "1372196091": "A1:AF1000", // 02_PLANES_HISTORICO
     "718563813": "A1:Z2500"    // 03_COBERTURA
   };
 
