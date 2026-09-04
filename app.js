@@ -11,25 +11,26 @@
 
   const state = {
     plans: [], operators: [], coverage: [], filtered: [], filteredCoverage: [],
-    filters: { city:new Set(), operator:new Set(), technology:new Set(), tv:new Set(), price:new Set(), confidence:new Set() },
-    tableSearch:"", expanded:false, sort:{ key:"Fecha_Mes", dir:-1 }, hiddenColumns:new Set(), charts:{},
+    filters: { period:new Set(), city:new Set(), operator:new Set(), technology:new Set(), modality:new Set(), price:new Set() },
+    tableSearch:"", expanded:false, sort:{ key:"Grupo_Operador", dir:1 }, hiddenColumns:new Set(["Operador_Normalizado"]), charts:{},
     loading:false, lastLoadAt:0
   };
 
   const filterDefs = [
-    ["city", "Ciudad / localidad", r => clean(r.Ciudad)],
-    ["operator", "Operador", r => clean(r.Operador_Normalizado)],
-    ["technology", "Tecnología", r => clean(r.Tecnologia) || "No informado"],
-    ["tv", "TV incluida", r => normalizeTV(r.TV_Incluida)],
-    ["price", "Rango de precio", r => priceBand(toNum(r.Precio_Usado_COP))],
-    ["confidence", "Confiabilidad", r => clean(r.Nivel_Confiabilidad) || "No informado"]
+    {key:"period", label:"Corte", getter:r=>clean(r.Periodo_Label), allLabel:"Último corte", single:true},
+    {key:"city", label:"Ciudad / localidad", getter:r=>clean(r.Ciudad), allLabel:"Todas"},
+    {key:"operator", label:"Operador", getter:r=>clean(r.Grupo_Operador)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado), allLabel:"Todos"},
+    {key:"technology", label:"Tecnología", getter:r=>clean(r.Tecnologia)||"No informado", allLabel:"Todos"},
+    {key:"modality", label:"Modalidad", getter:r=>clean(r.Modalidad)||"No informado", allLabel:"Todos"},
+    {key:"price", label:"Rango de precio", getter:r=>priceBand(toNum(r.Precio_Usado_COP)), allLabel:"Todos"}
   ];
 
   const columns = [
-    ["Fecha_Mes","Fecha"],
-    ["Operador_Normalizado","Operador"],
-    ["Departamento","Departamento"],
+    ["Periodo_Label","Corte"],
+    ["Grupo_Operador","Operador"],
     ["Ciudad","Ciudad"],
+    ["Departamento","Departamento"],
+    ["Operador_Normalizado","Detalle operador"],
     ["Barrio","Barrio"],
     ["Tipo_Servicio","Servicio"],
     ["TV_Incluida","TV"],
@@ -84,6 +85,19 @@
   const median = arr => { const a=arr.filter(Number.isFinite).sort((x,y)=>x-y); if(!a.length)return null; const m=Math.floor(a.length/2); return a.length%2?a[m]:(a[m-1]+a[m])/2; };
   const normalizeTV = v => { const s=fold(v); if(!s)return "No informado"; if(["si","yes","1","true"].includes(s))return "Sí"; if(["no","0","false"].includes(s))return "No"; return clean(v); };
   const priceBand = n => n == null ? "Sin precio" : n < 50000 ? "< $50k" : n <= 75000 ? "$50k–$75k" : n <= 100000 ? "$75k–$100k" : "> $100k";
+  const periodValue = value => clean(value).match(/^\d{4}-\d{2}$/) ? clean(value) : "";
+  const formatPeriod = value => {
+    const s=periodValue(value);
+    if(!s) return "Sin corte";
+    const [year,month]=s.split("-").map(Number);
+    return month>=1&&month<=12 ? `${year}-${months[month-1]}` : s;
+  };
+  const periodSortValue = value => {
+    const s=periodValue(value);
+    if(!s) return 0;
+    const [year,month]=s.split("-").map(Number);
+    return year*100+month;
+  };
 
   function formatYearMonth(value){
     const s=clean(value);
@@ -158,13 +172,16 @@
       if(clean(op.ID_Operador)) byId.set(clean(op.ID_Operador),op);
       if(clean(op.Operador_Normalizado)) byName.set(fold(op.Operador_Normalizado),op);
     });
-    return rawPlans.filter(r=>clean(r.ID_Plan_Registro)||clean(r.Operador_Normalizado)).map(r=>{
+    return rawPlans.filter(r=>clean(r.ID_Plan_Registro)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)).map(r=>{
       const op=byId.get(clean(r.ID_Operador)) || byName.get(fold(r.Operador_Normalizado)) || {};
       const regular=toNum(r.Precio_Regular_COP), promo=toNum(r.Precio_Promocional_COP);
       const used=promo!=null && promo>0 ? promo : (regular!=null && regular>0 ? regular : null);
       return {
         ...r,
         Fecha_Mes:formatYearMonth(r.Fecha_Relevamiento),
+        Periodo_Corte:periodValue(r.Periodo_Corte),
+        Periodo_Label:formatPeriod(r.Periodo_Corte),
+        Grupo_Operador:clean(op.Grupo_Operador)||clean(op.Marca_Comercial)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),
         Barrio:clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ),
         Precio_Usado_COP:used==null?"":String(used),
         Sitio_Web:clean(op.Sitio_Web),
@@ -174,6 +191,32 @@
         Imagenes_Folletos:clean(op.Imagenes_Folletos)
       };
     });
+  }
+
+  function buildCoverage(rawCoverage, operators){
+    const byId=new Map(), byName=new Map();
+    operators.forEach(op=>{
+      if(clean(op.ID_Operador)) byId.set(clean(op.ID_Operador),op);
+      if(clean(op.Operador_Normalizado)) byName.set(fold(op.Operador_Normalizado),op);
+    });
+    return rawCoverage.filter(r=>clean(r.ID_Cobertura)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)).map(r=>{
+      const op=byId.get(clean(r.ID_Operador)) || byName.get(fold(r.Operador_Normalizado)) || {};
+      return {
+        ...r,
+        Periodo_Corte:periodValue(r.Periodo_Corte),
+        Periodo_Label:formatPeriod(r.Periodo_Corte),
+        Grupo_Operador:clean(op.Grupo_Operador)||clean(op.Marca_Comercial)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)
+      };
+    });
+  }
+
+  function availablePeriods(){
+    return [...new Set(state.plans.map(r=>periodValue(r.Periodo_Corte)).filter(Boolean))].sort((a,b)=>periodSortValue(a)-periodSortValue(b));
+  }
+  function ensurePeriodSelection(){
+    if(state.filters.period.size) return;
+    const periods=availablePeriods();
+    if(periods.length) state.filters.period.add(formatPeriod(periods[periods.length-1]));
   }
 
   async function load({silent=false}={}){
@@ -188,7 +231,8 @@
       if(operatorsRes.status!=="fulfilled") throw operatorsRes.reason;
       state.operators=operatorsRes.value;
       state.plans=buildPlans(plansRes.value,operatorsRes.value);
-      state.coverage=coverageRes.status==="fulfilled"?coverageRes.value:[];
+      state.coverage=coverageRes.status==="fulfilled"?buildCoverage(coverageRes.value,operatorsRes.value):[];
+      ensurePeriodSelection();
       state.lastLoadAt=Date.now();
       $("last-load").textContent=new Intl.DateTimeFormat("es-CO",{dateStyle:"short",timeStyle:"short"}).format(new Date());
       removeErrorBox(); renderFilters(); applyFilters();
@@ -206,25 +250,52 @@
   }
   function removeErrorBox(){ const el=$("source-error"); if(el)el.remove(); }
 
+  function filterDef(key){ return filterDefs.find(d=>d.key===key); }
+  function rowPassesFilters(r, skipKey=null){
+    return filterDefs.every(def=>{
+      if(def.key===skipKey) return true;
+      const set=state.filters[def.key];
+      return !set.size || set.has(def.getter(r));
+    });
+  }
+
   function renderFilters(){
     const root=$("filters"); root.innerHTML="";
-    filterDefs.forEach(([key,label,getter])=>{
-      const options=[...new Set(state.plans.map(getter).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es"));
-      for(const selected of [...state.filters[key]]) if(!options.includes(selected)) state.filters[key].delete(selected);
+    filterDefs.forEach(def=>{
+      const {key,label,getter}=def;
+      const baseRows=key==="period" ? state.plans : state.plans.filter(r=>rowPassesFilters(r,key));
+      let options=[...new Set(baseRows.map(getter).filter(Boolean))];
+      if(key==="period"){
+        options.sort((a,b)=>{
+          const ar=state.plans.find(r=>r.Periodo_Label===a)?.Periodo_Corte||"";
+          const br=state.plans.find(r=>r.Periodo_Label===b)?.Periodo_Corte||"";
+          return periodSortValue(br)-periodSortValue(ar);
+        });
+      }else options.sort((a,b)=>a.localeCompare(b,"es",{numeric:true}));
+
+      if(key!=="period"){
+        for(const selected of [...state.filters[key]]) if(!options.includes(selected)) state.filters[key].delete(selected);
+      }
+
       const wrap=document.createElement("div"); wrap.className="filter";
-      wrap.innerHTML=`<label class="filter-label">${escapeHtml(label)}</label><button class="filter-btn" type="button"><span data-label>Todos</span><span>⌄</span></button><div class="filter-menu hidden"><input class="filter-search" placeholder="Buscar…"><div class="filter-options"></div></div>`;
+      wrap.innerHTML=`<label class="filter-label">${escapeHtml(label)}</label><button class="filter-btn" type="button"><span data-label>${escapeHtml(def.allLabel||"Todos")}</span><span>⌄</span></button><div class="filter-menu hidden"><input class="filter-search" placeholder="Buscar…"><div class="filter-options"></div></div>`;
       const btn=wrap.querySelector(".filter-btn"), menu=wrap.querySelector(".filter-menu"), box=wrap.querySelector(".filter-options"), search=wrap.querySelector(".filter-search");
       const paint=(query="")=>{
         box.innerHTML="";
         options.filter(o=>fold(o).includes(fold(query))).forEach(o=>{
           const row=document.createElement("label"); row.className="filter-option";
-          row.innerHTML=`<input type="checkbox" ${state.filters[key].has(o)?"checked":""}><span>${escapeHtml(o)}</span>`;
+          const type=def.single?"radio":"checkbox";
+          row.innerHTML=`<input type="${type}" ${def.single?`name="filter-${key}"`:""} ${state.filters[key].has(o)?"checked":""}><span>${escapeHtml(o)}</span>`;
           row.querySelector("input").addEventListener("change",e=>{
-            e.target.checked?state.filters[key].add(o):state.filters[key].delete(o);
-            updateFilterLabel(wrap,key); applyFilters();
+            if(def.single){ state.filters[key].clear(); state.filters[key].add(o); }
+            else e.target.checked?state.filters[key].add(o):state.filters[key].delete(o);
+            state.expanded=false;
+            renderFilters();
+            applyFilters();
           });
           box.appendChild(row);
         });
+        if(!box.children.length) box.innerHTML='<span class="filter-empty">Sin opciones compatibles</span>';
       };
       btn.addEventListener("click",e=>{
         e.stopPropagation();
@@ -234,30 +305,91 @@
       });
       menu.addEventListener("click",e=>e.stopPropagation());
       search.addEventListener("input",()=>paint(search.value));
-      root.appendChild(wrap); paint(); updateFilterLabel(wrap,key);
+      root.appendChild(wrap); paint(); updateFilterLabel(wrap,def);
     });
   }
-  function updateFilterLabel(wrap,key){ const n=state.filters[key].size; wrap.querySelector("[data-label]").textContent=n===0?"Todos":n===1?[...state.filters[key]][0]:`${n} seleccionados`; }
+  function updateFilterLabel(wrap,def){
+    const set=state.filters[def.key], n=set.size;
+    wrap.querySelector("[data-label]").textContent=n===0?(def.allLabel||"Todos"):n===1?[...set][0]:`${n} seleccionados`;
+  }
 
-  function planPasses(r){
-    const vals={city:clean(r.Ciudad),operator:clean(r.Operador_Normalizado),technology:clean(r.Tecnologia)||"No informado",tv:normalizeTV(r.TV_Incluida),price:priceBand(toNum(r.Precio_Usado_COP)),confidence:clean(r.Nivel_Confiabilidad)||"No informado"};
-    return Object.entries(state.filters).every(([k,set])=>!set.size||set.has(vals[k]));
-  }
-  function coveragePasses(r){
-    const city=clean(r.Ciudad),operator=clean(r.Operador_Normalizado),tech=clean(r.Tecnologia)||"No informado";
-    return(!state.filters.city.size||state.filters.city.has(city))&&(!state.filters.operator.size||state.filters.operator.has(operator))&&(!state.filters.technology.size||state.filters.technology.has(tech));
-  }
+  function planPasses(r){ return rowPassesFilters(r); }
+  function evolutionPasses(r){ return filterDefs.filter(d=>d.key!=="period").every(def=>!state.filters[def.key].size||state.filters[def.key].has(def.getter(r))); }
+
   function applyFilters(){
-    state.filtered=state.plans.filter(planPasses); state.filteredCoverage=state.coverage.filter(coveragePasses);
-    renderKPIs(); renderCharts(); renderCoverage(); renderTable();
+    state.filtered=state.plans.filter(planPasses);
+    const allowed=new Set(state.filtered.map(r=>[`${r.Periodo_Label}`,clean(r.Ciudad),clean(r.Grupo_Operador)].join("|")));
+    state.filteredCoverage=state.coverage.filter(r=>allowed.has([`${r.Periodo_Label}`,clean(r.Ciudad),clean(r.Grupo_Operador)].join("|")));
+    renderKPIs(); renderEvolution(); renderCharts(); renderCoverage(); renderTable();
   }
 
   function renderKPIs(){
-    const d=state.filtered, operators=new Set(d.map(r=>clean(r.Operador_Normalizado)).filter(Boolean)), cities=new Set(d.map(r=>clean(r.Ciudad)).filter(Boolean));
+    const d=state.filtered, operators=new Set(d.map(r=>clean(r.Grupo_Operador)).filter(Boolean)), cities=new Set(d.map(r=>clean(r.Ciudad)).filter(Boolean));
     const prices=d.map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0), speeds=d.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
-    const knownTv=d.map(r=>normalizeTV(r.TV_Incluida)).filter(v=>v==="Sí"||v==="No"), yesTv=knownTv.filter(v=>v==="Sí").length;
-    $("kpi-plans").textContent=formatNum(d.length); $("kpi-operators").textContent=formatNum(operators.size); $("kpi-cities-note").textContent=`${formatNum(cities.size)} ciudades/localidades`;
-    $("kpi-price").textContent=formatCOP(median(prices)); $("kpi-speed").textContent=median(speeds)==null?"—":formatNum(median(speeds)); $("kpi-tv").textContent=knownTv.length?`${Math.round(yesTv/knownTv.length*100)}%`:"—";
+    $("kpi-operators").textContent=formatNum(operators.size);
+    $("kpi-cities-note").textContent=`${formatNum(cities.size)} ciudades/localidades`;
+    $("kpi-plans").textContent=formatNum(d.length);
+    $("kpi-min-price").textContent=prices.length?formatCOP(Math.min(...prices)):"—";
+    $("kpi-price").textContent=formatCOP(median(prices));
+    $("kpi-speed").textContent=median(speeds)==null?"—":formatNum(median(speeds));
+  }
+
+  function shortNames(items){
+    const a=[...items].filter(Boolean);
+    if(!a.length) return "Sin cambios";
+    return a.length<=3?a.join(", "):`${a.slice(0,3).join(", ")} +${a.length-3}`;
+  }
+  function medianPriceByOperator(rows){
+    const m=new Map();
+    rows.forEach(r=>{
+      const op=clean(r.Grupo_Operador); const p=toNum(r.Precio_Usado_COP);
+      if(!op||!(p>0)) return;
+      if(!m.has(op))m.set(op,[]);
+      m.get(op).push(p);
+    });
+    return new Map([...m.entries()].map(([op,arr])=>[op,median(arr)]));
+  }
+  function renderEvolution(){
+    const periods=availablePeriods();
+    const selectedLabel=[...state.filters.period][0]||"";
+    const currentRow=state.plans.find(r=>r.Periodo_Label===selectedLabel);
+    const current=currentRow?.Periodo_Corte||periods[periods.length-1]||"";
+    const currentIndex=periods.indexOf(current);
+    const previous=currentIndex>0?periods[currentIndex-1]:"";
+    $("evolution-current").textContent=current?formatPeriod(current):"Sin corte";
+    $("evolution-compare").textContent=previous?`vs. ${formatPeriod(previous)}`:"Primer corte disponible";
+
+    const filteredHistory=state.plans.filter(evolutionPasses);
+    const rowsFor=p=>filteredHistory.filter(r=>r.Periodo_Corte===p);
+    const currentRows=rowsFor(current), previousRows=rowsFor(previous);
+    const currentOps=new Set(currentRows.map(r=>clean(r.Grupo_Operador)).filter(Boolean));
+    const previousOps=new Set(previousRows.map(r=>clean(r.Grupo_Operador)).filter(Boolean));
+    const added=[...currentOps].filter(x=>!previousOps.has(x));
+    const lost=[...previousOps].filter(x=>!currentOps.has(x));
+
+    if(previous){
+      $("evo-new").textContent=formatNum(added.length);
+      $("evo-lost").textContent=formatNum(lost.length);
+      $("evo-new-note").textContent=shortNames(added);
+      $("evo-lost-note").textContent=shortNames(lost);
+      const curPrice=medianPriceByOperator(currentRows), prevPrice=medianPriceByOperator(previousRows);
+      const changed=[...curPrice.keys()].filter(op=>prevPrice.has(op)&&Math.abs(curPrice.get(op)-prevPrice.get(op))>=1);
+      $("evo-price-change").textContent=formatNum(changed.length);
+      $("evo-price-note").textContent=shortNames(changed);
+    }else{
+      $("evo-new").textContent="—"; $("evo-lost").textContent="—"; $("evo-price-change").textContent="—";
+      $("evo-new-note").textContent="Primer corte"; $("evo-lost-note").textContent="Primer corte"; $("evo-price-note").textContent="Sin comparación anterior";
+    }
+
+    destroyChart("evoCompetitors");
+    let opt=chartDefaults();
+    const competitorData=periods.map(p=>new Set(rowsFor(p).map(r=>clean(r.Grupo_Operador)).filter(Boolean)).size);
+    state.charts.evoCompetitors=new Chart($("competitors-evolution-chart"),{type:"line",data:{labels:periods.map(formatPeriod),datasets:[{label:"Competidores",data:competitorData,borderColor:"#00F29A",backgroundColor:"rgba(0,242,154,.12)",pointBackgroundColor:"#00F29A",pointRadius:4,tension:.25,fill:true}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}});
+
+    destroyChart("evoPrice");
+    opt=chartDefaults();
+    const priceData=periods.map(p=>median(rowsFor(p).map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0)));
+    state.charts.evoPrice=new Chart($("price-evolution-chart"),{type:"line",data:{labels:periods.map(formatPeriod),datasets:[{label:"Precio mediano",data:priceData,borderColor:"#73B9FF",backgroundColor:"rgba(115,185,255,.10)",pointBackgroundColor:"#73B9FF",pointRadius:4,tension:.25,fill:true}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>formatCOP(c.raw)}}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,ticks:{callback:v=>`${Math.round(v/1000)}k`}}}}});
   }
 
   function chartDefaults(){
@@ -270,20 +402,29 @@
   function renderCharts(){
     const rows=state.filtered;
     destroyChart("scatter");
-    const points=rows.map(r=>({x:toNum(r.Velocidad_Bajada_Mbps),y:toNum(r.Precio_Usado_COP),operator:clean(r.Operador_Normalizado),city:clean(r.Ciudad)})).filter(p=>p.x>0&&p.y>0);
+    const points=rows.map(r=>({x:toNum(r.Velocidad_Bajada_Mbps),y:toNum(r.Precio_Usado_COP),operator:clean(r.Grupo_Operador),city:clean(r.Ciudad)})).filter(p=>p.x>0&&p.y>0);
     let opt=chartDefaults();
-    state.charts.scatter=new Chart($("scatter-chart"),{type:"scatter",data:{datasets:[{label:"Planes",data:points,pointRadius:4,pointHoverRadius:6,backgroundColor:"rgba(0,242,154,.65)"}]},options:{...opt,plugins:{...opt.plugins,tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.raw.operator} · ${c.raw.city}: ${formatNum(c.raw.x)} Mbps · ${formatCOP(c.raw.y)}`}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,title:{display:true,text:"COP"},ticks:{callback:v=>`$${Math.round(v/1000)}k`}}}}});
-    const op=countBy(rows,"Operador_Normalizado").slice(0,12); destroyChart("operators"); opt=chartDefaults(); state.charts.operators=new Chart($("operators-chart"),{type:"bar",data:{labels:op.map(x=>x[0]),datasets:[{data:op.map(x=>x[1]),backgroundColor:"rgba(0,242,154,.68)",borderRadius:5}]},options:{...opt,indexAxis:"y",plugins:{...opt.plugins,legend:{display:false}}}});
-    const city=countBy(rows,"Ciudad").slice(0,12); destroyChart("cities"); opt=chartDefaults(); state.charts.cities=new Chart($("cities-chart"),{type:"bar",data:{labels:city.map(x=>x[0]),datasets:[{data:city.map(x=>x[1]),backgroundColor:"rgba(0,199,125,.65)",borderRadius:5}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}}}});
-    const tvMap=new Map([["Sí",0],["No",0],["No informado",0]]); rows.forEach(r=>{const v=normalizeTV(r.TV_Incluida);tvMap.set(v,(tvMap.get(v)||0)+1)}); destroyChart("tv"); opt=chartDefaults(); state.charts.tv=new Chart($("tv-chart"),{type:"doughnut",data:{labels:[...tvMap.keys()],datasets:[{data:[...tvMap.values()],backgroundColor:["#00F29A","#4d7869","#2a3732"],borderColor:"#0B110F",borderWidth:3}]},options:{...opt,cutout:"68%",plugins:{...opt.plugins,legend:{position:"bottom"}}}});
+    state.charts.scatter=new Chart($("scatter-chart"),{type:"scatter",data:{datasets:[{label:"Planes",data:points,pointRadius:4,pointHoverRadius:6,backgroundColor:"rgba(0,242,154,.65)"}]},options:{...opt,plugins:{...opt.plugins,tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.raw.operator} · ${c.raw.city}: ${formatNum(c.raw.x)} Mbps · ${formatCOP(c.raw.y)}`}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,title:{display:true,text:"COP"},ticks:{callback:v=>`${Math.round(v/1000)}k`}}}}});
+
+    const opMap=new Map();
+    rows.forEach(r=>{const op=clean(r.Grupo_Operador),p=toNum(r.Precio_Usado_COP);if(op&&p>0){if(!opMap.has(op))opMap.set(op,[]);opMap.get(op).push(p)}});
+    const op=[...opMap.entries()].map(([name,prices])=>[name,median(prices)]).sort((a,b)=>a[1]-b[1]).slice(0,12);
+    destroyChart("operators"); opt=chartDefaults();
+    state.charts.operators=new Chart($("operators-chart"),{type:"bar",data:{labels:op.map(x=>x[0]),datasets:[{data:op.map(x=>x[1]),backgroundColor:"rgba(0,242,154,.68)",borderRadius:5}]},options:{...opt,indexAxis:"y",plugins:{...opt.plugins,legend:{display:false},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>formatCOP(c.raw)}}},scales:{x:{...opt.scales.x,ticks:{callback:v=>`${Math.round(v/1000)}k`}},y:{...opt.scales.y}}}});
+
+    const cityMap=new Map();
+    rows.forEach(r=>{const city=clean(r.Ciudad),op=clean(r.Grupo_Operador);if(city&&op){if(!cityMap.has(city))cityMap.set(city,new Set());cityMap.get(city).add(op)}});
+    const city=[...cityMap.entries()].map(([name,set])=>[name,set.size]).sort((a,b)=>b[1]-a[1]).slice(0,12);
+    destroyChart("cities"); opt=chartDefaults();
+    state.charts.cities=new Chart($("cities-chart"),{type:"bar",data:{labels:city.map(x=>x[0]),datasets:[{data:city.map(x=>x[1]),backgroundColor:"rgba(0,199,125,.65)",borderRadius:5}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}});
   }
 
   function renderCoverage(){
     const rows=state.filteredCoverage; $("coverage-visible").textContent=formatNum(rows.length);
-    const grouped=new Map(); rows.forEach(r=>{const key=clean(r.Ciudad)||"No informado";grouped.set(key,(grouped.get(key)||0)+1)}); const top=[...grouped.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12);
-    destroyChart("coverage"); const opt=chartDefaults(); state.charts.coverage=new Chart($("coverage-chart"),{type:"bar",data:{labels:top.map(x=>x[0]),datasets:[{data:top.map(x=>x[1]),backgroundColor:"rgba(0,242,154,.66)",borderRadius:5}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}}}});
+    const grouped=new Map(); rows.forEach(r=>{const city=clean(r.Ciudad)||"No informado",op=clean(r.Grupo_Operador)||"No informado";if(!grouped.has(city))grouped.set(city,new Set());grouped.get(city).add(op)}); const top=[...grouped.entries()].map(([city,set])=>[city,set.size]).sort((a,b)=>b[1]-a[1]).slice(0,12);
+    destroyChart("coverage"); const opt=chartDefaults(); state.charts.coverage=new Chart($("coverage-chart"),{type:"bar",data:{labels:top.map(x=>x[0]),datasets:[{data:top.map(x=>x[1]),backgroundColor:"rgba(0,242,154,.66)",borderRadius:5}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}});
     const list=$("coverage-list"); list.innerHTML="";
-    rows.slice(0,80).forEach(r=>{const el=document.createElement("div");el.className="coverage-row";el.innerHTML=`<strong>${escapeHtml(clean(r.Ciudad)||"—")}</strong><span>${escapeHtml(clean(r.Operador_Normalizado)||"—")}</span><span>${escapeHtml(clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ)||"Ciudad")}</span>`;list.appendChild(el)});
+    rows.slice(0,80).forEach(r=>{const el=document.createElement("div");el.className="coverage-row";el.innerHTML=`<strong>${escapeHtml(clean(r.Ciudad)||"—")}</strong><span>${escapeHtml(clean(r.Grupo_Operador)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)||"—")}</span><span>${escapeHtml(clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ)||"Ciudad")}</span>`;list.appendChild(el)});
     if(!rows.length) list.innerHTML='<span class="subtitle">Sin registros compatibles con los filtros.</span>';
   }
 
@@ -292,7 +433,7 @@
     const rows=state.filtered.filter(r=>!q||columns.some(([k])=>fold(r[k]).includes(q)));
     const {key,dir}=state.sort;
     return [...rows].sort((a,b)=>{
-      if(key==="Fecha_Mes") return (dateSortValue(a.Fecha_Relevamiento)-dateSortValue(b.Fecha_Relevamiento))*dir;
+      if(key==="Periodo_Label") return (periodSortValue(a.Periodo_Corte)-periodSortValue(b.Periodo_Corte))*dir;
       const an=toNum(a[key]),bn=toNum(b[key]); if(an!=null&&bn!=null)return(an-bn)*dir;
       return clean(a[key]).localeCompare(clean(b[key]),"es",{numeric:true})*dir;
     });
@@ -302,14 +443,14 @@
     const picked=[], seenCities=new Set(), used=new Set();
     for(const r of rows){
       const city=clean(r.Ciudad)||"Sin ciudad";
-      const id=clean(r.ID_Plan_Registro)||`${city}|${clean(r.Operador_Normalizado)}|${picked.length}`;
+      const id=clean(r.ID_Plan_Registro)||`${city}|${clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)}|${picked.length}`;
       if(!seenCities.has(city)){
         picked.push(r); seenCities.add(city); used.add(id);
         if(picked.length>=limit) return picked;
       }
     }
     for(const r of rows){
-      const id=clean(r.ID_Plan_Registro)||`${clean(r.Ciudad)}|${clean(r.Operador_Normalizado)}|${picked.length}`;
+      const id=clean(r.ID_Plan_Registro)||`${clean(r.Ciudad)}|${clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)}|${picked.length}`;
       if(!used.has(id)){
         picked.push(r); used.add(id);
         if(picked.length>=limit) break;
@@ -324,6 +465,7 @@
     const n=toNum(value);
     if(key==="Precio_Usado_COP") return escapeHtml(formatCOP(n));
     if(["Velocidad_Bajada_Mbps","Permanencia_Meses"].includes(key)) return n==null?escapeHtml(clean(value)||"—"):escapeHtml(formatNum(n));
+    if(key==="Periodo_Label") return escapeHtml(clean(value)||"Sin corte");
     if(key==="Fecha_Mes") return escapeHtml(clean(value)||"Sin info");
     return escapeHtml(clean(value)||"—");
   }
@@ -353,8 +495,8 @@
   }
 
   $("refresh-btn").addEventListener("click",()=>load());
-  $("reset-btn").addEventListener("click",()=>{Object.values(state.filters).forEach(s=>s.clear());state.tableSearch="";$("table-search").value="";state.expanded=false;state.sort={key:"Fecha_Mes",dir:-1};renderFilters();applyFilters()});
-  $("clear-btn").addEventListener("click",()=>{Object.values(state.filters).forEach(s=>s.clear());renderFilters();applyFilters()});
+  $("reset-btn").addEventListener("click",()=>{Object.values(state.filters).forEach(s=>s.clear());ensurePeriodSelection();state.tableSearch="";$("table-search").value="";state.expanded=false;state.sort={key:"Grupo_Operador",dir:1};renderFilters();applyFilters()});
+  $("clear-btn").addEventListener("click",()=>{Object.entries(state.filters).forEach(([key,set])=>{if(key!=="period")set.clear()});state.expanded=false;renderFilters();applyFilters()});
   $("table-search").addEventListener("input",e=>{state.tableSearch=e.target.value;renderTable()});
   $("more-btn").addEventListener("click",()=>{state.expanded=!state.expanded;renderTable();if(!state.expanded)$("table-scroll").scrollTop=0});
   $("columns-btn").addEventListener("click",e=>{e.stopPropagation();renderColumns();$("columns-menu").classList.toggle("hidden")});
