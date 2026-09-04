@@ -31,7 +31,7 @@
 
     const loadApp = () => {
       const script = document.createElement("script");
-      script.src = "app.js?v=20260904-7";
+      script.src = "app.js?v=20260904-8";
       script.dataset.dashboardApp = "true";
       document.body.appendChild(script);
     };
@@ -42,7 +42,7 @@
     }
 
     const hotfix = document.createElement("script");
-    hotfix.src = "hotfix.js?v=20260904-2";
+    hotfix.src = "hotfix.js?v=20260904-3";
     hotfix.dataset.dashboardHotfix = "true";
     hotfix.onload = loadApp;
     hotfix.onerror = loadApp;
