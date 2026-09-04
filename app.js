@@ -278,6 +278,21 @@
     applyFilters();
   }
 
+  function toggleCitySelection(city){
+    const value=clean(city);
+    if(!value) return;
+    state.cityScopeMode="custom";
+    if(state.filters.city.has(value)) state.filters.city.delete(value);
+    else state.filters.city.add(value);
+    if(!state.filters.city.size) state.cityScopeMode="fibrazo";
+    state.expanded=false;
+    renderCityQuickbar();
+    renderFilters();
+    applyFilters();
+  }
+
+  function selectedCitiesCount(){ return state.filters.city.size; }
+
   function renderCityQuickbar(){
     const root=$("city-quickbar"); if(!root)return;
     root.innerHTML="";
@@ -294,15 +309,17 @@
 
     quick.forEach(m=>{
       const city=clean(m.Ciudad);
-      const active=state.cityScopeMode==="custom"&&state.filters.city.size===1&&state.filters.city.has(city);
+      const active=state.cityScopeMode==="custom"&&state.filters.city.has(city);
       const cls=fold(m.Prioridad_Visual)==="principal"?"principal":"";
-      root.appendChild(makeButton(city,active,()=>setCityScope("custom",[city]),cls));
+      root.appendChild(makeButton(city,active,()=>toggleCitySelection(city),cls));
     });
 
     const wrap=document.createElement("div"); wrap.className="city-more-wrap";
     const selectedOther=[...state.filters.city].filter(c=>!quickNames.has(c));
-    const moreActive=state.cityScopeMode==="all"||selectedOther.length>0||state.filters.city.size>1;
-    const moreBtn=makeButton(moreActive&&state.filters.city.size>1?`+ Más · ${state.filters.city.size}`:"+ Más",moreActive,e=>{
+    const totalSelected=selectedCitiesCount();
+    const moreActive=state.cityScopeMode==="all"||selectedOther.length>0;
+    const moreLabel=totalSelected>0?`+ Más · ${totalSelected}`:"+ Más";
+    const moreBtn=makeButton(moreLabel,moreActive,e=>{
       e.stopPropagation();
       wrap.querySelector(".city-more-menu").classList.toggle("hidden");
       wrap.querySelector(".city-more-search")?.focus();
@@ -324,9 +341,11 @@
         row.querySelector("input").addEventListener("change",e=>{
           state.cityScopeMode="custom";
           if(e.target.checked) state.filters.city.add(city); else state.filters.city.delete(city);
-          if(!state.filters.city.size){ state.cityScopeMode="fibrazo"; }
+          if(!state.filters.city.size) state.cityScopeMode="fibrazo";
           state.expanded=false;
-          renderCityQuickbar(); renderFilters(); applyFilters();
+          renderCityQuickbar();
+          renderFilters();
+          applyFilters();
         });
         optionsBox.appendChild(row);
       });
