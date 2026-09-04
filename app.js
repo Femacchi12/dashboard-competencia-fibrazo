@@ -681,6 +681,49 @@
     if(!rows.length) list.innerHTML='<span class="subtitle">Sin presencia observada compatible con los filtros.</span>';
   }
 
+  function tableRows(){
+    const q=fold(state.tableSearch);
+    const rows=state.filtered.filter(r=>!q||columns.some(([k])=>fold(r[k]).includes(q)));
+    const {key,dir}=state.sort;
+    return [...rows].sort((a,b)=>{
+      if(key==="Periodo_Label") return (periodSortValue(a.Periodo_Corte)-periodSortValue(b.Periodo_Corte))*dir;
+      const an=toNum(a[key]),bn=toNum(b[key]);
+      if(an!=null&&bn!=null) return (an-bn)*dir;
+      return clean(a[key]).localeCompare(clean(b[key]),"es",{numeric:true})*dir;
+    });
+  }
+
+  function diverseInitialRows(rows, limit=10){
+    const picked=[], seenCities=new Set(), used=new Set();
+    for(const r of rows){
+      const city=clean(r.Ciudad)||"Sin ciudad";
+      const id=clean(r.ID_Plan_Registro)||`${city}|${clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)}|${picked.length}`;
+      if(!seenCities.has(city)){
+        picked.push(r); seenCities.add(city); used.add(id);
+        if(picked.length>=limit) return picked;
+      }
+    }
+    for(const r of rows){
+      const id=clean(r.ID_Plan_Registro)||`${clean(r.Ciudad)}|${clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)}|${picked.length}`;
+      if(!used.has(id)){
+        picked.push(r); used.add(id);
+        if(picked.length>=limit) break;
+      }
+    }
+    return picked;
+  }
+
+  function formatCell(key,value){
+    if(linkFields.has(key)) return linkCell(value,key);
+    if(phoneFields.has(key)) return phoneCell(value);
+    const n=toNum(value);
+    if(key==="Precio_Usado_COP") return escapeHtml(formatCOP(n));
+    if(["Velocidad_Bajada_Mbps","Permanencia_Meses"].includes(key)) return n==null?escapeHtml(clean(value)||"—"):escapeHtml(formatNum(n));
+    if(key==="Periodo_Label") return escapeHtml(clean(value)||"Sin corte");
+    if(key==="Fecha_Mes") return escapeHtml(clean(value)||"Sin info");
+    return escapeHtml(clean(value)||"—");
+  }
+
   function renderTable(){
     const rows=tableRows(), cols=columns.filter(([k])=>!state.hiddenColumns.has(k));
     $("table-head").innerHTML=`<tr>${cols.map(([k,l])=>`<th data-key="${escapeHtml(k)}">${escapeHtml(l)}${state.sort.key===k?`<span class="sort-mark">${state.sort.dir===1?"▲":"▼"}</span>`:""}</th>`).join("")}</tr>`;
