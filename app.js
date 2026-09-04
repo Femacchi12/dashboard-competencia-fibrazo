@@ -258,6 +258,20 @@
       return !set.size || set.has(def.getter(r));
     });
   }
+  function coveragePassesFilters(r, skipKey=null, includePeriod=true){
+    const checks={
+      period:clean(r.Periodo_Label),
+      city:clean(r.Ciudad),
+      operator:clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),
+      technology:clean(r.Tecnologia)||"No informado"
+    };
+    return ["period","city","operator","technology"].every(key=>{
+      if(key===skipKey || (!includePeriod&&key==="period")) return true;
+      const set=state.filters[key];
+      return !set.size || set.has(checks[key]);
+    });
+  }
+  function hasPlanSpecificFilters(){ return state.filters.modality.size>0 || state.filters.price.size>0; }
 
   function renderFilters(){
     const root=$("filters"); root.innerHTML="";
@@ -265,6 +279,10 @@
       const {key,label,getter}=def;
       const baseRows=key==="period" ? state.plans : state.plans.filter(r=>rowPassesFilters(r,key));
       let options=[...new Set(baseRows.map(getter).filter(Boolean))];
+      if(!hasPlanSpecificFilters() && (key==="operator" || key==="city")){
+        const coverageOptions=state.coverage.filter(r=>coveragePassesFilters(r,key)).map(r=>key==="operator"?(clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)):clean(r.Ciudad)).filter(Boolean);
+        options=[...new Set([...options,...coverageOptions])];
+      }
       if(key==="period"){
         options.sort((a,b)=>{
           const ar=state.plans.find(r=>r.Periodo_Label===a)?.Periodo_Corte||"";
@@ -318,13 +336,19 @@
 
   function applyFilters(){
     state.filtered=state.plans.filter(planPasses);
-    const allowed=new Set(state.filtered.map(r=>[`${r.Periodo_Label}`,clean(r.Ciudad),clean(r.Grupo_Operador)].join("|")));
-    state.filteredCoverage=state.coverage.filter(r=>allowed.has([`${r.Periodo_Label}`,clean(r.Ciudad),clean(r.Grupo_Operador)].join("|")));
+    if(hasPlanSpecificFilters()){
+      const allowed=new Set(state.filtered.map(r=>[`${r.Periodo_Label}`,clean(r.Ciudad),clean(r.Grupo_Operador)].join("|")));
+      state.filteredCoverage=state.coverage.filter(r=>allowed.has([`${r.Periodo_Label}`,clean(r.Ciudad),clean(r.Grupo_Operador)].join("|")) && coveragePassesFilters(r));
+    }else{
+      state.filteredCoverage=state.coverage.filter(r=>coveragePassesFilters(r));
+    }
     renderKPIs(); renderEvolution(); renderCharts(); renderCoverage(); renderTable();
   }
 
   function renderKPIs(){
-    const d=state.filtered, operators=new Set(d.map(r=>clean(r.Grupo_Operador)).filter(Boolean)), cities=new Set(d.map(r=>clean(r.Ciudad)).filter(Boolean));
+    const d=state.filtered;
+    const operators=new Set([...d.map(r=>clean(r.Grupo_Operador)),...state.filteredCoverage.map(r=>clean(r.Grupo_Operador))].filter(Boolean));
+    const cities=new Set([...d.map(r=>clean(r.Ciudad)),...state.filteredCoverage.map(r=>clean(r.Ciudad))].filter(Boolean));
     const prices=d.map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0), speeds=d.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
     $("kpi-operators").textContent=formatNum(operators.size);
     $("kpi-cities-note").textContent=`${formatNum(cities.size)} ciudades/localidades`;
@@ -361,9 +385,15 @@
 
     const filteredHistory=state.plans.filter(evolutionPasses);
     const rowsFor=p=>filteredHistory.filter(r=>r.Periodo_Corte===p);
+    const coverageFor=p=>state.coverage.filter(r=>r.Periodo_Corte===p && coveragePassesFilters(r,null,false));
+    const presenceFor=p=>{
+      const set=new Set(rowsFor(p).map(r=>clean(r.Grupo_Operador)).filter(Boolean));
+      if(!hasPlanSpecificFilters()) coverageFor(p).forEach(r=>{const op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado);if(op)set.add(op)});
+      return set;
+    };
     const currentRows=rowsFor(current), previousRows=rowsFor(previous);
-    const currentOps=new Set(currentRows.map(r=>clean(r.Grupo_Operador)).filter(Boolean));
-    const previousOps=new Set(previousRows.map(r=>clean(r.Grupo_Operador)).filter(Boolean));
+    const currentOps=presenceFor(current);
+    const previousOps=presenceFor(previous);
     const added=[...currentOps].filter(x=>!previousOps.has(x));
     const lost=[...previousOps].filter(x=>!currentOps.has(x));
 
@@ -383,7 +413,7 @@
 
     destroyChart("evoCompetitors");
     let opt=chartDefaults();
-    const competitorData=periods.map(p=>new Set(rowsFor(p).map(r=>clean(r.Grupo_Operador)).filter(Boolean)).size);
+    const competitorData=periods.map(p=>presenceFor(p).size);
     state.charts.evoCompetitors=new Chart($("competitors-evolution-chart"),{type:"line",data:{labels:periods.map(formatPeriod),datasets:[{label:"Competidores",data:competitorData,borderColor:"#00F29A",backgroundColor:"rgba(0,242,154,.12)",pointBackgroundColor:"#00F29A",pointRadius:4,tension:.25,fill:true}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}});
 
     destroyChart("evoPrice");
