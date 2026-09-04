@@ -80,3 +80,7 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
 /* Altura dinámica para comparativos por competidor */
 #operator-price-panel,#operator-speed-panel{transition:min-height .18s ease}
 #operators-chart,#speeds-chart{width:100%!important;max-height:none!important}
+
+/* Hotfix: estabiliza altura dinámica de Chart.js */
+#operator-price-panel,#operator-speed-panel{overflow:hidden}
+#operators-chart,#speeds-chart{display:block!important;width:100%!important;height:100%!important;max-height:100%!important}
