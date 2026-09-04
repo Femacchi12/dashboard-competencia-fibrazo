@@ -89,9 +89,9 @@
       <div class="section-title section-heading"><div><span>MERCADO</span><h2>Planes y precios</h2></div></div>
       <div class="charts-grid">
         <article class="panel chart-panel wide"><div class="panel-head"><h3>Precio × velocidad</h3><span>Ofertas del corte seleccionado</span></div><canvas id="scatter-chart"></canvas></article>
-        <article class="panel chart-panel"><div class="panel-head"><h3>Precio mínimo y máximo por operador</h3><span>Rango comercial registrado</span></div><canvas id="operators-chart"></canvas></article>
-        <article class="panel chart-panel"><div class="panel-head"><h3>Velocidad mínima y máxima por operador</h3><span>Rango de Mbps registrado</span></div><canvas id="speeds-chart"></canvas></article>
-        <article class="panel chart-panel wide"><div class="panel-head"><h3>Oferta registrada por ciudad</h3><span>Planes cargados; no implica presencia territorial validada</span></div><canvas id="cities-chart"></canvas></article>
+        <article id="operator-price-panel" class="panel chart-panel"><div class="panel-head"><h3>Precio mínimo y máximo por operador</h3><span>Rango comercial registrado</span></div><canvas id="operators-chart"></canvas></article>
+        <article id="operator-speed-panel" class="panel chart-panel"><div class="panel-head"><h3>Velocidad mínima y máxima por operador</h3><span>Rango de Mbps registrado</span></div><canvas id="speeds-chart"></canvas></article>
+        <article id="city-offer-panel" class="panel chart-panel wide"><div class="panel-head"><h3>Oferta registrada por ciudad</h3><span>Planes cargados; no implica presencia territorial validada</span></div><canvas id="cities-chart"></canvas></article>
       </div>
     </section>
 
@@ -138,6 +138,6 @@
   </main>
 
   <script src="table-enhancements.js?v=20260904-2"></script>
-  <script src="auth.js?v=20260904-6"></script>
+  <script src="auth.js?v=20260904-7"></script>
 </body>
 </html>
