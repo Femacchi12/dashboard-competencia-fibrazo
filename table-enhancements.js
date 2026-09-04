@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const preferredOrder = ["Fecha_Mes", "Operador_Normalizado", "Ciudad", "Departamento"];
-  const stickyKeys = ["Fecha_Mes", "Operador_Normalizado", "Ciudad"];
+  const preferredOrder = ["Periodo_Label", "Grupo_Operador", "Ciudad", "Departamento"];
+  const stickyKeys = ["Periodo_Label", "Grupo_Operador", "Ciudad"];
   let scheduled = false;
 
   function parseCount(value) {
