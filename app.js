@@ -19,7 +19,7 @@
   };
 
   const filterDefs = [
-    {key:"period", label:"Corte", getter:r=>clean(r.Periodo_Label), allLabel:"Último corte", single:true},
+    {key:"period", label:"Corte", getter:r=>clean(r.Periodo_Label), allLabel:"Último corte", maxSelections:2},
     {key:"city", label:"Ciudad / localidad", getter:r=>clean(r.Ciudad), allLabel:"Todas"},
     {key:"operator", label:"Operador", getter:r=>clean(r.Grupo_Operador)||clean(r.Operador_Normalizado), allLabel:"Todos"},
     {key:"technology", label:"Tecnología", getter:r=>clean(r.Tecnologia)||"No informado", allLabel:"Todos"},
@@ -443,11 +443,19 @@
         box.innerHTML="";
         options.filter(o=>fold(o).includes(fold(query))).forEach(o=>{
           const row=document.createElement("label"); row.className="filter-option";
-          const type=def.single?"radio":"checkbox";
-          row.innerHTML=`<input type="${type}" ${def.single?`name="filter-${key}"`:""} ${state.filters[key].has(o)?"checked":""}><span>${escapeHtml(o)}</span>`;
+          const type="checkbox";
+          row.innerHTML=`<input type="${type}" ${state.filters[key].has(o)?"checked":""}><span>${escapeHtml(o)}</span>`;
           row.querySelector("input").addEventListener("change",e=>{
-            if(def.single){ state.filters[key].clear(); state.filters[key].add(o); }
-            else e.target.checked?state.filters[key].add(o):state.filters[key].delete(o);
+            if(e.target.checked){
+              if(def.maxSelections && state.filters[key].size>=def.maxSelections){
+                e.target.checked=false;
+                return;
+              }
+              state.filters[key].add(o);
+            }else{
+              state.filters[key].delete(o);
+              if(key==="period" && !state.filters.period.size) ensurePeriodSelection();
+            }
             state.expanded=false;
             if(key==="period") renderCityQuickbar();
             renderFilters();
@@ -478,13 +486,25 @@
   function planPasses(r){ return rowPassesFilters(r); }
   function evolutionPasses(r){ return rowPassesFilters(r,"period"); }
 
-  function isSingleOperatorSingleCity(){
-    return state.filters.operator.size===1 && state.filters.city.size===1;
+  function effectiveCityCount(){
+    if(state.filters.city.size) return state.filters.city.size;
+    if(state.cityScopeMode==="fibrazo") return fibrazoCitySet().size;
+    if(state.cityScopeMode==="all") return allRelevantCities().length;
+    return 0;
   }
 
-  function updateMarketChartVisibility(){
-    const hideComparisons=isSingleOperatorSingleCity();
-    ["operator-price-panel","operator-speed-panel","city-offer-panel"].forEach(id=>$(id)?.classList.toggle("hidden",hideComparisons));
+  function isSingleOperatorSingleCity(){
+    return state.filters.operator.size===1 && effectiveCityCount()===1;
+  }
+
+  function updateSectionVisibility(){
+    const compareCuts=state.filters.period.size===2;
+    $("evolution-section")?.classList.toggle("hidden",!compareCuts);
+
+    const hideOperatorRankings=isSingleOperatorSingleCity();
+    ["operator-price-panel","operator-speed-panel"].forEach(id=>$(id)?.classList.toggle("hidden",hideOperatorRankings));
+
+    $("coverage-section")?.classList.toggle("hidden",effectiveCityCount()<=1);
   }
 
   function applyFilters(){
@@ -495,7 +515,7 @@
     }else{
       state.filteredCoverage=state.coverage.filter(r=>coveragePassesFilters(r));
     }
-    updateMarketChartVisibility();
+    updateSectionVisibility();
     renderKPIs(); renderEvolution(); renderCharts(); renderCoverage(); renderTable();
   }
 
@@ -528,18 +548,22 @@
       if(!m.has(op))m.set(op,[]);
       m.get(op).push(value);
     });
-    return new Map([...m.entries()].map(([op,arr])=>[op,{min:Math.min(...arr),max:Math.max(...arr)}]));
+    return new Map([...m.entries()].map(([op,arr])=>[op,{min:Math.min(...arr),max:Math.max(...arr),count:arr.length}]));
   }
 
   function renderEvolution(){
-    const periods=availablePeriods();
-    const selectedLabel=[...state.filters.period][0]||"";
-    const currentRow=state.plans.find(r=>r.Periodo_Label===selectedLabel);
-    const current=currentRow?.Periodo_Corte||periods[periods.length-1]||"";
-    const currentIndex=periods.indexOf(current);
-    const previous=currentIndex>0?periods[currentIndex-1]:"";
-    $("evolution-current").textContent=current?formatPeriod(current):"Sin corte";
-    $("evolution-compare").textContent=previous?`vs. ${formatPeriod(previous)}`:"Primer corte disponible";
+    destroyChart("evoCompetitors");
+    destroyChart("evoPrice");
+    if(state.filters.period.size!==2) return;
+
+    const selected=[...state.filters.period].map(label=>{
+      const row=state.plans.find(r=>r.Periodo_Label===label);
+      return row?.Periodo_Corte||"";
+    }).filter(Boolean).sort((a,b)=>periodSortValue(a)-periodSortValue(b));
+    if(selected.length!==2) return;
+    const [previous,current]=selected;
+    $("evolution-current").textContent=formatPeriod(current);
+    $("evolution-compare").textContent=`vs. ${formatPeriod(previous)}`;
 
     const filteredHistory=state.plans.filter(evolutionPasses);
     const rowsFor=p=>filteredHistory.filter(r=>r.Periodo_Corte===p);
@@ -549,39 +573,30 @@
       if(!hasPlanSpecificFilters()) coverageFor(p).forEach(r=>{const op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado);if(op)set.add(op)});
       return set;
     };
+
     const currentRows=rowsFor(current), previousRows=rowsFor(previous);
     const currentOps=presenceFor(current), previousOps=presenceFor(previous);
     const added=[...currentOps].filter(x=>!previousOps.has(x));
     const lost=[...previousOps].filter(x=>!currentOps.has(x));
+    $("evo-new").textContent=formatNum(added.length);
+    $("evo-lost").textContent=formatNum(lost.length);
+    $("evo-new-note").textContent=shortNames(added);
+    $("evo-lost-note").textContent=shortNames(lost);
 
-    if(previous){
-      $("evo-new").textContent=formatNum(added.length);
-      $("evo-lost").textContent=formatNum(lost.length);
-      $("evo-new-note").textContent=shortNames(added);
-      $("evo-lost-note").textContent=shortNames(lost);
-      const curPrice=rangeByOperator(currentRows,"Precio_Usado_COP");
-      const prevPrice=rangeByOperator(previousRows,"Precio_Usado_COP");
-      const changed=[...curPrice.keys()].filter(op=>prevPrice.has(op)&&(Math.abs(curPrice.get(op).min-prevPrice.get(op).min)>=1||Math.abs(curPrice.get(op).max-prevPrice.get(op).max)>=1));
-      $("evo-price-change").textContent=formatNum(changed.length);
-      $("evo-price-note").textContent=shortNames(changed);
-    }else{
-      $("evo-new").textContent="—"; $("evo-lost").textContent="—"; $("evo-price-change").textContent="—";
-      $("evo-new-note").textContent="Primer corte"; $("evo-lost-note").textContent="Primer corte"; $("evo-price-note").textContent="Sin comparación anterior";
-    }
+    const curPrice=rangeByOperator(currentRows,"Precio_Usado_COP");
+    const prevPrice=rangeByOperator(previousRows,"Precio_Usado_COP");
+    const changed=[...curPrice.keys()].filter(op=>prevPrice.has(op)&&(Math.abs(curPrice.get(op).min-prevPrice.get(op).min)>=1||Math.abs(curPrice.get(op).max-prevPrice.get(op).max)>=1));
+    $("evo-price-change").textContent=formatNum(changed.length);
+    $("evo-price-note").textContent=shortNames(changed);
 
-    destroyChart("evoCompetitors");
     let opt=chartDefaults();
-    const competitorData=periods.map(p=>presenceFor(p).size);
-    state.charts.evoCompetitors=new Chart($("competitors-evolution-chart"),{type:"line",data:{labels:periods.map(formatPeriod),datasets:[{label:"Competidores",data:competitorData,borderColor:"#00F29A",backgroundColor:"rgba(0,242,154,.10)",pointBackgroundColor:"#00F29A",pointRadius:4,tension:.25,fill:true}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}});
+    state.charts.evoCompetitors=new Chart($("competitors-evolution-chart"),{type:"line",data:{labels:selected.map(formatPeriod),datasets:[{label:"Competidores",data:selected.map(p=>presenceFor(p).size),borderColor:"#00F29A",backgroundColor:"rgba(0,242,154,.10)",pointBackgroundColor:"#00F29A",pointRadius:4,tension:.2,fill:true}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}});
 
-    destroyChart("evoPrice");
     opt=chartDefaults();
-    const priceRanges=periods.map(p=>rowsFor(p).map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0));
-    const priceMin=priceRanges.map(arr=>arr.length?Math.min(...arr):null);
-    const priceMax=priceRanges.map(arr=>arr.length?Math.max(...arr):null);
-    state.charts.evoPrice=new Chart($("price-evolution-chart"),{type:"line",data:{labels:periods.map(formatPeriod),datasets:[
-      {label:"Mínimo",data:priceMin,borderColor:"#00F29A",pointBackgroundColor:"#00F29A",pointRadius:4,tension:.25},
-      {label:"Máximo",data:priceMax,borderColor:"#F5D547",pointBackgroundColor:"#F5D547",pointRadius:4,tension:.25}
+    const ranges=selected.map(p=>rowsFor(p).map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0));
+    state.charts.evoPrice=new Chart($("price-evolution-chart"),{type:"line",data:{labels:selected.map(formatPeriod),datasets:[
+      {label:"Mínimo",data:ranges.map(a=>a.length?Math.min(...a):null),borderColor:"#00F29A",pointBackgroundColor:"#00F29A",pointRadius:4,tension:.2},
+      {label:"Máximo",data:ranges.map(a=>a.length?Math.max(...a):null),borderColor:"#F5D547",pointBackgroundColor:"#F5D547",pointRadius:4,tension:.2}
     ]},options:{...opt,plugins:{...opt.plugins,legend:{display:true,position:"bottom"},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.dataset.label}: ${formatCOP(c.raw)}`}}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,ticks:{callback:v=>`$${Math.round(v/1000)}k`}}}}});
   }
 
@@ -592,91 +607,78 @@
   function destroyChart(key){if(state.charts[key]){state.charts[key].destroy();delete state.charts[key];}}
   function countBy(rows,key){const m=new Map();rows.forEach(r=>{const v=clean(r[key])||"No informado";m.set(v,(m.get(v)||0)+1)});return[...m.entries()].sort((a,b)=>b[1]-a[1]);}
 
+  const operatorPalette=["#00F29A","#73B9FF","#F5D547","#FF8A65","#B388FF","#45E0B7","#5AA7FF","#FF7585","#9CCC65","#26C6DA","#FFA726","#AB47BC"];
+  function operatorColor(name){
+    let hash=0; for(const c of clean(name)) hash=(hash*31+c.charCodeAt(0))>>>0;
+    return operatorPalette[hash%operatorPalette.length];
+  }
+
+  function renderOperatorRanking(containerId, entries, formatter){
+    const root=$(containerId); if(!root)return;
+    root.innerHTML="";
+    if(!entries.length){root.innerHTML='<span class="subtitle">Sin datos compatibles con los filtros.</span>';return;}
+    const globalMax=Math.max(...entries.map(([,v])=>v.max),1);
+    entries.forEach(([name,v])=>{
+      const color=operatorColor(name);
+      const maxPct=Math.max(2,Math.min(100,(v.max/globalMax)*100));
+      const minPct=Math.max(0,Math.min(100,(v.min/globalMax)*100));
+      const row=document.createElement("div"); row.className="operator-rank-row";
+      row.style.setProperty("--op-color",color);
+      row.style.setProperty("--rank-max",`${maxPct}%`);
+      row.style.setProperty("--rank-min",`${minPct}%`);
+      row.innerHTML=`
+        <div class="operator-rank-name">${escapeHtml(name)}</div>
+        <div class="operator-rank-track"><span></span><i></i></div>
+        <div class="operator-rank-values"><strong>${escapeHtml(formatter(v.min))} – ${escapeHtml(formatter(v.max))}</strong><small>${formatNum(v.count)} planes</small></div>`;
+      root.appendChild(row);
+    });
+  }
+
   function renderCharts(){
     const rows=state.filtered;
 
     destroyChart("scatter");
     const points=rows.map(r=>({x:toNum(r.Velocidad_Bajada_Mbps),y:toNum(r.Precio_Usado_COP),operator:clean(r.Grupo_Operador),city:clean(r.Ciudad)})).filter(p=>p.x>0&&p.y>0);
-    let opt=chartDefaults();
-    state.charts.scatter=new Chart($("scatter-chart"),{type:"scatter",data:{datasets:[{label:"Planes",data:points,pointRadius:4,pointHoverRadius:6,backgroundColor:"rgba(0,242,154,.72)"}]},options:{...opt,plugins:{...opt.plugins,tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.raw.operator} · ${c.raw.city}: ${formatNum(c.raw.x)} Mbps · ${formatCOP(c.raw.y)}`}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,title:{display:true,text:"COP"},ticks:{callback:v=>`${Math.round(v/1000)}k`}}}}});
+    const opt=chartDefaults();
+    state.charts.scatter=new Chart($("scatter-chart"),{type:"scatter",data:{datasets:[{label:"Planes",data:points,pointRadius:4,pointHoverRadius:6,backgroundColor:"rgba(0,242,154,.72)"}]},options:{...opt,plugins:{...opt.plugins,tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.raw.operator} · ${c.raw.city}: ${formatNum(c.raw.x)} Mbps · ${formatCOP(c.raw.y)}`}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,title:{display:true,text:"COP"},ticks:{callback:v=>`$${Math.round(v/1000)}k`}}}}});
 
-    if(isSingleOperatorSingleCity()){
-      destroyChart("operators");
-      destroyChart("speeds");
-      destroyChart("cities");
-      return;
-    }
-
-    const priceRanges=rangeByOperator(rows,"Precio_Usado_COP");
-    const priceOps=[...priceRanges.entries()].sort((a,b)=>a[1].min-b[1].min).slice(0,12);
-    destroyChart("operators"); opt=chartDefaults();
-    state.charts.operators=new Chart($("operators-chart"),{type:"bar",data:{labels:priceOps.map(x=>x[0]),datasets:[
-      {label:"Mínimo",data:priceOps.map(x=>x[1].min),backgroundColor:"rgba(0,242,154,.78)",borderRadius:5},
-      {label:"Máximo",data:priceOps.map(x=>x[1].max),backgroundColor:"rgba(245,213,71,.72)",borderRadius:5}
-    ]},options:{...opt,indexAxis:"y",plugins:{...opt.plugins,legend:{position:"bottom"},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.dataset.label}: ${formatCOP(c.raw)}`}}},scales:{x:{...opt.scales.x,ticks:{callback:v=>`$${Math.round(v/1000)}k`}},y:{...opt.scales.y}}}});
-
-    const speedRanges=rangeByOperator(rows,"Velocidad_Bajada_Mbps");
-    const speedOps=[...speedRanges.entries()].sort((a,b)=>b[1].max-a[1].max).slice(0,12);
-    destroyChart("speeds"); opt=chartDefaults();
-    state.charts.speeds=new Chart($("speeds-chart"),{type:"bar",data:{labels:speedOps.map(x=>x[0]),datasets:[
-      {label:"Mínimo",data:speedOps.map(x=>x[1].min),backgroundColor:"rgba(115,185,255,.72)",borderRadius:5},
-      {label:"Máximo",data:speedOps.map(x=>x[1].max),backgroundColor:"rgba(0,242,154,.72)",borderRadius:5}
-    ]},options:{...opt,indexAxis:"y",plugins:{...opt.plugins,legend:{position:"bottom"},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.dataset.label}: ${formatNum(c.raw)} Mbps`}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y}}}});
-
-    const city=countBy(rows,"Ciudad").slice(0,12);
-    destroyChart("cities"); opt=chartDefaults();
-    state.charts.cities=new Chart($("cities-chart"),{type:"bar",data:{labels:city.map(x=>x[0]),datasets:[{label:"Planes",data:city.map(x=>x[1]),backgroundColor:"rgba(0,199,125,.72)",borderRadius:5}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}});
+    const priceRanges=[...rangeByOperator(rows,"Precio_Usado_COP").entries()].sort((a,b)=>a[1].min-b[1].min).slice(0,14);
+    const speedRanges=[...rangeByOperator(rows,"Velocidad_Bajada_Mbps").entries()].sort((a,b)=>b[1].max-a[1].max).slice(0,14);
+    renderOperatorRanking("operator-price-ranking",priceRanges,v=>formatCOP(v));
+    renderOperatorRanking("operator-speed-ranking",speedRanges,v=>`${formatNum(v)} Mbps`);
   }
 
   function renderCoverage(){
-    const rows=state.filteredCoverage; $("coverage-visible").textContent=formatNum(rows.length);
-    const grouped=new Map(); rows.forEach(r=>{const city=clean(r.Ciudad)||"No informado",op=clean(r.Grupo_Operador)||"No informado";if(!grouped.has(city))grouped.set(city,new Set());grouped.get(city).add(op)}); const top=[...grouped.entries()].map(([city,set])=>[city,set.size]).sort((a,b)=>b[1]-a[1]).slice(0,12);
-    destroyChart("coverage"); const opt=chartDefaults(); state.charts.coverage=new Chart($("coverage-chart"),{type:"bar",data:{labels:top.map(x=>x[0]),datasets:[{data:top.map(x=>x[1]),backgroundColor:"rgba(0,242,154,.66)",borderRadius:5}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}});
-    const list=$("coverage-list"); list.innerHTML="";
-    rows.slice(0,80).forEach(r=>{const el=document.createElement("div");el.className="coverage-row";el.innerHTML=`<strong>${escapeHtml(clean(r.Ciudad)||"—")}</strong><span>${escapeHtml(clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)||"—")}</span><span>${escapeHtml(clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ)||"Ciudad")}</span>`;list.appendChild(el)});
-    if(!rows.length) list.innerHTML='<span class="subtitle">Sin registros compatibles con los filtros.</span>';
-  }
-
-  function tableRows(){
-    const q=fold(state.tableSearch);
-    const rows=state.filtered.filter(r=>!q||columns.some(([k])=>fold(r[k]).includes(q)));
-    const {key,dir}=state.sort;
-    return [...rows].sort((a,b)=>{
-      if(key==="Periodo_Label") return (periodSortValue(a.Periodo_Corte)-periodSortValue(b.Periodo_Corte))*dir;
-      const an=toNum(a[key]),bn=toNum(b[key]); if(an!=null&&bn!=null)return(an-bn)*dir;
-      return clean(a[key]).localeCompare(clean(b[key]),"es",{numeric:true})*dir;
+    const rows=state.filteredCoverage;
+    $("coverage-visible").textContent=formatNum(rows.length);
+    const grouped=new Map();
+    rows.forEach(r=>{
+      const city=clean(r.Ciudad)||"No informado", op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)||"No informado";
+      if(!grouped.has(city))grouped.set(city,new Set());
+      grouped.get(city).add(op);
     });
-  }
+    const data=[...grouped.entries()].map(([city,set])=>[city,set.size]).sort((a,b)=>b[1]-a[1]);
+    const totalPairs=data.reduce((s,[,n])=>s+n,0)||1;
+    const root=$("coverage-ranking"); root.innerHTML="";
+    data.slice(0,12).forEach(([city,count])=>{
+      const pct=count/totalPairs*100;
+      const row=document.createElement("div"); row.className="coverage-rank-row";
+      row.innerHTML=`
+        <div class="coverage-rank-name">${escapeHtml(city)}</div>
+        <div class="coverage-rank-track"><span style="width:${Math.max(3,pct)}%"></span></div>
+        <strong>${formatNum(count)}</strong>
+        <b>${pct.toFixed(1).replace(".",",")}%</b>`;
+      root.appendChild(row);
+    });
+    if(!data.length)root.innerHTML='<span class="subtitle">Sin presencia observada compatible con los filtros.</span>';
 
-  function diverseInitialRows(rows, limit=10){
-    const picked=[], seenCities=new Set(), used=new Set();
-    for(const r of rows){
-      const city=clean(r.Ciudad)||"Sin ciudad";
-      const id=clean(r.ID_Plan_Registro)||`${city}|${clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)}|${picked.length}`;
-      if(!seenCities.has(city)){
-        picked.push(r); seenCities.add(city); used.add(id);
-        if(picked.length>=limit) return picked;
-      }
-    }
-    for(const r of rows){
-      const id=clean(r.ID_Plan_Registro)||`${clean(r.Ciudad)}|${clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)}|${picked.length}`;
-      if(!used.has(id)){
-        picked.push(r); used.add(id);
-        if(picked.length>=limit) break;
-      }
-    }
-    return picked;
-  }
-
-  function formatCell(key,value){
-    if(linkFields.has(key)) return linkCell(value,key);
-    if(phoneFields.has(key)) return phoneCell(value);
-    const n=toNum(value);
-    if(key==="Precio_Usado_COP") return escapeHtml(formatCOP(n));
-    if(["Velocidad_Bajada_Mbps","Permanencia_Meses"].includes(key)) return n==null?escapeHtml(clean(value)||"—"):escapeHtml(formatNum(n));
-    if(key==="Periodo_Label") return escapeHtml(clean(value)||"Sin corte");
-    if(key==="Fecha_Mes") return escapeHtml(clean(value)||"Sin info");
-    return escapeHtml(clean(value)||"—");
+    const list=$("coverage-list"); list.innerHTML="";
+    rows.slice(0,60).forEach(r=>{
+      const el=document.createElement("div"); el.className="coverage-row";
+      el.innerHTML=`<strong>${escapeHtml(clean(r.Ciudad)||"—")}</strong><span>${escapeHtml(clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)||"—")}</span><span>${escapeHtml(clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ)||"Ciudad")}</span>`;
+      list.appendChild(el);
+    });
+    if(!rows.length) list.innerHTML='<span class="subtitle">Sin presencia observada compatible con los filtros.</span>';
   }
 
   function renderTable(){
