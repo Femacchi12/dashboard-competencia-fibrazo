@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260904-4" />
+  <link rel="stylesheet" href="styles.css?v=20260904-5" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -76,7 +76,7 @@
       <article class="kpi-card info"><span>Velocidad máxima</span><strong id="kpi-max-speed">—</strong><small>Mbps de bajada</small></article>
     </section>
 
-    <section class="section evolution-section">
+    <section id="evolution-section" class="section evolution-section hidden">
       <div class="section-title section-heading evolution-heading">
         <div><span>EVOLUCIÓN</span><h2>Cambios del mercado</h2></div>
         <div class="evolution-period"><strong id="evolution-current">—</strong><span id="evolution-compare">Primer corte disponible</span></div>
@@ -96,20 +96,19 @@
       <div class="section-title section-heading"><div><span>MERCADO</span><h2>Planes y precios</h2></div></div>
       <div class="charts-grid">
         <article class="panel chart-panel wide"><div class="panel-head"><h3>Precio × velocidad</h3><span>Ofertas del corte seleccionado</span></div><canvas id="scatter-chart"></canvas></article>
-        <article id="operator-price-panel" class="panel chart-panel"><div class="panel-head"><h3>Precio mínimo y máximo por operador</h3><span>Rango comercial registrado</span></div><canvas id="operators-chart"></canvas></article>
-        <article id="operator-speed-panel" class="panel chart-panel"><div class="panel-head"><h3>Velocidad mínima y máxima por operador</h3><span>Rango de Mbps registrado</span></div><canvas id="speeds-chart"></canvas></article>
-        <article id="city-offer-panel" class="panel chart-panel wide"><div class="panel-head"><h3>Oferta registrada por ciudad</h3><span>Planes cargados; no implica presencia territorial validada</span></div><canvas id="cities-chart"></canvas></article>
+        <article id="operator-price-panel" class="panel ranking-panel"><div class="panel-head"><h3>Precio mínimo y máximo por competidor</h3><span>Rango comercial registrado</span></div><div id="operator-price-ranking" class="operator-ranking"></div></article>
+        <article id="operator-speed-panel" class="panel ranking-panel"><div class="panel-head"><h3>Velocidad mínima y máxima por competidor</h3><span>Rango de Mbps registrado</span></div><div id="operator-speed-ranking" class="operator-ranking"></div></article>
       </div>
     </section>
 
-    <section class="section coverage-section">
+    <section id="coverage-section" class="section coverage-section">
       <div class="section-title section-heading">
-        <div><span>COBERTURA TERRITORIAL</span><h2>Presencia observada</h2></div>
-        <div class="coverage-meta"><strong id="coverage-visible">—</strong><span>registros compatibles con los filtros</span></div>
+        <div><span>COMPETIDORES POR TERRITORIO</span><h2>Competidores con presencia observada</h2></div>
+        <div class="coverage-meta"><strong id="coverage-visible">—</strong><span>registros de presencia compatibles</span></div>
       </div>
-      <div class="coverage-grid">
-        <article class="panel chart-panel"><div class="panel-head"><h3>Presencia observada por ciudad</h3><span>Solo cobertura respaldada</span></div><canvas id="coverage-chart"></canvas></article>
-        <article class="panel coverage-list-panel"><div class="panel-head"><h3>Resumen territorial</h3><span>Ciudad / barrio / operador</span></div><div id="coverage-list" class="coverage-list"></div></article>
+      <div class="coverage-grid compact">
+        <article class="panel ranking-panel coverage-ranking-panel"><div class="panel-head"><h3>Competidores observados por ciudad</h3><span>Presencia territorial respaldada</span></div><div id="coverage-ranking" class="coverage-ranking"></div></article>
+        <article class="panel coverage-list-panel compact"><div class="panel-head"><h3>Detalle de presencia</h3><span>Ciudad / barrio / competidor</span></div><div id="coverage-list" class="coverage-list"></div></article>
       </div>
     </section>
 
@@ -145,6 +144,6 @@
   </main>
 
   <script src="table-enhancements.js?v=20260904-2"></script>
-  <script src="auth.js?v=20260904-10"></script>
+  <script src="auth.js?v=20260904-11"></script>
 </body>
 </html>
