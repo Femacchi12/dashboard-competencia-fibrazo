@@ -430,6 +430,7 @@
             if(def.single){ state.filters[key].clear(); state.filters[key].add(o); }
             else e.target.checked?state.filters[key].add(o):state.filters[key].delete(o);
             state.expanded=false;
+            if(key==="period") renderCityQuickbar();
             renderFilters();
             applyFilters();
           });
