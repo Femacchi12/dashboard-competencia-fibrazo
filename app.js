@@ -353,7 +353,7 @@
     const prices=d.map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0);
     const speeds=d.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
     $("kpi-operators").textContent=formatNum(operators.size);
-    $("kpi-cities-note").textContent=`${formatNum(cities.size)} ciudades/localidades`;
+    $("kpi-cities-note").textContent=`${formatNum(cities.size)} ciudades con datos`;
     $("kpi-plans").textContent=formatNum(d.length);
     $("kpi-min-price").textContent=prices.length?formatCOP(Math.min(...prices)):"—";
     $("kpi-max-price").textContent=prices.length?formatCOP(Math.max(...prices)):"—";
