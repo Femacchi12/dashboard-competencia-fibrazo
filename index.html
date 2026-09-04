@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260817-3" />
+  <link rel="stylesheet" href="styles.css?v=20260904-1" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -43,17 +43,11 @@
 
       <div class="auth-session">
         <span id="user-email">—</span>
-        <a class="source-link" target="_blank" rel="noreferrer" href="https://docs.google.com/spreadsheets/d/1v2sBVe_w-bTl438b8qWFmvw0gT66bj8TskcXbnY-gbU/edit">Abrir base ↗</a>
         <button id="logout-btn" type="button">Cerrar sesión</button>
       </div>
       <div class="orbit" aria-hidden="true"></div>
     </header>
 
-    <section class="source-strip" aria-label="Estado de fuentes">
-      <div><span>Planes fuente</span><strong id="source-plan-count">—</strong></div>
-      <div><span>Cobertura fuente</span><strong id="source-coverage-count">—</strong></div>
-      <div><span>Origen</span><strong>Base General Competencia FIBRAZO</strong></div>
-    </section>
 
     <section class="filters panel section">
       <div class="section-title filters-heading">
@@ -102,10 +96,8 @@
       </div>
 
       <div class="table-tools records-tools">
-        <p><b id="table-count">—</b><span>Desplaza la tabla con los botones, el scroll inferior o Shift + rueda del mouse.</span></p>
+        <p><b id="table-count">—</b><span>Desplaza horizontalmente con la barra inferior o Shift + rueda del mouse.</span></p>
         <div class="table-actions">
-          <button id="scroll-left" class="btn outline small" type="button">← Izquierda</button>
-          <button id="scroll-right" class="btn outline small" type="button">Derecha →</button>
           <div class="column-picker-wrap">
             <button id="columns-btn" class="btn outline small" type="button">Columnas ▾</button>
             <div id="columns-menu" class="columns-menu hidden"></div>
@@ -124,11 +116,11 @@
 
     <footer>
       <span>FIBRAZO · Growth & Inteligencia Competitiva</span>
-      <span>Fuente única: <strong>Base General Competencia FIBRAZO</strong></span>
+      <span>Fuente única: <a class="footer-source-link" target="_blank" rel="noopener noreferrer" href="https://docs.google.com/spreadsheets/d/1v2sBVe_w-bTl438b8qWFmvw0gT66bj8TskcXbnY-gbU/edit">Base General Competencia FIBRAZO ↗</a></span>
     </footer>
   </main>
 
-  <script src="table-enhancements.js?v=20260817-3"></script>
-  <script src="auth.js?v=20260817-3"></script>
+  <script src="table-enhancements.js?v=20260904-1"></script>
+  <script src="auth.js?v=20260904-1"></script>
 </body>
 </html>
