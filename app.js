@@ -19,7 +19,7 @@
   const filterDefs = [
     {key:"period", label:"Corte", getter:r=>clean(r.Periodo_Label), allLabel:"Último corte", single:true},
     {key:"city", label:"Ciudad / localidad", getter:r=>clean(r.Ciudad), allLabel:"Todas"},
-    {key:"operator", label:"Operador", getter:r=>clean(r.Grupo_Operador)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado), allLabel:"Todos"},
+    {key:"operator", label:"Operador", getter:r=>clean(r.Grupo_Operador)||clean(r.Operador_Normalizado), allLabel:"Todos"},
     {key:"technology", label:"Tecnología", getter:r=>clean(r.Tecnologia)||"No informado", allLabel:"Todos"},
     {key:"modality", label:"Modalidad", getter:r=>clean(r.Modalidad)||"No informado", allLabel:"Todos"},
     {key:"price", label:"Rango de precio", getter:r=>priceBand(toNum(r.Precio_Usado_COP)), allLabel:"Todos"}
@@ -454,7 +454,7 @@
     const grouped=new Map(); rows.forEach(r=>{const city=clean(r.Ciudad)||"No informado",op=clean(r.Grupo_Operador)||"No informado";if(!grouped.has(city))grouped.set(city,new Set());grouped.get(city).add(op)}); const top=[...grouped.entries()].map(([city,set])=>[city,set.size]).sort((a,b)=>b[1]-a[1]).slice(0,12);
     destroyChart("coverage"); const opt=chartDefaults(); state.charts.coverage=new Chart($("coverage-chart"),{type:"bar",data:{labels:top.map(x=>x[0]),datasets:[{data:top.map(x=>x[1]),backgroundColor:"rgba(0,242,154,.66)",borderRadius:5}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}});
     const list=$("coverage-list"); list.innerHTML="";
-    rows.slice(0,80).forEach(r=>{const el=document.createElement("div");el.className="coverage-row";el.innerHTML=`<strong>${escapeHtml(clean(r.Ciudad)||"—")}</strong><span>${escapeHtml(clean(r.Grupo_Operador)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)||"—")}</span><span>${escapeHtml(clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ)||"Ciudad")}</span>`;list.appendChild(el)});
+    rows.slice(0,80).forEach(r=>{const el=document.createElement("div");el.className="coverage-row";el.innerHTML=`<strong>${escapeHtml(clean(r.Ciudad)||"—")}</strong><span>${escapeHtml(clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)||"—")}</span><span>${escapeHtml(clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ)||"Ciudad")}</span>`;list.appendChild(el)});
     if(!rows.length) list.innerHTML='<span class="subtitle">Sin registros compatibles con los filtros.</span>';
   }
 
