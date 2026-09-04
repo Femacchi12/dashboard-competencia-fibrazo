@@ -608,40 +608,72 @@
   function countBy(rows,key){const m=new Map();rows.forEach(r=>{const v=clean(r[key])||"No informado";m.set(v,(m.get(v)||0)+1)});return[...m.entries()].sort((a,b)=>b[1]-a[1]);}
 
   const operatorPalette=["#00F29A","#4D96FF","#FF5C70","#F5D547","#A66A3F","#FF9F43","#45D7E8","#A56EFF"];
-
-  function renderOperatorRanking(containerId, entries, formatter){
-    const root=$(containerId); if(!root)return;
-    root.innerHTML="";
-    if(!entries.length){root.innerHTML='<span class="subtitle">Sin datos compatibles con los filtros.</span>';return;}
-    const globalMax=Math.max(...entries.map(([,v])=>v.max),1);
-    entries.forEach(([name,v],index)=>{
-      const color=operatorPalette[index%operatorPalette.length];
-      const maxPct=Math.max(2,Math.min(100,(v.max/globalMax)*100));
-      const minPct=Math.max(0,Math.min(100,(v.min/globalMax)*100));
-      const row=document.createElement("div"); row.className="operator-rank-row";
-      row.style.setProperty("--op-color",color);
-      row.style.setProperty("--rank-max",`${maxPct}%`);
-      row.style.setProperty("--rank-min",`${minPct}%`);
-      row.innerHTML=`
-        <div class="operator-rank-name">${escapeHtml(name)}</div>
-        <div class="operator-rank-track"><span></span><i></i></div>
-        <div class="operator-rank-values"><strong>${escapeHtml(formatter(v.min))} – ${escapeHtml(formatter(v.max))}</strong><small>${formatNum(v.count)} planes</small></div>`;
-      root.appendChild(row);
-    });
-  }
+  const hexToRgba=(hex,alpha)=>{
+    const value=hex.replace("#","");
+    const n=parseInt(value,16);
+    const r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+    return `rgba(${r},${g},${b},${alpha})`;
+  };
 
   function renderCharts(){
     const rows=state.filtered;
 
     destroyChart("scatter");
     const points=rows.map(r=>({x:toNum(r.Velocidad_Bajada_Mbps),y:toNum(r.Precio_Usado_COP),operator:clean(r.Grupo_Operador),city:clean(r.Ciudad)})).filter(p=>p.x>0&&p.y>0);
-    const opt=chartDefaults();
+    let opt=chartDefaults();
     state.charts.scatter=new Chart($("scatter-chart"),{type:"scatter",data:{datasets:[{label:"Planes",data:points,pointRadius:4,pointHoverRadius:6,backgroundColor:"rgba(0,242,154,.72)"}]},options:{...opt,plugins:{...opt.plugins,tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.raw.operator} · ${c.raw.city}: ${formatNum(c.raw.x)} Mbps · ${formatCOP(c.raw.y)}`}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,title:{display:true,text:"COP"},ticks:{callback:v=>`$${Math.round(v/1000)}k`}}}}});
 
+    if(isSingleOperatorSingleCity()){
+      destroyChart("operators");
+      destroyChart("speeds");
+      return;
+    }
+
     const priceRanges=[...rangeByOperator(rows,"Precio_Usado_COP").entries()].sort((a,b)=>a[1].min-b[1].min).slice(0,14);
+    const priceColors=priceRanges.map((_,i)=>operatorPalette[i%operatorPalette.length]);
+    destroyChart("operators"); opt=chartDefaults();
+    state.charts.operators=new Chart($("operators-chart"),{
+      type:"bar",
+      data:{
+        labels:priceRanges.map(x=>x[0]),
+        datasets:[
+          {label:"Mínimo",data:priceRanges.map(x=>x[1].min),backgroundColor:priceColors.map(c=>hexToRgba(c,.52)),borderColor:priceColors,borderWidth:1,borderRadius:5},
+          {label:"Máximo",data:priceRanges.map(x=>x[1].max),backgroundColor:priceColors.map(c=>hexToRgba(c,.92)),borderColor:priceColors,borderWidth:1,borderRadius:5}
+        ]
+      },
+      options:{
+        ...opt,indexAxis:"y",
+        layout:{padding:{left:8,right:10}},
+        plugins:{...opt.plugins,legend:{position:"bottom"},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.dataset.label}: ${formatCOP(c.raw)}`}}},
+        scales:{
+          x:{...opt.scales.x,ticks:{callback:v=>`$${Math.round(v/1000)}k`}},
+          y:{...opt.scales.y,ticks:{autoSkip:false,padding:8,font:{size:10}}}
+        }
+      }
+    });
+
     const speedRanges=[...rangeByOperator(rows,"Velocidad_Bajada_Mbps").entries()].sort((a,b)=>b[1].max-a[1].max).slice(0,14);
-    renderOperatorRanking("operator-price-ranking",priceRanges,v=>formatCOP(v));
-    renderOperatorRanking("operator-speed-ranking",speedRanges,v=>`${formatNum(v)} Mbps`);
+    const speedColors=speedRanges.map((_,i)=>operatorPalette[i%operatorPalette.length]);
+    destroyChart("speeds"); opt=chartDefaults();
+    state.charts.speeds=new Chart($("speeds-chart"),{
+      type:"bar",
+      data:{
+        labels:speedRanges.map(x=>x[0]),
+        datasets:[
+          {label:"Mínimo",data:speedRanges.map(x=>x[1].min),backgroundColor:speedColors.map(c=>hexToRgba(c,.52)),borderColor:speedColors,borderWidth:1,borderRadius:5},
+          {label:"Máximo",data:speedRanges.map(x=>x[1].max),backgroundColor:speedColors.map(c=>hexToRgba(c,.92)),borderColor:speedColors,borderWidth:1,borderRadius:5}
+        ]
+      },
+      options:{
+        ...opt,indexAxis:"y",
+        layout:{padding:{left:8,right:10}},
+        plugins:{...opt.plugins,legend:{position:"bottom"},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.dataset.label}: ${formatNum(c.raw)} Mbps`}}},
+        scales:{
+          x:{...opt.scales.x,title:{display:true,text:"Mbps"}},
+          y:{...opt.scales.y,ticks:{autoSkip:false,padding:8,font:{size:10}}}
+        }
+      }
+    });
   }
 
   function renderCoverage(){
