@@ -190,8 +190,6 @@
       state.plans=buildPlans(plansRes.value,operatorsRes.value);
       state.coverage=coverageRes.status==="fulfilled"?coverageRes.value:[];
       state.lastLoadAt=Date.now();
-      $("source-plan-count").textContent=formatNum(state.plans.length);
-      $("source-coverage-count").textContent=formatNum(state.coverage.length);
       $("last-load").textContent=new Intl.DateTimeFormat("es-CO",{dateStyle:"short",timeStyle:"short"}).format(new Date());
       removeErrorBox(); renderFilters(); applyFilters();
     }catch(error){
@@ -361,8 +359,6 @@
   $("more-btn").addEventListener("click",()=>{state.expanded=!state.expanded;renderTable();if(!state.expanded)$("table-scroll").scrollTop=0});
   $("columns-btn").addEventListener("click",e=>{e.stopPropagation();renderColumns();$("columns-menu").classList.toggle("hidden")});
   $("columns-menu").addEventListener("click",e=>e.stopPropagation());
-  $("scroll-left").addEventListener("click",()=>$("table-scroll").scrollBy({left:-600,behavior:"smooth"}));
-  $("scroll-right").addEventListener("click",()=>$("table-scroll").scrollBy({left:600,behavior:"smooth"}));
   document.addEventListener("click",()=>{document.querySelectorAll(".filter-menu").forEach(m=>m.classList.add("hidden"));$("columns-menu").classList.add("hidden")});
   document.addEventListener("visibilitychange",()=>{if(!document.hidden && Date.now()-state.lastLoadAt>AUTO_REFRESH_MS)load({silent:true})});
   window.setInterval(()=>{if(!document.hidden)load({silent:true})},AUTO_REFRESH_MS);
