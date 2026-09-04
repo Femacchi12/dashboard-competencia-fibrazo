@@ -31,7 +31,7 @@
 
     const loadApp = () => {
       const script = document.createElement("script");
-      script.src = "app.js?v=20260904-4";
+      script.src = "app.js?v=20260904-5";
       script.dataset.dashboardApp = "true";
       document.body.appendChild(script);
     };
