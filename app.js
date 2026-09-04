@@ -620,9 +620,13 @@
     if(!canvas) return;
     const panel=canvas.closest(".chart-panel");
     const height=Math.max(min,Math.min(max,120+itemCount*row));
-    canvas.style.height=`${height-88}px`;
-    canvas.style.maxHeight="none";
-    if(panel) panel.style.minHeight=`${height}px`;
+    if(panel){
+      panel.style.height=`${height}px`;
+      panel.style.minHeight=`${height}px`;
+      panel.style.maxHeight=`${height}px`;
+    }
+    canvas.style.height="";
+    canvas.style.maxHeight="";
   }
 
   function renderCharts(){
