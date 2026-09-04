@@ -82,7 +82,6 @@
   };
   const formatCOP = n => n == null ? "—" : new Intl.NumberFormat("es-CO", {style:"currency",currency:"COP",maximumFractionDigits:0}).format(n);
   const formatNum = n => n == null ? "—" : new Intl.NumberFormat("es-CO", {maximumFractionDigits:1}).format(n);
-  const median = arr => { const a=arr.filter(Number.isFinite).sort((x,y)=>x-y); if(!a.length)return null; const m=Math.floor(a.length/2); return a.length%2?a[m]:(a[m-1]+a[m])/2; };
   const normalizeTV = v => { const s=fold(v); if(!s)return "No informado"; if(["si","yes","1","true"].includes(s))return "Sí"; if(["no","0","false"].includes(s))return "No"; return clean(v); };
   const priceBand = n => n == null ? "Sin precio" : n < 50000 ? "< $50k" : n <= 75000 ? "$50k–$75k" : n <= 100000 ? "$75k–$100k" : "> $100k";
   const periodValue = value => clean(value).match(/^\d{4}-\d{2}$/) ? clean(value) : "";
@@ -328,7 +327,9 @@
   }
   function updateFilterLabel(wrap,def){
     const set=state.filters[def.key], n=set.size;
+    const btn=wrap.querySelector(".filter-btn");
     wrap.querySelector("[data-label]").textContent=n===0?(def.allLabel||"Todos"):n===1?[...set][0]:`${n} seleccionados`;
+    btn?.classList.toggle("active",n>0);
   }
 
   function planPasses(r){ return rowPassesFilters(r); }
@@ -349,13 +350,15 @@
     const d=state.filtered;
     const operators=new Set([...d.map(r=>clean(r.Grupo_Operador)),...state.filteredCoverage.map(r=>clean(r.Grupo_Operador))].filter(Boolean));
     const cities=new Set([...d.map(r=>clean(r.Ciudad)),...state.filteredCoverage.map(r=>clean(r.Ciudad))].filter(Boolean));
-    const prices=d.map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0), speeds=d.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
+    const prices=d.map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0);
+    const speeds=d.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
     $("kpi-operators").textContent=formatNum(operators.size);
     $("kpi-cities-note").textContent=`${formatNum(cities.size)} ciudades/localidades`;
     $("kpi-plans").textContent=formatNum(d.length);
     $("kpi-min-price").textContent=prices.length?formatCOP(Math.min(...prices)):"—";
-    $("kpi-price").textContent=formatCOP(median(prices));
-    $("kpi-speed").textContent=median(speeds)==null?"—":formatNum(median(speeds));
+    $("kpi-max-price").textContent=prices.length?formatCOP(Math.max(...prices)):"—";
+    $("kpi-min-speed").textContent=speeds.length?formatNum(Math.min(...speeds)):"—";
+    $("kpi-max-speed").textContent=speeds.length?formatNum(Math.max(...speeds)):"—";
   }
 
   function shortNames(items){
@@ -363,16 +366,18 @@
     if(!a.length) return "Sin cambios";
     return a.length<=3?a.join(", "):`${a.slice(0,3).join(", ")} +${a.length-3}`;
   }
-  function medianPriceByOperator(rows){
+
+  function rangeByOperator(rows,key){
     const m=new Map();
     rows.forEach(r=>{
-      const op=clean(r.Grupo_Operador); const p=toNum(r.Precio_Usado_COP);
-      if(!op||!(p>0)) return;
+      const op=clean(r.Grupo_Operador), value=toNum(r[key]);
+      if(!op||!(value>0)) return;
       if(!m.has(op))m.set(op,[]);
-      m.get(op).push(p);
+      m.get(op).push(value);
     });
-    return new Map([...m.entries()].map(([op,arr])=>[op,median(arr)]));
+    return new Map([...m.entries()].map(([op,arr])=>[op,{min:Math.min(...arr),max:Math.max(...arr)}]));
   }
+
   function renderEvolution(){
     const periods=availablePeriods();
     const selectedLabel=[...state.filters.period][0]||"";
@@ -392,8 +397,7 @@
       return set;
     };
     const currentRows=rowsFor(current), previousRows=rowsFor(previous);
-    const currentOps=presenceFor(current);
-    const previousOps=presenceFor(previous);
+    const currentOps=presenceFor(current), previousOps=presenceFor(previous);
     const added=[...currentOps].filter(x=>!previousOps.has(x));
     const lost=[...previousOps].filter(x=>!currentOps.has(x));
 
@@ -402,8 +406,9 @@
       $("evo-lost").textContent=formatNum(lost.length);
       $("evo-new-note").textContent=shortNames(added);
       $("evo-lost-note").textContent=shortNames(lost);
-      const curPrice=medianPriceByOperator(currentRows), prevPrice=medianPriceByOperator(previousRows);
-      const changed=[...curPrice.keys()].filter(op=>prevPrice.has(op)&&Math.abs(curPrice.get(op)-prevPrice.get(op))>=1);
+      const curPrice=rangeByOperator(currentRows,"Precio_Usado_COP");
+      const prevPrice=rangeByOperator(previousRows,"Precio_Usado_COP");
+      const changed=[...curPrice.keys()].filter(op=>prevPrice.has(op)&&(Math.abs(curPrice.get(op).min-prevPrice.get(op).min)>=1||Math.abs(curPrice.get(op).max-prevPrice.get(op).max)>=1));
       $("evo-price-change").textContent=formatNum(changed.length);
       $("evo-price-note").textContent=shortNames(changed);
     }else{
@@ -414,12 +419,17 @@
     destroyChart("evoCompetitors");
     let opt=chartDefaults();
     const competitorData=periods.map(p=>presenceFor(p).size);
-    state.charts.evoCompetitors=new Chart($("competitors-evolution-chart"),{type:"line",data:{labels:periods.map(formatPeriod),datasets:[{label:"Competidores",data:competitorData,borderColor:"#00F29A",backgroundColor:"rgba(0,242,154,.12)",pointBackgroundColor:"#00F29A",pointRadius:4,tension:.25,fill:true}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}});
+    state.charts.evoCompetitors=new Chart($("competitors-evolution-chart"),{type:"line",data:{labels:periods.map(formatPeriod),datasets:[{label:"Competidores",data:competitorData,borderColor:"#00F29A",backgroundColor:"rgba(0,242,154,.10)",pointBackgroundColor:"#00F29A",pointRadius:4,tension:.25,fill:true}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}});
 
     destroyChart("evoPrice");
     opt=chartDefaults();
-    const priceData=periods.map(p=>median(rowsFor(p).map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0)));
-    state.charts.evoPrice=new Chart($("price-evolution-chart"),{type:"line",data:{labels:periods.map(formatPeriod),datasets:[{label:"Precio mediano",data:priceData,borderColor:"#73B9FF",backgroundColor:"rgba(115,185,255,.10)",pointBackgroundColor:"#73B9FF",pointRadius:4,tension:.25,fill:true}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>formatCOP(c.raw)}}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,ticks:{callback:v=>`${Math.round(v/1000)}k`}}}}});
+    const priceRanges=periods.map(p=>rowsFor(p).map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0));
+    const priceMin=priceRanges.map(arr=>arr.length?Math.min(...arr):null);
+    const priceMax=priceRanges.map(arr=>arr.length?Math.max(...arr):null);
+    state.charts.evoPrice=new Chart($("price-evolution-chart"),{type:"line",data:{labels:periods.map(formatPeriod),datasets:[
+      {label:"Mínimo",data:priceMin,borderColor:"#00F29A",pointBackgroundColor:"#00F29A",pointRadius:4,tension:.25},
+      {label:"Máximo",data:priceMax,borderColor:"#F5D547",pointBackgroundColor:"#F5D547",pointRadius:4,tension:.25}
+    ]},options:{...opt,plugins:{...opt.plugins,legend:{display:true,position:"bottom"},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.dataset.label}: ${formatCOP(c.raw)}`}}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,ticks:{callback:v=>`$${Math.round(v/1000)}k`}}}}});
   }
 
   function chartDefaults(){
@@ -431,22 +441,31 @@
 
   function renderCharts(){
     const rows=state.filtered;
+
     destroyChart("scatter");
     const points=rows.map(r=>({x:toNum(r.Velocidad_Bajada_Mbps),y:toNum(r.Precio_Usado_COP),operator:clean(r.Grupo_Operador),city:clean(r.Ciudad)})).filter(p=>p.x>0&&p.y>0);
     let opt=chartDefaults();
-    state.charts.scatter=new Chart($("scatter-chart"),{type:"scatter",data:{datasets:[{label:"Planes",data:points,pointRadius:4,pointHoverRadius:6,backgroundColor:"rgba(0,242,154,.65)"}]},options:{...opt,plugins:{...opt.plugins,tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.raw.operator} · ${c.raw.city}: ${formatNum(c.raw.x)} Mbps · ${formatCOP(c.raw.y)}`}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,title:{display:true,text:"COP"},ticks:{callback:v=>`${Math.round(v/1000)}k`}}}}});
+    state.charts.scatter=new Chart($("scatter-chart"),{type:"scatter",data:{datasets:[{label:"Planes",data:points,pointRadius:4,pointHoverRadius:6,backgroundColor:"rgba(0,242,154,.72)"}]},options:{...opt,plugins:{...opt.plugins,tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.raw.operator} · ${c.raw.city}: ${formatNum(c.raw.x)} Mbps · ${formatCOP(c.raw.y)}`}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,title:{display:true,text:"COP"},ticks:{callback:v=>`$${Math.round(v/1000)}k`}}}}});
 
-    const opMap=new Map();
-    rows.forEach(r=>{const op=clean(r.Grupo_Operador),p=toNum(r.Precio_Usado_COP);if(op&&p>0){if(!opMap.has(op))opMap.set(op,[]);opMap.get(op).push(p)}});
-    const op=[...opMap.entries()].map(([name,prices])=>[name,median(prices)]).sort((a,b)=>a[1]-b[1]).slice(0,12);
+    const priceRanges=rangeByOperator(rows,"Precio_Usado_COP");
+    const priceOps=[...priceRanges.entries()].sort((a,b)=>a[1].min-b[1].min).slice(0,12);
     destroyChart("operators"); opt=chartDefaults();
-    state.charts.operators=new Chart($("operators-chart"),{type:"bar",data:{labels:op.map(x=>x[0]),datasets:[{data:op.map(x=>x[1]),backgroundColor:"rgba(0,242,154,.68)",borderRadius:5}]},options:{...opt,indexAxis:"y",plugins:{...opt.plugins,legend:{display:false},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>formatCOP(c.raw)}}},scales:{x:{...opt.scales.x,ticks:{callback:v=>`${Math.round(v/1000)}k`}},y:{...opt.scales.y}}}});
+    state.charts.operators=new Chart($("operators-chart"),{type:"bar",data:{labels:priceOps.map(x=>x[0]),datasets:[
+      {label:"Mínimo",data:priceOps.map(x=>x[1].min),backgroundColor:"rgba(0,242,154,.78)",borderRadius:5},
+      {label:"Máximo",data:priceOps.map(x=>x[1].max),backgroundColor:"rgba(245,213,71,.72)",borderRadius:5}
+    ]},options:{...opt,indexAxis:"y",plugins:{...opt.plugins,legend:{position:"bottom"},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.dataset.label}: ${formatCOP(c.raw)}`}}},scales:{x:{...opt.scales.x,ticks:{callback:v=>`$${Math.round(v/1000)}k`}},y:{...opt.scales.y}}}});
 
-    const cityMap=new Map();
-    rows.forEach(r=>{const city=clean(r.Ciudad),op=clean(r.Grupo_Operador);if(city&&op){if(!cityMap.has(city))cityMap.set(city,new Set());cityMap.get(city).add(op)}});
-    const city=[...cityMap.entries()].map(([name,set])=>[name,set.size]).sort((a,b)=>b[1]-a[1]).slice(0,12);
+    const speedRanges=rangeByOperator(rows,"Velocidad_Bajada_Mbps");
+    const speedOps=[...speedRanges.entries()].sort((a,b)=>b[1].max-a[1].max).slice(0,12);
+    destroyChart("speeds"); opt=chartDefaults();
+    state.charts.speeds=new Chart($("speeds-chart"),{type:"bar",data:{labels:speedOps.map(x=>x[0]),datasets:[
+      {label:"Mínimo",data:speedOps.map(x=>x[1].min),backgroundColor:"rgba(115,185,255,.72)",borderRadius:5},
+      {label:"Máximo",data:speedOps.map(x=>x[1].max),backgroundColor:"rgba(0,242,154,.72)",borderRadius:5}
+    ]},options:{...opt,indexAxis:"y",plugins:{...opt.plugins,legend:{position:"bottom"},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.dataset.label}: ${formatNum(c.raw)} Mbps`}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y}}}});
+
+    const city=countBy(rows,"Ciudad").slice(0,12);
     destroyChart("cities"); opt=chartDefaults();
-    state.charts.cities=new Chart($("cities-chart"),{type:"bar",data:{labels:city.map(x=>x[0]),datasets:[{data:city.map(x=>x[1]),backgroundColor:"rgba(0,199,125,.65)",borderRadius:5}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}});
+    state.charts.cities=new Chart($("cities-chart"),{type:"bar",data:{labels:city.map(x=>x[0]),datasets:[{label:"Planes",data:city.map(x=>x[1]),backgroundColor:"rgba(0,199,125,.72)",borderRadius:5}]},options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}});
   }
 
   function renderCoverage(){
