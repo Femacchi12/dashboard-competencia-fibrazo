@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260904-3" />
+  <link rel="stylesheet" href="styles.css?v=20260904-4" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -56,6 +56,13 @@
           <button id="reset-btn" class="btn outline small" type="button">Restablecer</button>
           <button id="clear-btn" class="btn outline small" type="button">Limpiar filtros</button>
         </div>
+      </div>
+      <div class="city-scope-row">
+        <div class="city-scope-label">
+          <span>CIUDAD</span>
+          <small>Mercados con cobertura FIBRAZO</small>
+        </div>
+        <div id="city-quickbar" class="city-quickbar" aria-label="Accesos rápidos por ciudad"></div>
       </div>
       <div id="filters" class="filters-grid"></div>
     </section>
@@ -138,6 +145,6 @@
   </main>
 
   <script src="table-enhancements.js?v=20260904-2"></script>
-  <script src="auth.js?v=20260904-7"></script>
+  <script src="auth.js?v=20260904-8"></script>
 </body>
 </html>
