@@ -335,6 +335,15 @@
   function planPasses(r){ return rowPassesFilters(r); }
   function evolutionPasses(r){ return filterDefs.filter(d=>d.key!=="period").every(def=>!state.filters[def.key].size||state.filters[def.key].has(def.getter(r))); }
 
+  function isSingleOperatorSingleCity(){
+    return state.filters.operator.size===1 && state.filters.city.size===1;
+  }
+
+  function updateMarketChartVisibility(){
+    const hideComparisons=isSingleOperatorSingleCity();
+    ["operator-price-panel","operator-speed-panel","city-offer-panel"].forEach(id=>$(id)?.classList.toggle("hidden",hideComparisons));
+  }
+
   function applyFilters(){
     state.filtered=state.plans.filter(planPasses);
     if(hasPlanSpecificFilters()){
@@ -343,6 +352,7 @@
     }else{
       state.filteredCoverage=state.coverage.filter(r=>coveragePassesFilters(r));
     }
+    updateMarketChartVisibility();
     renderKPIs(); renderEvolution(); renderCharts(); renderCoverage(); renderTable();
   }
 
@@ -445,7 +455,14 @@
     destroyChart("scatter");
     const points=rows.map(r=>({x:toNum(r.Velocidad_Bajada_Mbps),y:toNum(r.Precio_Usado_COP),operator:clean(r.Grupo_Operador),city:clean(r.Ciudad)})).filter(p=>p.x>0&&p.y>0);
     let opt=chartDefaults();
-    state.charts.scatter=new Chart($("scatter-chart"),{type:"scatter",data:{datasets:[{label:"Planes",data:points,pointRadius:4,pointHoverRadius:6,backgroundColor:"rgba(0,242,154,.72)"}]},options:{...opt,plugins:{...opt.plugins,tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.raw.operator} · ${c.raw.city}: ${formatNum(c.raw.x)} Mbps · ${formatCOP(c.raw.y)}`}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,title:{display:true,text:"COP"},ticks:{callback:v=>`$${Math.round(v/1000)}k`}}}}});
+    state.charts.scatter=new Chart($("scatter-chart"),{type:"scatter",data:{datasets:[{label:"Planes",data:points,pointRadius:4,pointHoverRadius:6,backgroundColor:"rgba(0,242,154,.72)"}]},options:{...opt,plugins:{...opt.plugins,tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>`${c.raw.operator} · ${c.raw.city}: ${formatNum(c.raw.x)} Mbps · ${formatCOP(c.raw.y)}`}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,title:{display:true,text:"COP"},ticks:{callback:v=>`${Math.round(v/1000)}k`}}}}});
+
+    if(isSingleOperatorSingleCity()){
+      destroyChart("operators");
+      destroyChart("speeds");
+      destroyChart("cities");
+      return;
+    }
 
     const priceRanges=rangeByOperator(rows,"Precio_Usado_COP");
     const priceOps=[...priceRanges.entries()].sort((a,b)=>a[1].min-b[1].min).slice(0,12);
