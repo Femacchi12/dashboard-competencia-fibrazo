@@ -54,3 +54,19 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
 .table-scroll th{background:#121615}
 @media(max-width:1450px){.kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:760px){.kpi-grid{grid-template-columns:1fr}}
+
+/* Alcance rápido de ciudades FIBRAZO */
+.city-scope-row{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:18px;margin-top:18px;padding-top:16px;border-top:1px solid #232B27}
+.city-scope-label{min-width:130px}.city-scope-label span{display:block;color:#8FA9A0;font-size:10px;font-weight:800;letter-spacing:.14em}.city-scope-label small{display:block;margin-top:4px;color:#60776E;font-size:9px;white-space:nowrap}
+.city-quickbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.city-chip{min-height:36px;padding:8px 14px;border:1px solid #313734;border-radius:18px;background:#1A1C1B;color:#AEBBB6;font:700 11px Inter,sans-serif;cursor:pointer;transition:.15s ease;white-space:nowrap}
+.city-chip:hover{border-color:#4A5A53;color:#E8F2EE}.city-chip.active{border-color:#00F29A;background:#062016;color:#00F29A}.city-chip.principal:not(.active){border-color:#3E4B45;color:#D8E4DF}.city-chip.more{border-style:dashed;color:#8FA9A0}
+.city-more-wrap{position:relative}.city-more-menu{position:absolute;z-index:55;top:calc(100% + 8px);right:0;width:310px;max-height:390px;overflow:auto;padding:10px;background:#111412;border:1px solid #2C4B3D;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.55)}
+.city-all-relevant{width:100%;padding:10px 12px;border:1px solid #355046;border-radius:10px;background:#151A18;color:#DDE8E3;font:700 11px Inter,sans-serif;text-align:left;cursor:pointer}.city-all-relevant:hover{border-color:#00F29A;color:#00F29A}
+.city-more-divider{height:1px;background:#28342F;margin:10px 0}.city-more-title{display:block;color:#00F29A;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin:0 2px 7px}
+.city-more-search{width:100%;padding:9px 10px;border:1px solid #303A35;border-radius:9px;background:#0B0E0D;color:#F4FFF9;font-size:11px;outline:none}.city-more-search:focus{border-color:#00F29A}
+.city-more-options{display:grid;gap:2px;margin-top:6px}.city-more-option{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;color:#CAD7D2;font-size:11px;cursor:pointer}.city-more-option:hover{background:#1A211E}.city-more-option input{accent-color:#00F29A}
+.filters-grid{grid-template-columns:repeat(5,minmax(145px,1fr))}
+@media(max-width:1250px){.filters-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:850px){.city-scope-row{grid-template-columns:1fr;gap:9px}.city-scope-label small{white-space:normal}.city-quickbar{flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px;scrollbar-width:thin;scrollbar-color:#00F29A #151A18}.city-chip{flex:0 0 auto}.city-more-wrap{position:static}.city-more-menu{position:absolute;left:20px;right:20px;width:auto;top:auto;margin-top:8px}}
+@media(max-width:560px){.city-scope-row{margin-top:14px;padding-top:14px}.city-scope-label{min-width:0}.city-more-menu{left:14px;right:14px}}
