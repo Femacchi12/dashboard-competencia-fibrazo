@@ -615,6 +615,16 @@
     return `rgba(${r},${g},${b},${alpha})`;
   };
 
+  function setAdaptiveChartHeight(canvasId, itemCount, {min=320,row=34,max=760}={}){
+    const canvas=$(canvasId);
+    if(!canvas) return;
+    const panel=canvas.closest(".chart-panel");
+    const height=Math.max(min,Math.min(max,120+itemCount*row));
+    canvas.style.height=`${height-88}px`;
+    canvas.style.maxHeight="none";
+    if(panel) panel.style.minHeight=`${height}px`;
+  }
+
   function renderCharts(){
     const rows=state.filtered;
 
@@ -631,6 +641,7 @@
 
     const priceRanges=[...rangeByOperator(rows,"Precio_Usado_COP").entries()].sort((a,b)=>a[1].min-b[1].min).slice(0,14);
     const priceColors=priceRanges.map((_,i)=>operatorPalette[i%operatorPalette.length]);
+    setAdaptiveChartHeight("operators-chart",priceRanges.length,{min:320,row:36,max:760});
     destroyChart("operators"); opt=chartDefaults();
     state.charts.operators=new Chart($("operators-chart"),{
       type:"bar",
@@ -654,6 +665,7 @@
 
     const speedRanges=[...rangeByOperator(rows,"Velocidad_Bajada_Mbps").entries()].sort((a,b)=>b[1].max-a[1].max).slice(0,14);
     const speedColors=speedRanges.map((_,i)=>operatorPalette[i%operatorPalette.length]);
+    setAdaptiveChartHeight("speeds-chart",speedRanges.length,{min:320,row:36,max:760});
     destroyChart("speeds"); opt=chartDefaults();
     state.charts.speeds=new Chart($("speeds-chart"),{
       type:"bar",
