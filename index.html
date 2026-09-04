@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260904-1" />
+  <link rel="stylesheet" href="styles.css?v=20260904-2" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -30,12 +30,12 @@
       <div class="hero-copy">
         <div class="hero-brand"><span>fibrazo</span><i></i><b>GROWTH</b></div>
         <h1>Dashboard de Competencia</h1>
-        <p>Inteligencia competitiva de planes, precios, operadores y cobertura territorial.</p>
+        <p>Lectura ejecutiva por ciudad y corte: competidores, precios, planes, velocidad y evolución del mercado.</p>
       </div>
 
       <div class="update-cards single">
         <article>
-          <span>Última actualización de datos</span>
+          <span>Última consulta</span>
           <b id="last-load">—</b>
           <button id="refresh-btn" class="refresh-button" type="button">↻ Actualizar</button>
         </article>
@@ -61,20 +61,35 @@
     </section>
 
     <section class="kpi-grid" aria-label="Indicadores principales">
-      <article class="kpi-card primary"><span>Planes visibles</span><strong id="kpi-plans">—</strong><small>Registros filtrados</small></article>
-      <article class="kpi-card"><span>Operadores</span><strong id="kpi-operators">—</strong><small id="kpi-cities-note">— ciudades/localidades</small></article>
-      <article class="kpi-card accent"><span>Precio mediano</span><strong id="kpi-price">—</strong><small>COP · precio usado</small></article>
+      <article class="kpi-card primary"><span>Competidores</span><strong id="kpi-operators">—</strong><small id="kpi-cities-note">— ciudades/localidades</small></article>
+      <article class="kpi-card"><span>Planes</span><strong id="kpi-plans">—</strong><small>Ofertas registradas en el corte</small></article>
+      <article class="kpi-card accent"><span>Precio mínimo</span><strong id="kpi-min-price">—</strong><small>COP · oferta más económica</small></article>
+      <article class="kpi-card"><span>Precio mediano</span><strong id="kpi-price">—</strong><small>COP · referencia del mercado</small></article>
       <article class="kpi-card"><span>Velocidad mediana</span><strong id="kpi-speed">—</strong><small>Mbps de bajada</small></article>
-      <article class="kpi-card"><span>Oferta con TV</span><strong id="kpi-tv">—</strong><small>Sobre registros con TV informado</small></article>
+    </section>
+
+    <section class="section evolution-section">
+      <div class="section-title section-heading evolution-heading">
+        <div><span>EVOLUCIÓN</span><h2>Cambios del mercado</h2></div>
+        <div class="evolution-period"><strong id="evolution-current">—</strong><span id="evolution-compare">Primer corte disponible</span></div>
+      </div>
+      <div class="evolution-summary">
+        <article class="panel evo-card"><span>Nuevos competidores</span><strong id="evo-new">—</strong><small id="evo-new-note">Sin periodo anterior</small></article>
+        <article class="panel evo-card"><span>Salieron del mercado</span><strong id="evo-lost">—</strong><small id="evo-lost-note">Sin periodo anterior</small></article>
+        <article class="panel evo-card"><span>Cambios de precio</span><strong id="evo-price-change">—</strong><small id="evo-price-note">Operadores vs. corte anterior</small></article>
+      </div>
+      <div class="evolution-grid">
+        <article class="panel chart-panel compact"><div class="panel-head"><h3>Competidores por corte</h3><span>Evolución del mercado filtrado</span></div><canvas id="competitors-evolution-chart"></canvas></article>
+        <article class="panel chart-panel compact"><div class="panel-head"><h3>Precio mediano por corte</h3><span>Evolución de la oferta</span></div><canvas id="price-evolution-chart"></canvas></article>
+      </div>
     </section>
 
     <section class="section market-section">
       <div class="section-title section-heading"><div><span>MERCADO</span><h2>Planes y precios</h2></div></div>
       <div class="charts-grid">
-        <article class="panel chart-panel wide"><div class="panel-head"><h3>Precio × velocidad</h3><span>Precio usado vs. Mbps</span></div><canvas id="scatter-chart"></canvas></article>
-        <article class="panel chart-panel"><div class="panel-head"><h3>Planes por operador</h3><span>Top operadores filtrados</span></div><canvas id="operators-chart"></canvas></article>
-        <article class="panel chart-panel"><div class="panel-head"><h3>Planes por ciudad</h3><span>Distribución territorial</span></div><canvas id="cities-chart"></canvas></article>
-        <article class="panel chart-panel"><div class="panel-head"><h3>TV incluida</h3><span>Composición de la oferta</span></div><canvas id="tv-chart"></canvas></article>
+        <article class="panel chart-panel wide"><div class="panel-head"><h3>Precio × velocidad</h3><span>Ofertas del corte seleccionado</span></div><canvas id="scatter-chart"></canvas></article>
+        <article class="panel chart-panel"><div class="panel-head"><h3>Precio mediano por operador</h3><span>Comparación de competidores</span></div><canvas id="operators-chart"></canvas></article>
+        <article class="panel chart-panel"><div class="panel-head"><h3>Competidores por ciudad</h3><span>Empresas activas por mercado</span></div><canvas id="cities-chart"></canvas></article>
       </div>
     </section>
 
@@ -120,7 +135,7 @@
     </footer>
   </main>
 
-  <script src="table-enhancements.js?v=20260904-1"></script>
-  <script src="auth.js?v=20260904-1"></script>
+  <script src="table-enhancements.js?v=20260904-2"></script>
+  <script src="auth.js?v=20260904-2"></script>
 </body>
 </html>
