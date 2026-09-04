@@ -607,19 +607,15 @@
   function destroyChart(key){if(state.charts[key]){state.charts[key].destroy();delete state.charts[key];}}
   function countBy(rows,key){const m=new Map();rows.forEach(r=>{const v=clean(r[key])||"No informado";m.set(v,(m.get(v)||0)+1)});return[...m.entries()].sort((a,b)=>b[1]-a[1]);}
 
-  const operatorPalette=["#00F29A","#73B9FF","#F5D547","#FF8A65","#B388FF","#45E0B7","#5AA7FF","#FF7585","#9CCC65","#26C6DA","#FFA726","#AB47BC"];
-  function operatorColor(name){
-    let hash=0; for(const c of clean(name)) hash=(hash*31+c.charCodeAt(0))>>>0;
-    return operatorPalette[hash%operatorPalette.length];
-  }
+  const operatorPalette=["#00F29A","#4D96FF","#FF5C70","#F5D547","#A66A3F","#FF9F43","#45D7E8","#A56EFF"];
 
   function renderOperatorRanking(containerId, entries, formatter){
     const root=$(containerId); if(!root)return;
     root.innerHTML="";
     if(!entries.length){root.innerHTML='<span class="subtitle">Sin datos compatibles con los filtros.</span>';return;}
     const globalMax=Math.max(...entries.map(([,v])=>v.max),1);
-    entries.forEach(([name,v])=>{
-      const color=operatorColor(name);
+    entries.forEach(([name,v],index)=>{
+      const color=operatorPalette[index%operatorPalette.length];
       const maxPct=Math.max(2,Math.min(100,(v.max/globalMax)*100));
       const minPct=Math.max(0,Math.min(100,(v.min/globalMax)*100));
       const row=document.createElement("div"); row.className="operator-rank-row";
