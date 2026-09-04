@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260904-2" />
+  <link rel="stylesheet" href="styles.css?v=20260904-3" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -63,9 +63,10 @@
     <section class="kpi-grid" aria-label="Indicadores principales">
       <article class="kpi-card primary"><span>Competidores</span><strong id="kpi-operators">—</strong><small id="kpi-cities-note">— ciudades/localidades</small></article>
       <article class="kpi-card"><span>Planes</span><strong id="kpi-plans">—</strong><small>Ofertas registradas en el corte</small></article>
-      <article class="kpi-card accent"><span>Precio mínimo</span><strong id="kpi-min-price">—</strong><small>COP · oferta más económica</small></article>
-      <article class="kpi-card"><span>Precio mediano</span><strong id="kpi-price">—</strong><small>COP · referencia del mercado</small></article>
-      <article class="kpi-card"><span>Velocidad mediana</span><strong id="kpi-speed">—</strong><small>Mbps de bajada</small></article>
+      <article class="kpi-card success"><span>Precio mínimo</span><strong id="kpi-min-price">—</strong><small>COP · oferta más económica</small></article>
+      <article class="kpi-card warn"><span>Precio máximo</span><strong id="kpi-max-price">—</strong><small>COP · oferta más alta</small></article>
+      <article class="kpi-card info"><span>Velocidad mínima</span><strong id="kpi-min-speed">—</strong><small>Mbps de bajada</small></article>
+      <article class="kpi-card info"><span>Velocidad máxima</span><strong id="kpi-max-speed">—</strong><small>Mbps de bajada</small></article>
     </section>
 
     <section class="section evolution-section">
@@ -80,7 +81,7 @@
       </div>
       <div class="evolution-grid">
         <article class="panel chart-panel compact"><div class="panel-head"><h3>Competidores por corte</h3><span>Evolución del mercado filtrado</span></div><canvas id="competitors-evolution-chart"></canvas></article>
-        <article class="panel chart-panel compact"><div class="panel-head"><h3>Precio mediano por corte</h3><span>Evolución de la oferta</span></div><canvas id="price-evolution-chart"></canvas></article>
+        <article class="panel chart-panel compact"><div class="panel-head"><h3>Precio mínimo y máximo por corte</h3><span>Rango de la oferta</span></div><canvas id="price-evolution-chart"></canvas></article>
       </div>
     </section>
 
@@ -88,8 +89,9 @@
       <div class="section-title section-heading"><div><span>MERCADO</span><h2>Planes y precios</h2></div></div>
       <div class="charts-grid">
         <article class="panel chart-panel wide"><div class="panel-head"><h3>Precio × velocidad</h3><span>Ofertas del corte seleccionado</span></div><canvas id="scatter-chart"></canvas></article>
-        <article class="panel chart-panel"><div class="panel-head"><h3>Precio mediano por operador</h3><span>Comparación de competidores</span></div><canvas id="operators-chart"></canvas></article>
-        <article class="panel chart-panel"><div class="panel-head"><h3>Competidores por ciudad</h3><span>Empresas activas por mercado</span></div><canvas id="cities-chart"></canvas></article>
+        <article class="panel chart-panel"><div class="panel-head"><h3>Precio mínimo y máximo por operador</h3><span>Rango comercial registrado</span></div><canvas id="operators-chart"></canvas></article>
+        <article class="panel chart-panel"><div class="panel-head"><h3>Velocidad mínima y máxima por operador</h3><span>Rango de Mbps registrado</span></div><canvas id="speeds-chart"></canvas></article>
+        <article class="panel chart-panel wide"><div class="panel-head"><h3>Oferta registrada por ciudad</h3><span>Planes cargados; no implica presencia territorial validada</span></div><canvas id="cities-chart"></canvas></article>
       </div>
     </section>
 
@@ -99,7 +101,7 @@
         <div class="coverage-meta"><strong id="coverage-visible">—</strong><span>registros compatibles con los filtros</span></div>
       </div>
       <div class="coverage-grid">
-        <article class="panel chart-panel"><div class="panel-head"><h3>Operadores por territorio</h3><span>Registros consolidados</span></div><canvas id="coverage-chart"></canvas></article>
+        <article class="panel chart-panel"><div class="panel-head"><h3>Presencia observada por ciudad</h3><span>Solo cobertura respaldada</span></div><canvas id="coverage-chart"></canvas></article>
         <article class="panel coverage-list-panel"><div class="panel-head"><h3>Resumen territorial</h3><span>Ciudad / barrio / operador</span></div><div id="coverage-list" class="coverage-list"></div></article>
       </div>
     </section>
@@ -136,6 +138,6 @@
   </main>
 
   <script src="table-enhancements.js?v=20260904-2"></script>
-  <script src="auth.js?v=20260904-4"></script>
+  <script src="auth.js?v=20260904-5"></script>
 </body>
 </html>
