@@ -528,7 +528,7 @@
     const hideOperatorRankings=isSingleOperatorSingleCity();
     ["operator-price-panel","operator-speed-panel"].forEach(id=>$(id)?.classList.toggle("hidden",hideOperatorRankings));
 
-    $("coverage-section")?.classList.toggle("hidden",effectiveCityCount()<=1);
+    if(state.analysisView==="territory") $("coverage-ranking-panel")?.classList.toggle("hidden",effectiveCityCount()<=1);
   }
 
   function applyFilters(){
@@ -539,8 +539,15 @@
     }else{
       state.filteredCoverage=state.coverage.filter(r=>coveragePassesFilters(r));
     }
+    const selectedPeriods=new Set([...state.filters.period]);
+    state.filteredFFVV=state.relevamientos.filter(r=>{
+      if(selectedPeriods.size && !selectedPeriods.has(clean(r.Periodo_Label))) return false;
+      if(!cityScopeAllows(r.Ciudad)) return false;
+      if(state.filters.operator.size && !state.filters.operator.has(clean(r.Grupo_Operador))) return false;
+      return true;
+    });
     updateSectionVisibility();
-    renderKPIs(); renderEvolution(); renderCharts(); renderCoverage(); renderTable();
+    renderKPIs(); renderEvolution(); renderCharts(); renderCoverage(); renderTable(); renderFibrazoComparison(); renderFFVV();
   }
 
   function renderKPIs(){
@@ -721,7 +728,8 @@
     $("coverage-visible").textContent=formatNum(rows.length);
     const grouped=new Map();
     rows.forEach(r=>{
-      const city=clean(r.Ciudad)||"No informado", op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)||"No informado";
+      const city=clean(r.Ciudad)||"No informado";
+      const op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)||"No informado";
       if(!grouped.has(city))grouped.set(city,new Set());
       grouped.get(city).add(op);
     });
@@ -731,22 +739,98 @@
     data.slice(0,12).forEach(([city,count])=>{
       const pct=count/totalPairs*100;
       const row=document.createElement("div"); row.className="coverage-rank-row";
-      row.innerHTML=`
-        <div class="coverage-rank-name">${escapeHtml(city)}</div>
-        <div class="coverage-rank-track"><span style="width:${Math.max(3,pct)}%"></span></div>
-        <strong>${formatNum(count)}</strong>
-        <b>${pct.toFixed(1).replace(".",",")}%</b>`;
+      row.innerHTML=`<div class="coverage-rank-name">${escapeHtml(city)}</div><div class="coverage-rank-track"><span style="width:${Math.max(3,pct)}%"></span></div><strong>${formatNum(count)}</strong><b>${pct.toFixed(1).replace(".",",")}%</b>`;
       root.appendChild(row);
     });
     if(!data.length)root.innerHTML='<span class="subtitle">Sin presencia observada compatible con los filtros.</span>';
 
+    const territoryGroups=new Map();
+    rows.forEach(r=>{
+      const city=clean(r.Ciudad)||"—";
+      const zone=clean(r.Zona_FIBRAZO), trunk=clean(r.Troncal_FIBRAZO);
+      const barrio=clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ);
+      const place=[city,barrio||zone||trunk||"Nivel ciudad"].filter(Boolean).join(" · ");
+      const extra=[zone?`Zona: ${zone}`:"",trunk?`Troncal: ${trunk}`:""].filter(Boolean).join(" · ");
+      const key=place+"|"+extra;
+      if(!territoryGroups.has(key))territoryGroups.set(key,{place,extra,ops:new Set()});
+      territoryGroups.get(key).ops.add(clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)||"No informado");
+    });
     const list=$("coverage-list"); list.innerHTML="";
-    rows.slice(0,60).forEach(r=>{
-      const el=document.createElement("div"); el.className="coverage-row";
-      el.innerHTML=`<strong>${escapeHtml(clean(r.Ciudad)||"—")}</strong><span>${escapeHtml(clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)||"—")}</span><span>${escapeHtml(clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ)||"Ciudad")}</span>`;
+    [...territoryGroups.values()].sort((a,b)=>a.place.localeCompare(b.place,"es")).slice(0,80).forEach(g=>{
+      const el=document.createElement("div"); el.className="territory-group";
+      el.innerHTML=`<div><strong>${escapeHtml(g.place)}</strong>${g.extra?`<small>${escapeHtml(g.extra)}</small>`:""}</div><p>${[...g.ops].sort((a,b)=>a.localeCompare(b,"es")).map(escapeHtml).join(" · ")}</p>`;
       list.appendChild(el);
     });
-    if(!rows.length) list.innerHTML='<span class="subtitle">Sin presencia observada compatible con los filtros.</span>';
+    if(!rows.length)list.innerHTML='<span class="subtitle">Sin presencia observada compatible con los filtros.</span>';
+  }
+
+  function offerLabel(o){
+    const trunk=clean(o.Troncal_FIBRAZO)?` · ${clean(o.Troncal_FIBRAZO)}`:"";
+    return `${clean(o.Ciudad)}${trunk} · ${clean(o.Servicio)} · ${formatNum(o.Velocidad_Mbps)} Mbps · ${formatCOP(o.Precio_COP)} · ${clean(o.Etapa_Vigencia)}`;
+  }
+
+  function compatibleOffers(){
+    const cities=state.filters.city.size?state.filters.city:fibrazoCitySet();
+    const rows=state.offers.filter(o=>!cities.size||cities.has(clean(o.Ciudad)));
+    const seen=new Set();
+    return rows.filter(o=>{
+      const k=[o.Servicio,o.Velocidad_Mbps,o.TV,o.Precio_COP,o.Etapa_Vigencia,o.Troncal_FIBRAZO].join("|");
+      if(seen.has(k))return false;
+      seen.add(k); return true;
+    });
+  }
+
+  function renderFibrazoComparison(){
+    const select=$("fibrazo-offer-select"); if(!select)return;
+    const offers=compatibleOffers();
+    if(!offers.length){select.innerHTML="<option>Sin oferta compatible</option>"; $("fibrazo-compare-body").innerHTML=""; return;}
+    if(!state.selectedOfferKey || !offers.some(o=>o.ID_Oferta===state.selectedOfferKey)){
+      const preferred=offers.find(o=>clean(o.Servicio)==="Internet"&&o.Velocidad_Mbps===400&&clean(o.Etapa_Vigencia)==="Precio normal")||offers[0];
+      state.selectedOfferKey=preferred.ID_Oferta;
+    }
+    select.innerHTML=offers.map(o=>`<option value="${escapeHtml(o.ID_Oferta)}" ${o.ID_Oferta===state.selectedOfferKey?"selected":""}>${escapeHtml(offerLabel(o))}</option>`).join("");
+    const fz=offers.find(o=>o.ID_Oferta===state.selectedOfferKey)||offers[0];
+    $("fz-price").textContent=formatCOP(fz.Precio_COP);
+    $("fz-speed").textContent=formatNum(fz.Velocidad_Mbps);
+    $("fz-offer-name").textContent=`${fz.Servicio} · ${fz.Etapa_Vigencia}`;
+    const best=new Map();
+    state.filtered.forEach(r=>{
+      const op=clean(r.Grupo_Operador), price=toNum(r.Precio_Usado_COP);
+      if(!op||!(price>0))return;
+      const cur=best.get(op); if(!cur||price<toNum(cur.Precio_Usado_COP))best.set(op,r);
+    });
+    const rows=[...best.values()].sort((a,b)=>toNum(a.Precio_Usado_COP)-toNum(b.Precio_Usado_COP));
+    $("fz-better-price").textContent=formatNum(rows.filter(r=>toNum(r.Precio_Usado_COP)<fz.Precio_COP).length);
+    $("fz-better-speed").textContent=formatNum(rows.filter(r=>toNum(r.Velocidad_Bajada_Mbps)>fz.Velocidad_Mbps).length);
+    $("fibrazo-compare-body").innerHTML=rows.map(r=>{
+      const p=toNum(r.Precio_Usado_COP), s=toNum(r.Velocidad_Bajada_Mbps), dp=p-fz.Precio_COP, ds=(s??0)-fz.Velocidad_Mbps;
+      const dpLabel=dp===0?"=":`${dp>0?"+":""}${formatCOP(dp).replace("COP","").trim()}`;
+      return `<tr><td><strong>${escapeHtml(r.Grupo_Operador)}</strong></td><td>${formatCOP(p)}</td><td>${s==null?"—":formatNum(s)+" Mbps"}</td><td class="${dp<=0?"negative":"positive"}">${dpLabel}</td><td class="${ds>=0?"positive":"negative"}">${ds>0?"+":""}${formatNum(ds)}</td><td>${escapeHtml(clean(r.Tecnologia)||"—")}</td><td>${escapeHtml(normalizeTV(r.TV_Incluida))}</td></tr>`;
+    }).join("");
+  }
+
+  function renderFFVV(){
+    const rows=state.filteredFFVV;
+    $("ffvv-count").textContent=formatNum(rows.length);
+    $("ffvv-operators").textContent=formatNum(new Set(rows.map(r=>clean(r.Grupo_Operador)).filter(Boolean)).size);
+    $("ffvv-clause-yes").textContent=formatNum(rows.filter(r=>["si","sí"].includes(fold(r.Clausula))).length);
+    $("ffvv-clause-no").textContent=formatNum(rows.filter(r=>fold(r.Clausula)==="no").length);
+    $("ffvv-notes").textContent=formatNum(rows.filter(r=>clean(r.Observacion_Campo)).length);
+    const m=new Map();
+    rows.forEach(r=>{
+      const op=clean(r.Grupo_Operador)||clean(r.Operador_Original)||"No identificado";
+      if(!m.has(op))m.set(op,{n:0,p:[],s:[],t:new Set(),svc:[]});
+      const x=m.get(op); x.n++;
+      const p=toNum(r.Precio_COP), s=toNum(r.Velocidad_Mbps), svc=toNum(r.Servicio_1_5);
+      if(p>0)x.p.push(p); if(s>0)x.s.push(s); if(svc>0)x.svc.push(svc);
+      if(clean(r.Tecnologia_Declarada))x.t.add(clean(r.Tecnologia_Declarada));
+    });
+    $("ffvv-summary-body").innerHTML=[...m.entries()].sort((a,b)=>b[1].n-a[1].n).map(([op,x])=>{
+      const pr=x.p.length?`${formatCOP(Math.min(...x.p))} – ${formatCOP(Math.max(...x.p))}`:"—";
+      const sp=x.s.length?`${formatNum(Math.min(...x.s))} – ${formatNum(Math.max(...x.s))} Mbps`:"—";
+      const svc=x.svc.length?`${formatNum(Math.min(...x.svc))} – ${formatNum(Math.max(...x.svc))}`:"—";
+      return `<tr><td><strong>${escapeHtml(op)}</strong></td><td>${formatNum(x.n)}</td><td>${pr}</td><td>${sp}</td><td>${escapeHtml([...x.t].join(" / ")||"—")}</td><td>${svc}</td></tr>`;
+    }).join("");
   }
 
   function tableRows(){
