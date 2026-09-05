@@ -42,7 +42,7 @@
     }
 
     const hotfix = document.createElement("script");
-    hotfix.src = "hotfix.js?v=20260904-3";
+    hotfix.src = "hotfix.js?v=20260905-1";
     hotfix.dataset.dashboardHotfix = "true";
     hotfix.onload = loadApp;
     hotfix.onerror = loadApp;
