@@ -5,8 +5,9 @@
   const rangesByGid = {
     "1091103584": "A1:AA145",  // 01_OPERADORES
     "1372196091": "A1:AF1000", // 02_PLANES_HISTORICO
-    "718563813": "A1:Z2500",   // 03_COBERTURA
-    "1309202609": "A1:L300"    // 13_MERCADOS_FIBRAZO
+    "718563813": "A1:Y2500",   // 03_PRESENCIA
+    "1909486382": "A1:AD1000", // 04_RELEVAMIENTOS
+    "1320750580": "A1:BC1200"  // 07_CONFIG
   };
 
   const normalizeThousands = (text) =>
@@ -25,7 +26,7 @@
     url.searchParams.set("headers", "1");
 
     // Acota cada fuente a su rango maestro para que la estructura sea estable.
-    if (rangesByGid[gid]) url.searchParams.set("range", rangesByGid[gid]);
+    if (!url.searchParams.get("range") && rangesByGid[gid]) url.searchParams.set("range", rangesByGid[gid]);
 
     const response = await originalFetch(url.toString(), init);
     if (!response.ok) return response;
