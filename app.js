@@ -900,6 +900,17 @@
     document.head.appendChild(style);
   }
 
+  function setAnalysisView(view){
+    state.analysisView=view;
+    document.querySelectorAll(".analysis-tab").forEach(b=>b.classList.toggle("active",b.dataset.analysisView===view));
+    document.querySelectorAll(".view-block").forEach(el=>el.classList.toggle("hidden",el.dataset.view!==view));
+    if(view==="general") updateSectionVisibility();
+    if(view==="territory") $("coverage-ranking-panel")?.classList.toggle("hidden",effectiveCityCount()<=1);
+  }
+
+  document.querySelectorAll(".analysis-tab").forEach(b=>b.addEventListener("click",()=>setAnalysisView(b.dataset.analysisView)));
+  $("fibrazo-offer-select")?.addEventListener("change",e=>{state.selectedOfferKey=e.target.value;renderFibrazoComparison();});
+
   $("refresh-btn").addEventListener("click",()=>load());
   $("reset-btn").addEventListener("click",()=>{Object.values(state.filters).forEach(s=>s.clear());state.cityScopeMode="fibrazo";ensurePeriodSelection();state.tableSearch="";$("table-search").value="";state.expanded=false;state.sort={key:"Grupo_Operador",dir:1};renderCityQuickbar();renderFilters();applyFilters()});
   $("clear-btn").addEventListener("click",()=>{Object.entries(state.filters).forEach(([key,set])=>{if(key!=="period")set.clear()});state.cityScopeMode="fibrazo";state.expanded=false;renderCityQuickbar();renderFilters();applyFilters()});
@@ -912,5 +923,6 @@
   window.setInterval(()=>{if(!document.hidden)load({silent:true})},AUTO_REFRESH_MS);
 
   injectLinkStyles();
+  setAnalysisView("general");
   load();
 })();
