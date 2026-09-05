@@ -3,17 +3,21 @@
 
   const BASE_SHEET_ID = "1v2sBVe_w-bTl438b8qWFmvw0gT66bj8TskcXbnY-gbU";
   const SOURCES = {
-    plans: { gid: "1372196091", label: "02_PLANES_HISTORICO" },
-    operators: { gid: "1091103584", label: "01_OPERADORES" },
-    coverage: { gid: "718563813", label: "03_COBERTURA" },
-    markets: { gid: "1309202609", label: "13_MERCADOS_FIBRAZO" }
+    plans: { gid: "1372196091", label: "02_PLANES_HISTORICO", range:"A1:AF1000" },
+    operators: { gid: "1091103584", label: "01_OPERADORES", range:"A1:AA300" },
+    coverage: { gid: "718563813", label: "03_PRESENCIA", range:"A1:Y2500" },
+    relevamientos: { gid: "1909486382", label: "04_RELEVAMIENTOS", range:"A1:AD1000" },
+    markets: { gid: "1320750580", label: "07_CONFIG · Mercados", range:"X2:AI300" },
+    territories: { gid: "1320750580", label: "07_CONFIG · Territorio", range:"AK2:AQ400" },
+    offers: { gid: "1320750580", label: "07_CONFIG · Oferta FIBRAZO", range:"AS2:BC300" }
   };
   const AUTO_REFRESH_MS = 120000;
 
   const state = {
-    plans: [], operators: [], coverage: [], markets: [], filtered: [], filteredCoverage: [],
+    plans: [], operators: [], coverage: [], markets: [], territories: [], offers: [], relevamientos: [],
+    filtered: [], filteredCoverage: [], filteredFFVV: [],
     filters: { period:new Set(), city:new Set(), operator:new Set(), technology:new Set(), modality:new Set(), price:new Set() },
-    cityScopeMode:"fibrazo",
+    cityScopeMode:"fibrazo", analysisView:"general", selectedOfferKey:"",
     tableSearch:"", expanded:false, sort:{ key:"Grupo_Operador", dir:1 }, hiddenColumns:new Set(["Operador_Normalizado"]), charts:{},
     loading:false, lastLoadAt:0
   };
@@ -142,7 +146,11 @@
     return `<a class="phone-link" href="tel:${escapeHtml(dial)}">${escapeHtml(label)}</a>`;
   }
 
-  function csvUrl(gid){ return `https://docs.google.com/spreadsheets/d/${BASE_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}&cb=${Date.now()}`; }
+  function csvUrl(source){
+    const params=new URLSearchParams({tqx:"out:csv",gid:source.gid,cb:String(Date.now())});
+    if(source.range) params.set("range",source.range);
+    return `https://docs.google.com/spreadsheets/d/${BASE_SHEET_ID}/gviz/tq?${params.toString()}`;
+  }
 
   function parseCSV(text){
     const rows=[]; let row=[], field="", quoted=false;
@@ -160,7 +168,7 @@
   }
 
   async function fetchCsv(source){
-    const res=await fetch(csvUrl(source.gid),{cache:"no-store"});
+    const res=await fetch(csvUrl(source),{cache:"no-store"});
     if(!res.ok) throw new Error(`${source.label}: HTTP ${res.status}`);
     const text=await res.text();
     if(/<!doctype html>|<html/i.test(text)) throw new Error(`${source.label}: la hoja no es accesible como CSV desde el navegador.`);
@@ -209,6 +217,18 @@
         Grupo_Operador:clean(op.Grupo_Operador)||clean(op.Marca_Comercial)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)
       };
     });
+  }
+
+  function buildRelevamientos(raw,operators){
+    const byId=new Map(operators.map(o=>[clean(o.ID_Operador),o]));
+    return raw.filter(r=>fold(r.Tipo_Registro)==="observacion ffvv").map(r=>{
+      const op=byId.get(clean(r.ID_Operador))||{};
+      return {...r,Grupo_Operador:clean(op.Grupo_Operador)||clean(op.Operador_Normalizado)||clean(r.Operador_Original),Periodo_Label:formatPeriod(r.Periodo_Corte)};
+    });
+  }
+
+  function buildOffers(raw){
+    return raw.filter(r=>clean(r.ID_Oferta)).map(r=>({...r,Velocidad_Mbps:toNum(r.Velocidad_Mbps),Precio_COP:toNum(r.Precio_COP),Dias:toNum(r.Dias)}));
   }
 
   function availablePeriods(){
@@ -360,8 +380,9 @@
     state.loading=true;
     if(!silent && $("refresh-btn")){ $("refresh-btn").disabled=true; $("refresh-btn").textContent="Actualizando…"; }
     try{
-      const [plansRes, operatorsRes, coverageRes, marketsRes]=await Promise.allSettled([
-        fetchCsv(SOURCES.plans), fetchCsv(SOURCES.operators), fetchCsv(SOURCES.coverage), fetchCsv(SOURCES.markets)
+      const [plansRes, operatorsRes, coverageRes, marketsRes, territoriesRes, offersRes, relevamientosRes]=await Promise.allSettled([
+        fetchCsv(SOURCES.plans), fetchCsv(SOURCES.operators), fetchCsv(SOURCES.coverage), fetchCsv(SOURCES.markets),
+        fetchCsv(SOURCES.territories), fetchCsv(SOURCES.offers), fetchCsv(SOURCES.relevamientos)
       ]);
       if(plansRes.status!=="fulfilled") throw plansRes.reason;
       if(operatorsRes.status!=="fulfilled") throw operatorsRes.reason;
@@ -370,6 +391,9 @@
       state.plans=buildPlans(plansRes.value,operatorsRes.value);
       state.coverage=coverageRes.status==="fulfilled"?buildCoverage(coverageRes.value,operatorsRes.value):[];
       state.markets=buildMarkets(marketsRes.value);
+      state.territories=territoriesRes.status==="fulfilled"?territoriesRes.value.filter(r=>clean(r.ID_Territorio)):[];
+      state.offers=offersRes.status==="fulfilled"?buildOffers(offersRes.value):[];
+      state.relevamientos=relevamientosRes.status==="fulfilled"?buildRelevamientos(relevamientosRes.value,operatorsRes.value):[];
       ensurePeriodSelection();
       state.lastLoadAt=Date.now();
       $("last-load").textContent=new Intl.DateTimeFormat("es-CO",{dateStyle:"short",timeStyle:"short"}).format(new Date());
