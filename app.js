@@ -522,11 +522,12 @@
   }
 
   function updateSectionVisibility(){
+    const inGeneral=state.analysisView==="general";
     const compareCuts=state.filters.period.size===2;
-    $("evolution-section")?.classList.toggle("hidden",!compareCuts);
+    $("evolution-section")?.classList.toggle("hidden",!inGeneral||!compareCuts);
 
     const hideOperatorRankings=isSingleOperatorSingleCity();
-    ["operator-price-panel","operator-speed-panel"].forEach(id=>$(id)?.classList.toggle("hidden",hideOperatorRankings));
+    ["operator-price-panel","operator-speed-panel"].forEach(id=>$(id)?.classList.toggle("hidden",!inGeneral||hideOperatorRankings));
 
     if(state.analysisView==="territory") $("coverage-ranking-panel")?.classList.toggle("hidden",effectiveCityCount()<=1);
   }
