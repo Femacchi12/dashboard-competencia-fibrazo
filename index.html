@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260904-7" />
+  <link rel="stylesheet" href="styles.css?v=20260905-1" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -67,7 +67,14 @@
       <div id="filters" class="filters-grid"></div>
     </section>
 
-    <section class="kpi-grid" aria-label="Indicadores principales">
+    <nav class="analysis-tabs panel" aria-label="Vistas de análisis">
+      <button type="button" class="analysis-tab active" data-analysis-view="general">Vista general</button>
+      <button type="button" class="analysis-tab" data-analysis-view="fibrazo">Vs. FIBRAZO</button>
+      <button type="button" class="analysis-tab" data-analysis-view="territory">Territorio</button>
+      <button type="button" class="analysis-tab" data-analysis-view="ffvv">Inteligencia FFVV</button>
+    </nav>
+
+    <section class="kpi-grid view-block" data-view="general" aria-label="Indicadores principales">
       <article class="kpi-card primary"><span>Competidores</span><strong id="kpi-operators">—</strong><small id="kpi-cities-note">— ciudades/localidades</small></article>
       <article class="kpi-card"><span>Planes</span><strong id="kpi-plans">—</strong><small>Ofertas registradas en el corte</small></article>
       <article class="kpi-card success"><span>Precio mínimo</span><strong id="kpi-min-price">—</strong><small>COP · oferta más económica</small></article>
@@ -76,7 +83,7 @@
       <article class="kpi-card info"><span>Velocidad máxima</span><strong id="kpi-max-speed">—</strong><small>Mbps de bajada</small></article>
     </section>
 
-    <section id="evolution-section" class="section evolution-section hidden">
+    <section id="evolution-section" class="section evolution-section view-block hidden" data-view="general">
       <div class="section-title section-heading evolution-heading">
         <div><span>EVOLUCIÓN</span><h2>Cambios del mercado</h2></div>
         <div class="evolution-period"><strong id="evolution-current">—</strong><span id="evolution-compare">Primer corte disponible</span></div>
@@ -92,7 +99,7 @@
       </div>
     </section>
 
-    <section class="section market-section">
+    <section class="section market-section view-block" data-view="general">
       <div class="section-title section-heading"><div><span>MERCADO</span><h2>Planes y precios</h2></div></div>
       <div class="charts-grid">
         <article class="panel chart-panel wide"><div class="panel-head"><h3>Precio × velocidad</h3><span>Ofertas del corte seleccionado</span></div><canvas id="scatter-chart"></canvas></article>
@@ -101,18 +108,50 @@
       </div>
     </section>
 
-    <section id="coverage-section" class="section coverage-section">
+    <section id="coverage-section" class="section coverage-section view-block hidden" data-view="territory">
       <div class="section-title section-heading">
-        <div><span>COMPETIDORES POR TERRITORIO</span><h2>Competidores con presencia observada</h2></div>
-        <div class="coverage-meta"><strong id="coverage-visible">—</strong><span>registros de presencia compatibles</span></div>
+        <div><span>TERRITORIO</span><h2>Competidores con presencia observada</h2></div>
+        <div class="coverage-meta"><strong id="coverage-visible">—</strong><span>registros compatibles</span></div>
       </div>
       <div class="coverage-grid compact">
-        <article class="panel ranking-panel coverage-ranking-panel"><div class="panel-head"><h3>Competidores observados por ciudad</h3><span>Presencia territorial respaldada</span></div><div id="coverage-ranking" class="coverage-ranking"></div></article>
-        <article class="panel coverage-list-panel compact"><div class="panel-head"><h3>Detalle de presencia</h3><span>Ciudad / barrio / competidor</span></div><div id="coverage-list" class="coverage-list"></div></article>
+        <article id="coverage-ranking-panel" class="panel ranking-panel coverage-ranking-panel"><div class="panel-head"><h3>Competidores por ciudad</h3></div><div id="coverage-ranking" class="coverage-ranking"></div></article>
+        <article class="panel coverage-list-panel compact"><div class="panel-head"><h3>Detalle territorial</h3><span>Ciudad · barrio/zona/troncal → competidores</span></div><div id="coverage-list" class="coverage-list grouped"></div></article>
       </div>
     </section>
 
-    <section class="section panel records">
+    <section id="fibrazo-section" class="section view-block hidden" data-view="fibrazo">
+      <div class="section-title section-heading"><div><span>VS. FIBRAZO</span><h2>Comparación de propuesta comercial</h2></div></div>
+      <div class="comparison-toolbar panel">
+        <label>Plan FIBRAZO<select id="fibrazo-offer-select"></select></label>
+        <div class="comparison-source">Oferta normalizada desde <b>Precios y Propuesta Comercial Fibrazo</b></div>
+      </div>
+      <div class="comparison-kpis">
+        <article class="panel compare-card"><span>FIBRAZO · Precio</span><strong id="fz-price">—</strong><small id="fz-offer-name">—</small></article>
+        <article class="panel compare-card"><span>FIBRAZO · Velocidad</span><strong id="fz-speed">—</strong><small>Mbps</small></article>
+        <article class="panel compare-card"><span>Precio competitivo</span><strong id="fz-better-price">—</strong><small>competidores por debajo</small></article>
+        <article class="panel compare-card"><span>Velocidad competitiva</span><strong id="fz-better-speed">—</strong><small>competidores por encima</small></article>
+      </div>
+      <article class="panel compare-table-panel">
+        <div class="panel-head"><h3>Competidores vs. oferta seleccionada</h3><span>Se usa la oferta de menor precio registrada por competidor</span></div>
+        <div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Competidor</th><th>Precio</th><th>Velocidad</th><th>Dif. precio</th><th>Dif. Mbps</th><th>Tecnología</th><th>TV</th></tr></thead><tbody id="fibrazo-compare-body"></tbody></table></div>
+      </article>
+    </section>
+
+    <section id="ffvv-section" class="section view-block hidden" data-view="ffvv">
+      <div class="section-title section-heading"><div><span>INTELIGENCIA FFVV</span><h2>Lo observado en terreno</h2></div><div class="coverage-meta"><strong id="ffvv-count">—</strong><span>registros de campo</span></div></div>
+      <div class="comparison-kpis">
+        <article class="panel compare-card"><span>Competidores observados</span><strong id="ffvv-operators">—</strong><small>según filtros</small></article>
+        <article class="panel compare-card"><span>Con cláusula</span><strong id="ffvv-clause-yes">—</strong><small>registros</small></article>
+        <article class="panel compare-card"><span>Sin cláusula</span><strong id="ffvv-clause-no">—</strong><small>registros</small></article>
+        <article class="panel compare-card"><span>Con observación abierta</span><strong id="ffvv-notes">—</strong><small>inteligencia cualitativa</small></article>
+      </div>
+      <article class="panel compare-table-panel">
+        <div class="panel-head"><h3>Resumen por competidor</h3><span>Rangos observados por FFVV</span></div>
+        <div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Competidor</th><th>Registros</th><th>Precio mín.–máx.</th><th>Velocidad mín.–máx.</th><th>Tecnologías observadas</th><th>Servicio 1–5</th></tr></thead><tbody id="ffvv-summary-body"></tbody></table></div>
+      </article>
+    </section>
+
+    <section class="section panel records view-block" data-view="general">
       <div class="section-title records-head">
         <div><span>BASE DETALLADA</span><h2>Planes y competencia consolidada</h2></div>
         <input id="table-search" class="search-input" type="search" placeholder="Buscar operador, ciudad, plan o contacto…" autocomplete="off" />
@@ -139,11 +178,11 @@
 
     <footer>
       <span>FIBRAZO · Growth & Inteligencia Competitiva</span>
-      <span>Fuente única: <a class="footer-source-link" target="_blank" rel="noopener noreferrer" href="https://docs.google.com/spreadsheets/d/1v2sBVe_w-bTl438b8qWFmvw0gT66bj8TskcXbnY-gbU/edit">Base General Competencia FIBRAZO ↗</a></span>
+      <span>Fuentes: <a class="footer-source-link" target="_blank" rel="noopener noreferrer" href="https://docs.google.com/spreadsheets/d/1v2sBVe_w-bTl438b8qWFmvw0gT66bj8TskcXbnY-gbU/edit">Base General Competencia ↗</a> · <a class="footer-source-link" target="_blank" rel="noopener noreferrer" href="https://docs.google.com/spreadsheets/d/1QoVRpagZwLb9uEQ3JzTnPW-hhxr2ZrkuLh43yLEp-3A/edit">Precios FIBRAZO ↗</a></span>
     </footer>
   </main>
 
   <script src="table-enhancements.js?v=20260904-2"></script>
-  <script src="auth.js?v=20260904-16"></script>
+  <script src="auth.js?v=20260905-1"></script>
 </body>
 </html>
