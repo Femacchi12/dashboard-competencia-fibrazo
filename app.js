@@ -6,7 +6,6 @@
     plans: { gid: "1372196091", label: "02_PLANES_HISTORICO", range:"A1:AF1000" },
     operators: { gid: "1091103584", label: "01_OPERADORES", range:"A1:AA300" },
     coverage: { gid: "718563813", label: "03_PRESENCIA", range:"A1:Y2500" },
-    relevamientos: { gid: "1909486382", label: "04_RELEVAMIENTOS", range:"A1:AD1000" },
     markets: { gid: "1320750580", label: "07_CONFIG · Mercados", range:"X2:AI300" },
     territories: { gid: "1320750580", label: "07_CONFIG · Territorio", range:"AK2:AQ400" },
     offers: { gid: "1320750580", label: "07_CONFIG · Oferta FIBRAZO", range:"AS2:BC300" }
@@ -14,8 +13,8 @@
   const AUTO_REFRESH_MS = 120000;
 
   const state = {
-    plans: [], operators: [], coverage: [], markets: [], territories: [], offers: [], relevamientos: [],
-    filtered: [], filteredCoverage: [], filteredFFVV: [],
+    plans: [], operators: [], coverage: [], markets: [], territories: [], offers: [],
+    filtered: [], filteredCoverage: [],
     filters: { period:new Set(), city:new Set(), operator:new Set(), technology:new Set(), modality:new Set(), price:new Set() },
     cityScopeMode:"fibrazo", analysisView:"general", selectedOfferKey:"",
     tableSearch:"", expanded:false, sort:{ key:"Grupo_Operador", dir:1 }, hiddenColumns:new Set(["Operador_Normalizado"]), charts:{},
@@ -217,17 +216,7 @@
         Grupo_Operador:clean(op.Grupo_Operador)||clean(op.Marca_Comercial)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)
       };
     });
-  }
-
-  function buildRelevamientos(raw,operators){
-    const byId=new Map(operators.map(o=>[clean(o.ID_Operador),o]));
-    return raw.filter(r=>fold(r.Tipo_Registro)==="observacion ffvv").map(r=>{
-      const op=byId.get(clean(r.ID_Operador))||{};
-      return {...r,Grupo_Operador:clean(op.Grupo_Operador)||clean(op.Operador_Normalizado)||clean(r.Operador_Original),Periodo_Label:formatPeriod(r.Periodo_Corte)};
-    });
-  }
-
-  function buildOffers(raw){
+  }  function buildOffers(raw){
     return raw.filter(r=>clean(r.ID_Oferta)).map(r=>({...r,Velocidad_Mbps:toNum(r.Velocidad_Mbps),Precio_COP:toNum(r.Precio_COP),Dias:toNum(r.Dias)}));
   }
 
@@ -380,9 +369,9 @@
     state.loading=true;
     if(!silent && $("refresh-btn")){ $("refresh-btn").disabled=true; $("refresh-btn").textContent="Actualizando…"; }
     try{
-      const [plansRes, operatorsRes, coverageRes, marketsRes, territoriesRes, offersRes, relevamientosRes]=await Promise.allSettled([
+      const [plansRes, operatorsRes, coverageRes, marketsRes, territoriesRes, offersRes]=await Promise.allSettled([
         fetchCsv(SOURCES.plans), fetchCsv(SOURCES.operators), fetchCsv(SOURCES.coverage), fetchCsv(SOURCES.markets),
-        fetchCsv(SOURCES.territories), fetchCsv(SOURCES.offers), fetchCsv(SOURCES.relevamientos)
+        fetchCsv(SOURCES.territories), fetchCsv(SOURCES.offers)
       ]);
       if(plansRes.status!=="fulfilled") throw plansRes.reason;
       if(operatorsRes.status!=="fulfilled") throw operatorsRes.reason;
@@ -393,7 +382,6 @@
       state.markets=buildMarkets(marketsRes.value);
       state.territories=territoriesRes.status==="fulfilled"?territoriesRes.value.filter(r=>clean(r.ID_Territorio)):[];
       state.offers=offersRes.status==="fulfilled"?buildOffers(offersRes.value):[];
-      state.relevamientos=relevamientosRes.status==="fulfilled"?buildRelevamientos(relevamientosRes.value,operatorsRes.value):[];
       ensurePeriodSelection();
       state.lastLoadAt=Date.now();
       $("last-load").textContent=new Intl.DateTimeFormat("es-CO",{dateStyle:"short",timeStyle:"short"}).format(new Date());
@@ -540,15 +528,8 @@
     }else{
       state.filteredCoverage=state.coverage.filter(r=>coveragePassesFilters(r));
     }
-    const selectedPeriods=new Set([...state.filters.period]);
-    state.filteredFFVV=state.relevamientos.filter(r=>{
-      if(selectedPeriods.size && !selectedPeriods.has(clean(r.Periodo_Label))) return false;
-      if(!cityScopeAllows(r.Ciudad)) return false;
-      if(state.filters.operator.size && !state.filters.operator.has(clean(r.Grupo_Operador))) return false;
-      return true;
-    });
     updateSectionVisibility();
-    renderKPIs(); renderEvolution(); renderCharts(); renderCoverage(); renderTable(); renderFibrazoComparison(); renderFFVV();
+    renderKPIs(); renderEvolution(); renderCharts(); renderCoverage(); renderTable(); renderFibrazoComparison();
   }
 
   function renderKPIs(){
@@ -808,33 +789,7 @@
       const dpLabel=dp===0?"=":`${dp>0?"+":""}${formatCOP(dp).replace("COP","").trim()}`;
       return `<tr><td><strong>${escapeHtml(r.Grupo_Operador)}</strong></td><td>${formatCOP(p)}</td><td>${s==null?"—":formatNum(s)+" Mbps"}</td><td class="${dp<=0?"negative":"positive"}">${dpLabel}</td><td class="${ds>=0?"positive":"negative"}">${ds>0?"+":""}${formatNum(ds)}</td><td>${escapeHtml(clean(r.Tecnologia)||"—")}</td><td>${escapeHtml(normalizeTV(r.TV_Incluida))}</td></tr>`;
     }).join("");
-  }
-
-  function renderFFVV(){
-    const rows=state.filteredFFVV;
-    $("ffvv-count").textContent=formatNum(rows.length);
-    $("ffvv-operators").textContent=formatNum(new Set(rows.map(r=>clean(r.Grupo_Operador)).filter(Boolean)).size);
-    $("ffvv-clause-yes").textContent=formatNum(rows.filter(r=>["si","sí"].includes(fold(r.Clausula))).length);
-    $("ffvv-clause-no").textContent=formatNum(rows.filter(r=>fold(r.Clausula)==="no").length);
-    $("ffvv-notes").textContent=formatNum(rows.filter(r=>clean(r.Observacion_Campo)).length);
-    const m=new Map();
-    rows.forEach(r=>{
-      const op=clean(r.Grupo_Operador)||clean(r.Operador_Original)||"No identificado";
-      if(!m.has(op))m.set(op,{n:0,p:[],s:[],t:new Set(),svc:[]});
-      const x=m.get(op); x.n++;
-      const p=toNum(r.Precio_COP), s=toNum(r.Velocidad_Mbps), svc=toNum(r.Servicio_1_5);
-      if(p>0)x.p.push(p); if(s>0)x.s.push(s); if(svc>0)x.svc.push(svc);
-      if(clean(r.Tecnologia_Declarada))x.t.add(clean(r.Tecnologia_Declarada));
-    });
-    $("ffvv-summary-body").innerHTML=[...m.entries()].sort((a,b)=>b[1].n-a[1].n).map(([op,x])=>{
-      const pr=x.p.length?`${formatCOP(Math.min(...x.p))} – ${formatCOP(Math.max(...x.p))}`:"—";
-      const sp=x.s.length?`${formatNum(Math.min(...x.s))} – ${formatNum(Math.max(...x.s))} Mbps`:"—";
-      const svc=x.svc.length?`${formatNum(Math.min(...x.svc))} – ${formatNum(Math.max(...x.svc))}`:"—";
-      return `<tr><td><strong>${escapeHtml(op)}</strong></td><td>${formatNum(x.n)}</td><td>${pr}</td><td>${sp}</td><td>${escapeHtml([...x.t].join(" / ")||"—")}</td><td>${svc}</td></tr>`;
-    }).join("");
-  }
-
-  function tableRows(){
+  }  function tableRows(){
     const q=fold(state.tableSearch);
     const rows=state.filtered.filter(r=>!q||columns.some(([k])=>fold(r[k]).includes(q)));
     const {key,dir}=state.sort;
