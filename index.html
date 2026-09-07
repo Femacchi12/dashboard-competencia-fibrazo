@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260907-3" />
+  <link rel="stylesheet" href="styles.css?v=20260907-4" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -153,7 +153,7 @@
         </label>
         <div class="compare-scope-control">
           <span>Ámbitos a comparar</span>
-          <small>Puedes seleccionar dos o más. Para zonas, troncales y barrios se muestra también la ciudad.</small>
+          <small id="compare-scope-hint">Las ciudades se toman del selector general de arriba.</small>
           <div id="compare-scope-options" class="compare-scope-options"></div>
         </div>
       </div>
@@ -194,6 +194,6 @@
   </main>
 
   <script src="table-enhancements.js?v=20260904-2"></script>
-  <script src="auth.js?v=20260907-4"></script>
+  <script src="auth.js?v=20260907-5"></script>
 </body>
 </html>
