@@ -15,8 +15,9 @@
   const state = {
     plans: [], operators: [], coverage: [], markets: [], territories: [], offers: [],
     filtered: [], filteredCoverage: [],
-    filters: { period:new Set(), city:new Set(), operator:new Set(), technology:new Set(), modality:new Set(), price:new Set() },
+    filters: { period:new Set(), city:new Set(), operator:new Set(), technology:new Set(), modality:new Set(), price:new Set(), zone:new Set(), trunk:new Set() },
     cityScopeMode:"fibrazo", analysisView:"general", selectedOfferKey:"",
+    comparison:{level:"city",items:new Set(),initialized:false},
     tableSearch:"", expanded:false, sort:{ key:"Grupo_Operador", dir:1 }, hiddenColumns:new Set(["Operador_Normalizado"]), charts:{},
     loading:false, lastLoadAt:0
   };
@@ -463,6 +464,89 @@
   function removeErrorBox(){ const el=$("source-error"); if(el)el.remove(); }
 
   function filterDef(key){ return filterDefs.find(d=>d.key===key); }
+
+  function selectedSingleCity(){
+    let cities=[];
+    if(state.filters.city.size) cities=[...state.filters.city];
+    else if(state.cityScopeMode==="fibrazo") cities=[...fibrazoCitySet()];
+    else if(state.cityScopeMode==="all") cities=allRelevantCities();
+    return cities.length===1?cities[0]:"";
+  }
+
+  function normalizeTerritoryFilters(){
+    if(selectedSingleCity()) return;
+    state.filters.zone.clear();
+    state.filters.trunk.clear();
+  }
+
+  function territoryCoverageBase(skipKey=null){
+    const city=selectedSingleCity();
+    if(!city) return [];
+    return state.coverage.filter(r=>{
+      if(clean(r.Ciudad)!==city) return false;
+      const checks={
+        period:clean(r.Periodo_Label),
+        operator:clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),
+        technology:clean(r.Tecnologia)||"No informado",
+        zone:clean(r.Zona_FIBRAZO),
+        trunk:clean(r.Troncal_FIBRAZO)
+      };
+      return ["period","operator","technology","zone","trunk"].every(key=>{
+        if(key===skipKey) return true;
+        const set=state.filters[key];
+        return !set.size || set.has(checks[key]);
+      });
+    });
+  }
+
+  function renderTerritoryFilter(root,key,label,field){
+    const city=selectedSingleCity();
+    const wrap=document.createElement("div");
+    wrap.className="filter territory-filter"+(city?"":" disabled");
+
+    if(!city){
+      wrap.innerHTML=`<label class="filter-label">${escapeHtml(label)}</label><button class="filter-btn territory-disabled" type="button" disabled><span>Solo con 1 ciudad</span><span>ⓘ</span></button>`;
+      root.appendChild(wrap);
+      return;
+    }
+
+    let options=[...new Set(territoryCoverageBase(key).map(r=>clean(r[field])).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es",{numeric:true}));
+    for(const selected of [...state.filters[key]]) if(!options.includes(selected)) state.filters[key].delete(selected);
+
+    wrap.innerHTML=`<label class="filter-label">${escapeHtml(label)}</label><button class="filter-btn" type="button" ${options.length?"":"disabled"}><span data-label>${options.length?"Todos":"Sin datos cargados"}</span><span>⌄</span></button><div class="filter-menu hidden"><input class="filter-search" placeholder="Buscar…"><div class="filter-options"></div></div>`;
+    const btn=wrap.querySelector(".filter-btn"), menu=wrap.querySelector(".filter-menu"), box=wrap.querySelector(".filter-options"), search=wrap.querySelector(".filter-search");
+
+    const updateLabel=()=>{
+      const set=state.filters[key], n=set.size;
+      wrap.querySelector("[data-label]").textContent=n===0?"Todos":n===1?[...set][0]:`${n} seleccionados`;
+      btn.classList.toggle("active",n>0);
+    };
+    const paint=(q="")=>{
+      box.innerHTML="";
+      options.filter(o=>fold(o).includes(fold(q))).forEach(o=>{
+        const row=document.createElement("label"); row.className="filter-option";
+        row.innerHTML=`<input type="checkbox" ${state.filters[key].has(o)?"checked":""}><span>${escapeHtml(o)}</span>`;
+        row.querySelector("input").addEventListener("change",e=>{
+          if(e.target.checked) state.filters[key].add(o); else state.filters[key].delete(o);
+          state.expanded=false;
+          renderFilters();
+          applyFilters();
+        });
+        box.appendChild(row);
+      });
+      if(!box.children.length) box.innerHTML='<span class="filter-empty">Sin opciones compatibles</span>';
+    };
+    btn.addEventListener("click",e=>{
+      e.stopPropagation();
+      document.querySelectorAll(".filter-menu").forEach(m=>{if(m!==menu)m.classList.add("hidden")});
+      menu.classList.toggle("hidden");
+      if(!menu.classList.contains("hidden")){search.focus();paint(search.value);}
+    });
+    menu.addEventListener("click",e=>e.stopPropagation());
+    search.addEventListener("input",()=>paint(search.value));
+    root.appendChild(wrap); paint(); updateLabel();
+  }
+
   function rowPassesFilters(r, skipKey=null){
     if(skipKey!=="city" && !cityScopeAllows(r.Ciudad)) return false;
     return filterDefs.every(def=>{
@@ -476,10 +560,12 @@
       period:clean(r.Periodo_Label),
       city:clean(r.Ciudad),
       operator:clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),
-      technology:clean(r.Tecnologia)||"No informado"
+      technology:clean(r.Tecnologia)||"No informado",
+      zone:clean(r.Zona_FIBRAZO),
+      trunk:clean(r.Troncal_FIBRAZO)
     };
     if(skipKey!=="city" && !cityScopeAllows(r.Ciudad)) return false;
-    return ["period","city","operator","technology"].every(key=>{
+    return ["period","city","operator","technology","zone","trunk"].every(key=>{
       if(key===skipKey || (!includePeriod&&key==="period")) return true;
       const set=state.filters[key];
       return !set.size || set.has(checks[key]);
@@ -488,14 +574,15 @@
   function hasPlanSpecificFilters(){ return state.filters.modality.size>0 || state.filters.price.size>0; }
 
   function renderFilters(){
+    normalizeTerritoryFilters();
     const root=$("filters"); root.innerHTML="";
     filterDefs.forEach(def=>{
       if(def.key==="city") return;
       const {key,label,getter}=def;
       const baseRows=key==="period" ? state.plans : state.plans.filter(r=>rowPassesFilters(r,key));
       let options=[...new Set(baseRows.map(getter).filter(Boolean))];
-      if(!hasPlanSpecificFilters() && (key==="operator" || key==="city")){
-        const coverageOptions=state.coverage.filter(r=>coveragePassesFilters(r,key)).map(r=>key==="operator"?(clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)):clean(r.Ciudad)).filter(Boolean);
+      if(!hasPlanSpecificFilters() && (key==="operator" || key==="city" || key==="technology")){
+        const coverageOptions=state.coverage.filter(r=>coveragePassesFilters(r,key)).map(r=>key==="operator"?(clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)):key==="technology"?(clean(r.Tecnologia)||"No informado"):clean(r.Ciudad)).filter(Boolean);
         options=[...new Set([...options,...coverageOptions])];
       }
       if(key==="period"){
@@ -549,6 +636,8 @@
       search.addEventListener("input",()=>paint(search.value));
       root.appendChild(wrap); paint(); updateFilterLabel(wrap,def);
     });
+    renderTerritoryFilter(root,"zone","Zona FIBRAZO","Zona_FIBRAZO");
+    renderTerritoryFilter(root,"trunk","Troncal FIBRAZO","Troncal_FIBRAZO");
   }
   function updateFilterLabel(wrap,def){
     const set=state.filters[def.key], n=set.size;
@@ -557,8 +646,23 @@
     btn?.classList.toggle("active",n>0);
   }
 
-  function planPasses(r){ return rowPassesFilters(r); }
-  function evolutionPasses(r){ return rowPassesFilters(r,"period"); }
+  function planMatchesTerritory(r){
+    if(!state.filters.zone.size && !state.filters.trunk.size) return true;
+    const city=clean(r.Ciudad);
+    const op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado);
+    return state.coverage.some(c=>{
+      const cop=clean(c.Grupo_Operador)||clean(c.Operador_Normalizado);
+      if(clean(c.Ciudad)!==city || cop!==op) return false;
+      if(state.filters.period.size && !state.filters.period.has(clean(c.Periodo_Label))) return false;
+      if(state.filters.technology.size && !state.filters.technology.has(clean(c.Tecnologia)||"No informado")) return false;
+      if(state.filters.zone.size && !state.filters.zone.has(clean(c.Zona_FIBRAZO))) return false;
+      if(state.filters.trunk.size && !state.filters.trunk.has(clean(c.Troncal_FIBRAZO))) return false;
+      return true;
+    });
+  }
+
+  function planPasses(r){ return rowPassesFilters(r) && planMatchesTerritory(r); }
+  function evolutionPasses(r){ return rowPassesFilters(r,"period") && planMatchesTerritory(r); }
 
   function effectiveCityCount(){
     if(state.filters.city.size) return state.filters.city.size;
@@ -591,7 +695,7 @@
       state.filteredCoverage=state.coverage.filter(r=>coveragePassesFilters(r));
     }
     updateSectionVisibility();
-    renderKPIs(); renderEvolution(); renderCharts(); renderCoverage(); renderTable(); renderFibrazoComparison();
+    renderKPIs(); renderEvolution(); renderCharts(); renderCoverage(); renderTable(); renderFibrazoComparison(); renderComparator();
   }
 
   function renderKPIs(){
@@ -851,7 +955,173 @@
       const dpLabel=dp===0?"=":`${dp>0?"+":""}${formatCOP(dp).replace("COP","").trim()}`;
       return `<tr><td><strong>${escapeHtml(r.Grupo_Operador)}</strong></td><td>${formatCOP(p)}</td><td>${s==null?"—":formatNum(s)+" Mbps"}</td><td class="${dp<=0?"negative":"positive"}">${dpLabel}</td><td class="${ds>=0?"positive":"negative"}">${ds>0?"+":""}${formatNum(ds)}</td><td>${escapeHtml(clean(r.Tecnologia)||"—")}</td><td>${escapeHtml(normalizeTV(r.TV_Incluida))}</td></tr>`;
     }).join("");
-  }  function tableRows(){
+  }
+
+
+  function comparisonBaseCoverage(){
+    return state.coverage.filter(r=>{
+      if(state.filters.period.size && !state.filters.period.has(clean(r.Periodo_Label))) return false;
+      if(state.filters.technology.size && !state.filters.technology.has(clean(r.Tecnologia)||"No informado")) return false;
+      return true;
+    });
+  }
+
+  function comparisonBasePlans(){
+    return state.plans.filter(r=>{
+      if(state.filters.period.size && !state.filters.period.has(clean(r.Periodo_Label))) return false;
+      if(state.filters.technology.size && !state.filters.technology.has(clean(r.Tecnologia)||"No informado")) return false;
+      return true;
+    });
+  }
+
+  function comparisonScopeOptions(){
+    const level=state.comparison.level;
+    const map=new Map();
+    const coverage=comparisonBaseCoverage();
+    const plans=comparisonBasePlans();
+    const add=(city,value)=>{
+      city=clean(city); value=clean(value);
+      if(!city||!value) return;
+      const key=`${level}|${city}|${value}`;
+      if(!map.has(key)) map.set(key,{key,level,city,value,label:level==="city"?city:`${city} · ${value}`});
+    };
+    if(level==="city"){
+      coverage.forEach(r=>add(r.Ciudad,r.Ciudad));
+      plans.forEach(r=>add(r.Ciudad,r.Ciudad));
+    }else{
+      const field=level==="zone"?"Zona_FIBRAZO":level==="trunk"?"Troncal_FIBRAZO":"Barrio";
+      coverage.forEach(r=>add(r.Ciudad,clean(r[field])||(level==="barrio"?clean(r.Localidad_Comuna_UPZ):"")));
+    }
+    return [...map.values()].sort((a,b)=>a.label.localeCompare(b.label,"es",{numeric:true}));
+  }
+
+  function scopeCoverageRows(scope){
+    const rows=comparisonBaseCoverage().filter(r=>clean(r.Ciudad)===scope.city);
+    if(scope.level==="city") return rows;
+    const field=scope.level==="zone"?"Zona_FIBRAZO":scope.level==="trunk"?"Troncal_FIBRAZO":"Barrio";
+    return rows.filter(r=>(clean(r[field])||(scope.level==="barrio"?clean(r.Localidad_Comuna_UPZ):""))===scope.value);
+  }
+
+  function scopePlanRows(scope,coverageRows){
+    let rows=comparisonBasePlans().filter(r=>clean(r.Ciudad)===scope.city);
+    if(scope.level==="city") return rows;
+    const ops=new Set(coverageRows.map(r=>clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)).filter(Boolean));
+    return rows.filter(r=>ops.has(clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)));
+  }
+
+  function median(values){
+    const a=values.filter(n=>Number.isFinite(n)).sort((x,y)=>x-y);
+    if(!a.length) return null;
+    const mid=Math.floor(a.length/2);
+    return a.length%2?a[mid]:(a[mid-1]+a[mid])/2;
+  }
+
+  function fibrazoOfferForCity(city){
+    const offers=state.offers.filter(o=>clean(o.Ciudad)===city);
+    if(!offers.length) return null;
+    const selected=offers.find(o=>o.ID_Oferta===state.selectedOfferKey);
+    if(selected) return selected;
+    return offers.find(o=>clean(o.Servicio)==="Internet"&&o.Velocidad_Mbps===400&&clean(o.Etapa_Vigencia)==="Precio normal")
+      || offers.find(o=>clean(o.Servicio)==="Internet"&&o.Velocidad_Mbps===400)
+      || [...offers].sort((a,b)=>(a.Precio_COP||Infinity)-(b.Precio_COP||Infinity))[0];
+  }
+
+  function comparisonMetrics(scope){
+    const coverageRows=scopeCoverageRows(scope);
+    const plans=scopePlanRows(scope,coverageRows);
+    const ops=new Set();
+    coverageRows.forEach(r=>{const op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado);if(op)ops.add(op)});
+    plans.forEach(r=>{const op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado);if(op)ops.add(op)});
+
+    const byOp=new Map();
+    plans.forEach(r=>{
+      const op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado);
+      if(!op) return;
+      if(!byOp.has(op)) byOp.set(op,{prices:[],speeds:[]});
+      const p=toNum(r.Precio_Usado_COP), s=toNum(r.Velocidad_Bajada_Mbps);
+      if(p>0) byOp.get(op).prices.push(p);
+      if(s>0) byOp.get(op).speeds.push(s);
+    });
+    const bestPrices=[...byOp.values()].map(x=>x.prices.length?Math.min(...x.prices):null).filter(n=>n!=null);
+    const maxSpeeds=[...byOp.values()].map(x=>x.speeds.length?Math.max(...x.speeds):null).filter(n=>n!=null);
+    const fz=fibrazoOfferForCity(scope.city);
+    const priceMedian=median(bestPrices), speedMedian=median(maxSpeeds);
+    const cheaper=fz?bestPrices.filter(p=>p<fz.Precio_COP).length:0;
+    const faster=fz?maxSpeeds.filter(s=>s>fz.Velocidad_Mbps).length:0;
+    const pros=[], cons=[];
+    if(fz){
+      if(priceMedian!=null && fz.Precio_COP<=priceMedian) pros.push("Precio FIBRAZO ≤ mediana competitiva");
+      if(speedMedian!=null && fz.Velocidad_Mbps>=speedMedian) pros.push("Velocidad FIBRAZO ≥ mediana competitiva");
+      if(bestPrices.length && cheaper===0) pros.push("Sin competidores registrados más baratos");
+      if(cheaper>0) cons.push(`${cheaper} competidor${cheaper===1?"":"es"} con precio menor`);
+      if(faster>0) cons.push(`${faster} competidor${faster===1?"":"es"} con mayor velocidad`);
+    }else cons.push("Sin oferta FIBRAZO normalizada para esta ciudad");
+    if(!plans.length) cons.push("Oferta competitiva aún incompleta");
+    if(!pros.length) pros.push("Benchmark disponible para seguimiento");
+    if(!cons.length) cons.push("Sin desventaja evidente en la base actual");
+
+    return {
+      coverageRows,plans,ops,
+      minPrice:bestPrices.length?Math.min(...bestPrices):null,
+      medianPrice:priceMedian,
+      maxSpeed:maxSpeeds.length?Math.max(...maxSpeeds):null,
+      fz,pros,cons
+    };
+  }
+
+  function renderComparator(){
+    const levelEl=$("compare-level"), optionsRoot=$("compare-scope-options"), cards=$("compare-cards"), summary=$("compare-summary"), benchmark=$("compare-benchmark");
+    if(!levelEl||!optionsRoot||!cards) return;
+    levelEl.value=state.comparison.level;
+    const options=comparisonScopeOptions();
+    const valid=new Set(options.map(o=>o.key));
+    state.comparison.items=new Set([...state.comparison.items].filter(k=>valid.has(k)));
+
+    if(!state.comparison.initialized){
+      options.slice(0,2).forEach(o=>state.comparison.items.add(o.key));
+      state.comparison.initialized=true;
+    }
+
+    optionsRoot.innerHTML=options.map(o=>`<label class="compare-scope-option"><input type="checkbox" data-key="${escapeHtml(o.key)}" ${state.comparison.items.has(o.key)?"checked":""}><span>${escapeHtml(o.label)}</span></label>`).join("");
+    if(!options.length) optionsRoot.innerHTML='<span class="filter-empty">Todavía no hay ámbitos con datos para este nivel y tecnología.</span>';
+    optionsRoot.querySelectorAll("input").forEach(input=>input.addEventListener("change",e=>{
+      const key=e.target.dataset.key;
+      if(e.target.checked) state.comparison.items.add(key); else state.comparison.items.delete(key);
+      renderComparator();
+    }));
+
+    const selected=options.filter(o=>state.comparison.items.has(o.key));
+    summary.textContent=selected.length>=2?`${selected.length} ámbitos seleccionados · FIBRAZO incluido como benchmark`:"Selecciona al menos 2 ámbitos para comparar";
+    benchmark.innerHTML='<strong>FIBRAZO siempre incluido</strong><span>El benchmark usa la oferta FIBRAZO normalizada de cada ciudad. El filtro global de Tecnología también se aplica al mercado competidor.</span>';
+
+    if(selected.length<2){
+      cards.innerHTML='<article class="panel compare-empty">Selecciona dos o más ciudades, zonas, troncales o barrios para construir el comparativo.</article>';
+      return;
+    }
+
+    cards.innerHTML=selected.map(scope=>{
+      const m=comparisonMetrics(scope);
+      const fz=m.fz;
+      return `<article class="panel compare-scope-card">
+        <div class="compare-scope-head"><div><span>${escapeHtml(scope.level.toUpperCase())}</span><h3>${escapeHtml(scope.label)}</h3></div><strong>${formatNum(m.ops.size)} competidores</strong></div>
+        <div class="compare-scope-kpis">
+          <div><span>Precio mín.</span><b>${formatCOP(m.minPrice)}</b></div>
+          <div><span>Mediana mín.</span><b>${formatCOP(m.medianPrice)}</b></div>
+          <div><span>Velocidad máx.</span><b>${m.maxSpeed==null?"—":formatNum(m.maxSpeed)+" Mbps"}</b></div>
+        </div>
+        <div class="fibrazo-benchmark-row">
+          <span>FIBRAZO</span><b>${fz?formatCOP(fz.Precio_COP)+" · "+formatNum(fz.Velocidad_Mbps)+" Mbps":"Sin oferta compatible"}</b>
+        </div>
+        <div class="compare-procon">
+          <div class="pro"><b>Pros FIBRAZO</b><span>${m.pros.map(escapeHtml).join(" · ")}</span></div>
+          <div class="con"><b>Alertas</b><span>${m.cons.map(escapeHtml).join(" · ")}</span></div>
+        </div>
+      </article>`;
+    }).join("");
+  }
+
+
+  function tableRows(){
     const q=fold(state.tableSearch);
     const rows=state.filtered.filter(r=>!q||columns.some(([k])=>fold(r[k]).includes(q)));
     const {key,dir}=state.sort;
@@ -924,10 +1194,12 @@
     document.querySelectorAll(".view-block").forEach(el=>el.classList.toggle("hidden",el.dataset.view!==view));
     if(view==="general") updateSectionVisibility();
     if(view==="territory") $("coverage-ranking-panel")?.classList.toggle("hidden",effectiveCityCount()<=1);
+    if(view==="compare") renderComparator();
   }
 
   document.querySelectorAll(".analysis-tab").forEach(b=>b.addEventListener("click",()=>setAnalysisView(b.dataset.analysisView)));
-  $("fibrazo-offer-select")?.addEventListener("change",e=>{state.selectedOfferKey=e.target.value;renderFibrazoComparison();});
+  $("fibrazo-offer-select")?.addEventListener("change",e=>{state.selectedOfferKey=e.target.value;renderFibrazoComparison();renderComparator();});
+  $("compare-level")?.addEventListener("change",e=>{state.comparison.level=e.target.value;state.comparison.items.clear();state.comparison.initialized=false;renderComparator();});
 
   $("refresh-btn").addEventListener("click",()=>load());
   $("reset-btn").addEventListener("click",()=>{Object.values(state.filters).forEach(s=>s.clear());state.cityScopeMode="fibrazo";ensurePeriodSelection();state.tableSearch="";$("table-search").value="";state.expanded=false;state.sort={key:"Grupo_Operador",dir:1};renderCityQuickbar();renderFilters();applyFilters()});
