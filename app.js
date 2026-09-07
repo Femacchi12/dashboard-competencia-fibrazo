@@ -974,20 +974,27 @@
     });
   }
 
+  function comparatorCities(){
+    if(state.filters.city.size) return [...state.filters.city].filter(Boolean);
+    if(state.cityScopeMode==="fibrazo") return [...fibrazoCitySet()].filter(Boolean);
+    if(state.cityScopeMode==="all") return allRelevantCities();
+    return [];
+  }
+
   function comparisonScopeOptions(){
     const level=state.comparison.level;
+    const citySet=new Set(comparatorCities());
     const map=new Map();
     const coverage=comparisonBaseCoverage();
     const plans=comparisonBasePlans();
     const add=(city,value)=>{
       city=clean(city); value=clean(value);
-      if(!city||!value) return;
+      if(!city||!value||!citySet.has(city)) return;
       const key=`${level}|${city}|${value}`;
       if(!map.has(key)) map.set(key,{key,level,city,value,label:level==="city"?city:`${city} · ${value}`});
     };
     if(level==="city"){
-      coverage.forEach(r=>add(r.Ciudad,r.Ciudad));
-      plans.forEach(r=>add(r.Ciudad,r.Ciudad));
+      comparatorCities().forEach(city=>add(city,city));
     }else{
       const field=level==="zone"?"Zona_FIBRAZO":level==="trunk"?"Troncal_FIBRAZO":"Barrio";
       coverage.forEach(r=>add(r.Ciudad,clean(r[field])||(level==="barrio"?clean(r.Localidad_Comuna_UPZ):"")));
@@ -1070,32 +1077,70 @@
   }
 
   function renderComparator(){
-    const levelEl=$("compare-level"), optionsRoot=$("compare-scope-options"), cards=$("compare-cards"), summary=$("compare-summary"), benchmark=$("compare-benchmark");
+    const levelEl=$("compare-level"), optionsRoot=$("compare-scope-options"), cards=$("compare-cards"), summary=$("compare-summary"), benchmark=$("compare-benchmark"), hint=$("compare-scope-hint");
     if(!levelEl||!optionsRoot||!cards) return;
+
     levelEl.value=state.comparison.level;
+    const cities=comparatorCities();
     const options=comparisonScopeOptions();
     const valid=new Set(options.map(o=>o.key));
     state.comparison.items=new Set([...state.comparison.items].filter(k=>valid.has(k)));
 
-    if(!state.comparison.initialized){
-      options.slice(0,2).forEach(o=>state.comparison.items.add(o.key));
+    let selected=[];
+
+    if(state.comparison.level==="city"){
+      state.comparison.items=new Set(options.map(o=>o.key));
       state.comparison.initialized=true;
+      selected=options;
+
+      if(hint) hint.textContent="Las ciudades se toman directamente del selector general de arriba.";
+      optionsRoot.innerHTML=`
+        <div class="compare-context-card">
+          <div>
+            <strong>Ciudades definidas por el filtro general</strong>
+            <span>${cities.length?cities.map(escapeHtml).join(" · "):"Sin ciudades seleccionadas"}</span>
+          </div>
+          <small>No necesitas seleccionarlas nuevamente aquí.</small>
+        </div>`;
+    }else{
+      if(hint) hint.textContent="Las opciones disponibles dependen de las ciudades seleccionadas en el filtro general.";
+      if(!state.comparison.initialized){
+        options.slice(0,2).forEach(o=>state.comparison.items.add(o.key));
+        state.comparison.initialized=true;
+      }
+
+      optionsRoot.innerHTML=`
+        <div class="compare-context-inline">
+          <span>Ciudades activas:</span>
+          <b>${cities.length?cities.map(escapeHtml).join(" · "):"Ninguna"}</b>
+        </div>
+        ${options.map(o=>`<label class="compare-scope-option"><input type="checkbox" data-key="${escapeHtml(o.key)}" ${state.comparison.items.has(o.key)?"checked":""}><span>${escapeHtml(o.label)}</span></label>`).join("")}`;
+
+      if(!options.length){
+        optionsRoot.innerHTML+=`<span class="filter-empty">Todavía no hay ${state.comparison.level==="zone"?"zonas":state.comparison.level==="trunk"?"troncales":"barrios"} cargados para las ciudades seleccionadas.</span>`;
+      }
+
+      optionsRoot.querySelectorAll("input[data-key]").forEach(input=>input.addEventListener("change",e=>{
+        const key=e.target.dataset.key;
+        if(e.target.checked) state.comparison.items.add(key); else state.comparison.items.delete(key);
+        renderComparator();
+      }));
+      selected=options.filter(o=>state.comparison.items.has(o.key));
     }
 
-    optionsRoot.innerHTML=options.map(o=>`<label class="compare-scope-option"><input type="checkbox" data-key="${escapeHtml(o.key)}" ${state.comparison.items.has(o.key)?"checked":""}><span>${escapeHtml(o.label)}</span></label>`).join("");
-    if(!options.length) optionsRoot.innerHTML='<span class="filter-empty">Todavía no hay ámbitos con datos para este nivel y tecnología.</span>';
-    optionsRoot.querySelectorAll("input").forEach(input=>input.addEventListener("change",e=>{
-      const key=e.target.dataset.key;
-      if(e.target.checked) state.comparison.items.add(key); else state.comparison.items.delete(key);
-      renderComparator();
-    }));
+    if(state.comparison.level==="city"){
+      summary.textContent=selected.length>=2?`${selected.length} ciudades seleccionadas arriba · FIBRAZO incluido como benchmark`:"Selecciona al menos 2 ciudades en el filtro general";
+    }else{
+      summary.textContent=selected.length>=2?`${selected.length} ámbitos seleccionados · FIBRAZO incluido como benchmark`:"Selecciona al menos 2 ámbitos para comparar";
+    }
 
-    const selected=options.filter(o=>state.comparison.items.has(o.key));
-    summary.textContent=selected.length>=2?`${selected.length} ámbitos seleccionados · FIBRAZO incluido como benchmark`:"Selecciona al menos 2 ámbitos para comparar";
     benchmark.innerHTML='<strong>FIBRAZO siempre incluido</strong><span>El benchmark usa la oferta FIBRAZO normalizada de cada ciudad. El filtro global de Tecnología también se aplica al mercado competidor.</span>';
 
     if(selected.length<2){
-      cards.innerHTML='<article class="panel compare-empty">Selecciona dos o más ciudades, zonas, troncales o barrios para construir el comparativo.</article>';
+      const msg=state.comparison.level==="city"
+        ?"Selecciona dos o más ciudades en el selector general de arriba para construir el comparativo."
+        :"Selecciona dos o más ámbitos dentro de las ciudades activas para construir el comparativo.";
+      cards.innerHTML=`<article class="panel compare-empty">${msg}</article>`;
       return;
     }
 
