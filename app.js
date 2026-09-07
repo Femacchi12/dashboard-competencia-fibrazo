@@ -291,12 +291,9 @@
     const value=clean(city);
     if(!value) return;
 
-    const quickNames=new Set(quickMarkets().map(m=>clean(m.Ciudad)));
-    const hasExternalSelections=[...state.filters.city].some(c=>!quickNames.has(c));
-
-    // Si se viene de "+ Más" o del alcance completo, un chip rápido inicia
-    // una selección limpia. Luego los chips rápidos sí pueden combinarse.
-    if(state.cityScopeMode==="all" || hasExternalSelections){
+    // Las ciudades rápidas y las ciudades de "+ Más" conviven.
+    // Cambiar una ciudad FIBRAZO nunca borra selecciones adicionales.
+    if(state.cityScopeMode==="all"){
       state.filters.city.clear();
       state.filters.city.add(value);
       state.cityScopeMode="custom";
@@ -347,10 +344,38 @@
     wrap.appendChild(moreBtn);
 
     const menu=document.createElement("div"); menu.className="city-more-menu hidden";
-    menu.innerHTML=`<button class="city-all-relevant" type="button">Todas las ciudades relevadas</button><div class="city-more-divider"></div><span class="city-more-title">Otras ciudades relevadas</span><input class="city-more-search" type="search" placeholder="Buscar ciudad…"><div class="city-more-options"></div>`;
+    menu.innerHTML=`
+      <div class="city-more-actions">
+        <button class="city-all-relevant" type="button">Todas las ciudades relevadas</button>
+        <button class="city-more-clear" type="button">Limpiar</button>
+      </div>
+      <div class="city-more-divider"></div>
+      <span class="city-more-title">Otras ciudades relevadas</span>
+      <input class="city-more-search" type="search" placeholder="Buscar ciudad…">
+      <div class="city-more-options"></div>`;
     menu.addEventListener("click",e=>e.stopPropagation());
     menu.querySelector(".city-all-relevant").addEventListener("click",()=>setCityScope("all"));
     const search=menu.querySelector(".city-more-search"), optionsBox=menu.querySelector(".city-more-options");
+    const clearBtn=menu.querySelector(".city-more-clear");
+
+    const refreshMoreButton=()=>{
+      const count=[...state.filters.city].filter(c=>!quickNames.has(c)).length;
+      moreBtn.textContent=count?`+ Más · ${count}`:"+ Más";
+      moreBtn.classList.toggle("active",count>0);
+      moreBtn.classList.toggle("more-selected",count>0);
+    };
+
+    clearBtn.addEventListener("click",()=>{
+      [...state.filters.city].filter(c=>!quickNames.has(c)).forEach(c=>state.filters.city.delete(c));
+      if(!state.filters.city.size) state.cityScopeMode="fibrazo";
+      else state.cityScopeMode="custom";
+      state.expanded=false;
+      refreshMoreButton();
+      paint(search.value);
+      renderFilters();
+      applyFilters();
+      search.focus();
+    });
 
     const paint=(q="")=>{
       const others=allRelevantCities().filter(c=>!quickNames.has(c)&&fold(c).includes(fold(q)));
@@ -363,7 +388,9 @@
           if(e.target.checked) state.filters.city.add(city); else state.filters.city.delete(city);
           if(!state.filters.city.size) state.cityScopeMode="fibrazo";
           state.expanded=false;
-          renderCityQuickbar();
+
+          // No reconstruimos la barra: el desplegable permanece abierto.
+          refreshMoreButton();
           renderFilters();
           applyFilters();
         });
