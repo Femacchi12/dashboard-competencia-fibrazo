@@ -291,19 +291,26 @@
     const value=clean(city);
     if(!value) return;
 
-    // Las ciudades rápidas y las ciudades de "+ Más" conviven.
-    // Cambiar una ciudad FIBRAZO nunca borra selecciones adicionales.
-    if(state.cityScopeMode==="all"){
-      state.filters.city.clear();
-      state.filters.city.add(value);
-      state.cityScopeMode="custom";
-    }else{
-      state.cityScopeMode="custom";
-      if(state.filters.city.has(value)) state.filters.city.delete(value);
-      else state.filters.city.add(value);
-      if(!state.filters.city.size) state.cityScopeMode="fibrazo";
-    }
+    state.cityScopeMode="custom";
+    if(state.filters.city.has(value)) state.filters.city.delete(value);
+    else state.filters.city.add(value);
+    if(!state.filters.city.size) state.cityScopeMode="fibrazo";
 
+    state.expanded=false;
+    renderCityQuickbar();
+    renderFilters();
+    applyFilters();
+  }
+
+  function toggleAllFibrazoCities(){
+    const quickNames=quickMarkets().map(m=>clean(m.Ciudad)).filter(Boolean);
+    const allSelected=quickNames.length>0 && quickNames.every(c=>state.filters.city.has(c));
+
+    state.cityScopeMode="custom";
+    if(allSelected) quickNames.forEach(c=>state.filters.city.delete(c));
+    else quickNames.forEach(c=>state.filters.city.add(c));
+
+    if(!state.filters.city.size) state.cityScopeMode="fibrazo";
     state.expanded=false;
     renderCityQuickbar();
     renderFilters();
@@ -323,7 +330,9 @@
       b.addEventListener("click",onClick); return b;
     };
 
-    root.appendChild(makeButton("Todas FIBRAZO",state.cityScopeMode==="fibrazo"&&!state.filters.city.size,()=>setCityScope("fibrazo"),"scope-all"));
+    const allQuickSelected=quick.length>0 && quick.every(m=>state.filters.city.has(clean(m.Ciudad)));
+    const allFibrazoActive=(state.cityScopeMode==="fibrazo"&&!state.filters.city.size)||allQuickSelected;
+    root.appendChild(makeButton("Todas FIBRAZO",allFibrazoActive,()=>toggleAllFibrazoCities(),"scope-all"));
 
     quick.forEach(m=>{
       const city=clean(m.Ciudad);
@@ -334,8 +343,10 @@
 
     const wrap=document.createElement("div"); wrap.className="city-more-wrap";
     const selectedOther=[...state.filters.city].filter(c=>!quickNames.has(c));
-    const moreActive=state.cityScopeMode==="all"||selectedOther.length>0;
-    const moreLabel=state.cityScopeMode==="all"?"+ Más · Todas":selectedOther.length?`+ Más · ${selectedOther.length}`:"+ Más";
+    const externalCities=allRelevantCities().filter(c=>!quickNames.has(c));
+    const allExternalSelected=externalCities.length>0&&selectedOther.length===externalCities.length;
+    const moreActive=selectedOther.length>0;
+    const moreLabel=allExternalSelected?"+ Más · Todas":selectedOther.length?`+ Más · ${selectedOther.length}`:"+ Más";
     const moreBtn=makeButton(moreLabel,moreActive,e=>{
       e.stopPropagation();
       wrap.querySelector(".city-more-menu").classList.toggle("hidden");
@@ -354,16 +365,29 @@
       <input class="city-more-search" type="search" placeholder="Buscar ciudad…">
       <div class="city-more-options"></div>`;
     menu.addEventListener("click",e=>e.stopPropagation());
-    menu.querySelector(".city-all-relevant").addEventListener("click",()=>setCityScope("all"));
     const search=menu.querySelector(".city-more-search"), optionsBox=menu.querySelector(".city-more-options");
     const clearBtn=menu.querySelector(".city-more-clear");
+    const allOtherCities=()=>allRelevantCities().filter(c=>!quickNames.has(c));
 
     const refreshMoreButton=()=>{
-      const count=[...state.filters.city].filter(c=>!quickNames.has(c)).length;
-      moreBtn.textContent=count?`+ Más · ${count}`:"+ Más";
-      moreBtn.classList.toggle("active",count>0);
-      moreBtn.classList.toggle("more-selected",count>0);
+      const selectedExternal=[...state.filters.city].filter(c=>!quickNames.has(c));
+      const totalExternal=allOtherCities().length;
+      const allExternalSelected=totalExternal>0 && selectedExternal.length===totalExternal;
+      moreBtn.textContent=allExternalSelected?"+ Más · Todas":selectedExternal.length?`+ Más · ${selectedExternal.length}`:"+ Más";
+      moreBtn.classList.toggle("active",selectedExternal.length>0);
+      moreBtn.classList.toggle("more-selected",selectedExternal.length>0);
     };
+
+    menu.querySelector(".city-all-relevant").addEventListener("click",()=>{
+      allOtherCities().forEach(c=>state.filters.city.add(c));
+      state.cityScopeMode="custom";
+      state.expanded=false;
+      refreshMoreButton();
+      paint(search.value);
+      renderFilters();
+      applyFilters();
+      search.focus();
+    });
 
     clearBtn.addEventListener("click",()=>{
       [...state.filters.city].filter(c=>!quickNames.has(c)).forEach(c=>state.filters.city.delete(c));
