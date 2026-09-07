@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260907-2" />
+  <link rel="stylesheet" href="styles.css?v=20260907-3" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -71,6 +71,7 @@
       <button type="button" class="analysis-tab active" data-analysis-view="general">Vista general</button>
       <button type="button" class="analysis-tab" data-analysis-view="fibrazo">Vs. FIBRAZO</button>
       <button type="button" class="analysis-tab" data-analysis-view="territory">Territorio</button>
+      <button type="button" class="analysis-tab" data-analysis-view="compare">Comparador</button>
     </nav>
 
     <section class="kpi-grid view-block" data-view="general" aria-label="Indicadores principales">
@@ -135,6 +136,32 @@
         <div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Competidor</th><th>Precio</th><th>Velocidad</th><th>Dif. precio</th><th>Dif. Mbps</th><th>Tecnología</th><th>TV</th></tr></thead><tbody id="fibrazo-compare-body"></tbody></table></div>
       </article>
     </section>
+    <section id="compare-section" class="section view-block hidden" data-view="compare">
+      <div class="section-title section-heading">
+        <div><span>COMPARADOR</span><h2>Compara mercados y territorios</h2></div>
+        <div id="compare-summary" class="coverage-meta">Selecciona al menos 2 ámbitos</div>
+      </div>
+
+      <div class="comparison-builder panel">
+        <label class="compare-level-control">Nivel de comparación
+          <select id="compare-level">
+            <option value="city">Ciudades</option>
+            <option value="zone">Zonas FIBRAZO</option>
+            <option value="trunk">Troncales FIBRAZO</option>
+            <option value="barrio">Barrios</option>
+          </select>
+        </label>
+        <div class="compare-scope-control">
+          <span>Ámbitos a comparar</span>
+          <small>Puedes seleccionar dos o más. Para zonas, troncales y barrios se muestra también la ciudad.</small>
+          <div id="compare-scope-options" class="compare-scope-options"></div>
+        </div>
+      </div>
+
+      <div id="compare-benchmark" class="panel compare-benchmark"></div>
+      <div id="compare-cards" class="compare-grid"></div>
+    </section>
+
     <section class="section panel records view-block" data-view="general">
       <div class="section-title records-head">
         <div><span>BASE DETALLADA</span><h2>Planes y competencia consolidada</h2></div>
@@ -167,6 +194,6 @@
   </main>
 
   <script src="table-enhancements.js?v=20260904-2"></script>
-  <script src="auth.js?v=20260907-3"></script>
+  <script src="auth.js?v=20260907-4"></script>
 </body>
 </html>
