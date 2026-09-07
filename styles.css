@@ -164,3 +164,11 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
   .compare-benchmark span{text-align:left}
   .compare-scope-kpis,.compare-procon{grid-template-columns:1fr}
 }
+
+
+/* Comparador guiado por selector general de ciudades */
+.compare-context-card{width:100%;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 14px;border:1px solid #244238;border-radius:12px;background:#0B1712}
+.compare-context-card>div{min-width:0}.compare-context-card strong{display:block;color:#00F29A;font-size:10px;margin-bottom:5px}.compare-context-card span{display:block;color:#D7E3DE;font-size:10px;line-height:1.5}.compare-context-card small{color:#748A80;font-size:9px;text-align:right;white-space:nowrap}
+.compare-context-inline{width:100%;display:flex;align-items:center;gap:7px;padding:7px 10px;margin-bottom:2px;border:1px dashed #31443C;border-radius:10px;background:#101512}
+.compare-context-inline span{color:#748A80;font-size:9px;text-transform:uppercase;letter-spacing:.06em}.compare-context-inline b{color:#D7E3DE;font-size:9px;font-weight:700}
+@media(max-width:700px){.compare-context-card{align-items:flex-start;flex-direction:column}.compare-context-card small{text-align:left;white-space:normal}.compare-context-inline{align-items:flex-start;flex-direction:column}}
