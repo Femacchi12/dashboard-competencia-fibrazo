@@ -111,3 +111,56 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
 }
 .city-more-clear:hover{border-color:#00F29A;background:#082018}
 .city-more-menu{min-height:280px}
+
+
+/* Filtros territoriales + Comparador · 2026-09-07 */
+.territory-filter.disabled{opacity:.72}
+.filter-btn.territory-disabled,
+.filter-btn:disabled{cursor:not-allowed;color:#6F827A;background:#111412;border-style:dashed;border-color:#3A4540}
+.filter-btn.territory-disabled span:last-child{color:#00F29A}
+
+.comparison-builder{display:grid;grid-template-columns:minmax(210px,.35fr) minmax(0,1.65fr);gap:18px;padding:16px;margin-bottom:12px;align-items:start}
+.compare-level-control{display:grid;gap:7px;color:#8FA9A0;font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.compare-level-control select{background:#171B19;border:1px solid #34413B;border-radius:10px;color:#F4FFF9;padding:11px 12px;font:600 11px Inter,sans-serif}
+.compare-scope-control>span{display:block;color:#8FA9A0;font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.compare-scope-control>small{display:block;color:#697E75;font-size:9px;margin:5px 0 9px;line-height:1.4}
+.compare-scope-options{display:flex;flex-wrap:wrap;gap:7px;max-height:170px;overflow:auto;padding:4px 4px 4px 0;scrollbar-width:thin;scrollbar-color:#00F29A #151A18}
+.compare-scope-option{display:flex;align-items:center;gap:7px;padding:8px 10px;border:1px solid #303936;border-radius:18px;background:#151817;color:#B9CBC4;font-size:10px;cursor:pointer;transition:.15s ease}
+.compare-scope-option:hover{border-color:#4A5A53;color:#F4FFF9}
+.compare-scope-option:has(input:checked){border-color:#00F29A;background:#062016;color:#00F29A}
+.compare-scope-option input{accent-color:#00F29A;margin:0}
+.compare-benchmark{display:flex;justify-content:space-between;gap:18px;align-items:center;padding:13px 16px;margin-bottom:12px;border-color:#00B875;background:#07150F}
+.compare-benchmark strong{color:#00F29A;font-size:11px}
+.compare-benchmark span{color:#8FA9A0;font-size:10px;line-height:1.45;text-align:right;max-width:760px}
+.compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.compare-scope-card{padding:16px;min-height:245px}
+.compare-scope-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:11px;border-bottom:1px solid #26312C}
+.compare-scope-head span{color:#00F29A;font-size:8px;font-weight:800;letter-spacing:.1em}
+.compare-scope-head h3{margin:4px 0 0;color:#F4FFF9;font-size:13px}
+.compare-scope-head>strong{color:#C8D7D1;font-size:10px;white-space:nowrap}
+.compare-scope-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.compare-scope-kpis>div{padding:10px;background:#0D1110;border:1px solid #252E2A;border-radius:10px}
+.compare-scope-kpis span{display:block;color:#70857C;font-size:8px;text-transform:uppercase;letter-spacing:.05em}
+.compare-scope-kpis b{display:block;margin-top:5px;color:#F4FFF9;font-size:11px}
+.fibrazo-benchmark-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 11px;border:1px solid #00B875;border-radius:10px;background:#061A12}
+.fibrazo-benchmark-row span{color:#00F29A;font-size:9px;font-weight:800;letter-spacing:.08em}
+.fibrazo-benchmark-row b{color:#F4FFF9;font-size:10px;text-align:right}
+.compare-procon{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.compare-procon>div{padding:10px;border-radius:10px;border:1px solid #2B3430;min-height:74px}
+.compare-procon b{display:block;font-size:9px;margin-bottom:5px}
+.compare-procon span{display:block;color:#A9BCB4;font-size:9px;line-height:1.45}
+.compare-procon .pro{background:#07150F;border-color:#145A3D}
+.compare-procon .pro b{color:#00F29A}
+.compare-procon .con{background:#17110E;border-color:#5A342D}
+.compare-procon .con b{color:#FF8A78}
+.compare-empty{grid-column:1/-1;padding:28px;text-align:center;color:#8FA9A0;font-size:11px;border-style:dashed}
+
+@media(max-width:980px){
+  .comparison-builder{grid-template-columns:1fr}
+  .compare-grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .compare-benchmark{align-items:flex-start;flex-direction:column}
+  .compare-benchmark span{text-align:left}
+  .compare-scope-kpis,.compare-procon{grid-template-columns:1fr}
+}
