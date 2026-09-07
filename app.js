@@ -290,17 +290,29 @@
   function toggleCitySelection(city){
     const value=clean(city);
     if(!value) return;
-    state.cityScopeMode="custom";
-    if(state.filters.city.has(value)) state.filters.city.delete(value);
-    else state.filters.city.add(value);
-    if(!state.filters.city.size) state.cityScopeMode="fibrazo";
+
+    const quickNames=new Set(quickMarkets().map(m=>clean(m.Ciudad)));
+    const hasExternalSelections=[...state.filters.city].some(c=>!quickNames.has(c));
+
+    // Si se viene de "+ Más" o del alcance completo, un chip rápido inicia
+    // una selección limpia. Luego los chips rápidos sí pueden combinarse.
+    if(state.cityScopeMode==="all" || hasExternalSelections){
+      state.filters.city.clear();
+      state.filters.city.add(value);
+      state.cityScopeMode="custom";
+    }else{
+      state.cityScopeMode="custom";
+      if(state.filters.city.has(value)) state.filters.city.delete(value);
+      else state.filters.city.add(value);
+      if(!state.filters.city.size) state.cityScopeMode="fibrazo";
+    }
+
     state.expanded=false;
     renderCityQuickbar();
     renderFilters();
     applyFilters();
   }
 
-  function selectedCitiesCount(){ return state.filters.city.size; }
 
   function renderCityQuickbar(){
     const root=$("city-quickbar"); if(!root)return;
@@ -325,9 +337,8 @@
 
     const wrap=document.createElement("div"); wrap.className="city-more-wrap";
     const selectedOther=[...state.filters.city].filter(c=>!quickNames.has(c));
-    const totalSelected=selectedCitiesCount();
     const moreActive=state.cityScopeMode==="all"||selectedOther.length>0;
-    const moreLabel=totalSelected>0?`+ Más · ${totalSelected}`:"+ Más";
+    const moreLabel=state.cityScopeMode==="all"?"+ Más · Todas":selectedOther.length?`+ Más · ${selectedOther.length}`:"+ Más";
     const moreBtn=makeButton(moreLabel,moreActive,e=>{
       e.stopPropagation();
       wrap.querySelector(".city-more-menu").classList.toggle("hidden");
