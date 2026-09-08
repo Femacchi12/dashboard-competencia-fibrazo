@@ -1,0 +1,174 @@
+(function coreModule(){
+  "use strict";
+
+  const FZ = window.FZ = window.FZ || {};
+
+  FZ.BASE_SHEET_ID = "1v2sBVe_w-bTl438b8qWFmvw0gT66bj8TskcXbnY-gbU";
+  FZ.AUTO_REFRESH_MS = 120000;
+
+  FZ.SOURCES = {
+    plans: { gid:"1372196091", label:"02_PLANES_HISTORICO", range:"A1:AF1000" },
+    operators: { gid:"1091103584", label:"01_OPERADORES", range:"A1:AA300" },
+    coverage: { gid:"718563813", label:"03_PRESENCIA", range:"A1:Y2500" },
+    markets: { gid:"1320750580", label:"07_CONFIG · Mercados", range:"X2:AI300" },
+    territories: { gid:"1320750580", label:"07_CONFIG · Territorio", range:"AK2:AQ400" },
+    offers: { gid:"1320750580", label:"07_CONFIG · Oferta FIBRAZO", range:"AS2:BC300" },
+    fibrazoMetrics: { gid:"1344959609", label:"10_FIBRAZO_METRICAS", range:"A1:N400" }
+  };
+
+  FZ.state = {
+    plans: [], operators: [], coverage: [], markets: [], territories: [], offers: [], metrics: [],
+    filtered: [], filteredCoverage: [],
+    filters: {
+      period:new Set(), city:new Set(), operator:new Set(), technology:new Set(),
+      modality:new Set(), price:new Set(), zone:new Set(), trunk:new Set()
+    },
+    cityScopeMode:"fibrazo",
+    analysisView:"general",
+    selectedOfferKey:"",
+    comparison:{level:"city",items:new Set(),initialized:false},
+    tableSearch:"",
+    expanded:false,
+    sort:{key:"Grupo_Operador",dir:1},
+    hiddenColumns:new Set(["Operador_Normalizado"]),
+    charts:{},
+    loading:false,
+    lastLoadAt:0,
+    openTrunkKey:""
+  };
+
+  FZ.months = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+
+  FZ.phoneFields = new Set(["Telefono_1","Telefono_2","Telefono_3","Telefono_4","Telefono_5"]);
+  FZ.linkFields = new Set(["Sitio_Web","Instagram","Facebook","TikTok","Imagenes_Folletos"]);
+  FZ.linkLabels = {
+    Sitio_Web:"Web ↗", Instagram:"Instagram ↗", Facebook:"Facebook ↗",
+    TikTok:"TikTok ↗", Imagenes_Folletos:"Ver carpeta ↗"
+  };
+
+  const clean = v => String(v ?? "").trim();
+  const fold = v => clean(v).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  const escapeHtml = v => String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const $ = id => document.getElementById(id);
+
+  function toNum(v){
+    if(v===null||v===undefined||v==="") return null;
+    let s=clean(v).replace(/[^0-9,.-]/g,"");
+    if(!s) return null;
+    if(s.includes(",")&&s.includes(".")){
+      if(s.lastIndexOf(",")>s.lastIndexOf(".")) s=s.replace(/\./g,"").replace(",",".");
+      else s=s.replace(/,/g,"");
+    }else if(s.includes(",")){
+      const parts=s.split(",");
+      s=parts.length===2&&parts[1].length<=2?parts[0].replace(/\./g,"")+"."+parts[1]:s.replace(/,/g,"");
+    }
+    const n=Number(s);
+    return Number.isFinite(n)?n:null;
+  }
+
+  const formatCOP = n => n==null?"—":new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(n);
+  const formatNum = n => n==null?"—":new Intl.NumberFormat("es-CO",{maximumFractionDigits:1}).format(n);
+  const formatPct = n => n==null||!Number.isFinite(n)?"—":(n>0?"+":"")+new Intl.NumberFormat("es-CO",{maximumFractionDigits:1,minimumFractionDigits:1}).format(n)+"%";
+  const pctVs = (value,base) => Number.isFinite(value)&&Number.isFinite(base)&&base!==0?(value-base)/base*100:null;
+  const priceBand = n => n==null?"Sin precio":n<50000?"< $50k":n<=75000?"$50k–$75k":n<=100000?"$75k–$100k":"> $100k";
+
+  function normalizeTV(v){
+    const s=fold(v);
+    if(!s) return "No informado";
+    if(["si","yes","1","true"].includes(s)) return "Sí";
+    if(["no","0","false"].includes(s)) return "No";
+    return clean(v);
+  }
+
+  const periodValue = value => clean(value).match(/^\d{4}-\d{2}$/)?clean(value):"";
+
+  function formatPeriod(value){
+    const s=periodValue(value);
+    if(!s) return "Sin corte";
+    const parts=s.split("-").map(Number);
+    const year=parts[0], month=parts[1];
+    return month>=1&&month<=12?year+"-"+FZ.months[month-1]:s;
+  }
+
+  function periodSortValue(value){
+    const s=periodValue(value);
+    if(!s) return 0;
+    const parts=s.split("-").map(Number);
+    return parts[0]*100+parts[1];
+  }
+
+  function formatYearMonth(value){
+    const s=clean(value);
+    if(!s||fold(s)==="sin fecha"||fold(s)==="sin info") return "Sin info";
+    let m=s.match(/^(\d{4})[-\/]([01]?\d)(?:[-\/]\d{1,2})?$/);
+    if(m){const month=Number(m[2]);return month>=1&&month<=12?m[1]+"-"+FZ.months[month-1]:"Sin info";}
+    m=s.match(/^(\d{1,2})[\/]([01]?\d)[\/](\d{4})$/);
+    if(m){const month=Number(m[2]);return month>=1&&month<=12?m[3]+"-"+FZ.months[month-1]:"Sin info";}
+    const d=new Date(s);
+    return !Number.isNaN(d.getTime())&&/\d{4}/.test(s)?d.getFullYear()+"-"+FZ.months[d.getMonth()]:"Sin info";
+  }
+
+  function safeUrl(value,field){
+    const s=clean(value);
+    if(!s||!/^https?:\/\//i.test(s)) return "";
+    if(field==="Sitio_Web"&&/(?:docs\.google\.com|drive\.google\.com|facebook\.com|instagram\.com|tiktok\.com)/i.test(s)) return "";
+    return s;
+  }
+
+  function linkCell(value,field){
+    const url=safeUrl(value,field);
+    if(!url) return '<span class="link-empty">—</span>';
+    return '<a class="detail-link" href="'+escapeHtml(url)+'" target="_blank" rel="noopener noreferrer">'+escapeHtml(FZ.linkLabels[field]||"Abrir ↗")+'</a>';
+  }
+
+  function phoneCell(value){
+    const label=clean(value);
+    if(!label) return '<span class="link-empty">—</span>';
+    const dial=label.replace(/[^0-9+*#]/g,"");
+    if(!dial) return escapeHtml(label);
+    return '<a class="phone-link" href="tel:'+escapeHtml(dial)+'">'+escapeHtml(label)+'</a>';
+  }
+
+  const rowOperator = r => clean(r?.Grupo_Operador)||clean(r?.Operador_Normalizado);
+
+  FZ.u = {
+    $,clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,pctVs,priceBand,normalizeTV,
+    periodValue,formatPeriod,periodSortValue,formatYearMonth,safeUrl,linkCell,phoneCell,rowOperator
+  };
+
+  FZ.filterDefs = [
+    {key:"period", label:"Corte", getter:r=>FZ.u.clean(r.Periodo_Label), allLabel:"Último corte", maxSelections:2},
+    {key:"city", label:"Ciudad / localidad", getter:r=>FZ.u.clean(r.Ciudad), allLabel:"Todas"},
+    {key:"operator", label:"Operador", getter:r=>FZ.u.clean(r.Grupo_Operador)||FZ.u.clean(r.Operador_Normalizado), allLabel:"Todos"},
+    {key:"technology", label:"Tecnología", getter:r=>FZ.u.clean(r.Tecnologia)||"No informado", allLabel:"Todos"},
+    {key:"modality", label:"Modalidad", getter:r=>FZ.u.clean(r.Modalidad)||"No informado", allLabel:"Todos"},
+    {key:"price", label:"Rango de precio", getter:r=>FZ.u.priceBand(FZ.u.toNum(r.Precio_Usado_COP)), allLabel:"Todos"}
+  ];
+
+  FZ.columns = [
+    ["Periodo_Label","Corte"],
+    ["Grupo_Operador","Operador"],
+    ["Ciudad","Ciudad"],
+    ["Departamento","Departamento"],
+    ["Operador_Normalizado","Detalle operador"],
+    ["Barrio","Barrio"],
+    ["Troncales_Ciudad","Troncales"],
+    ["Tipo_Servicio","Servicio"],
+    ["TV_Incluida","TV"],
+    ["Tecnologia","Tecnología"],
+    ["Velocidad_Bajada_Mbps","Velocidad"],
+    ["Precio_Usado_COP","Precio"],
+    ["Modalidad","Modalidad"],
+    ["Permanencia_Meses","Permanencia"],
+    ["Telefono_1","Teléfono 1"],
+    ["Telefono_2","Teléfono 2"],
+    ["Telefono_3","Teléfono 3"],
+    ["Telefono_4","Teléfono 4"],
+    ["Telefono_5","Teléfono 5"],
+    ["Sitio_Web","Web"],
+    ["Instagram","Instagram"],
+    ["Facebook","Facebook"],
+    ["TikTok","TikTok"],
+    ["Imagenes_Folletos","Imágenes / folletos"]
+  ];
+})();
