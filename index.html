@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260907-4" />
+  <link rel="stylesheet" href="styles.css?v=20260908-1" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -102,10 +102,11 @@
     <section class="section market-section view-block" data-view="general">
       <div class="section-title section-heading"><div><span>MERCADO</span><h2>Planes y precios</h2></div></div>
       <div class="charts-grid">
-        <article class="panel chart-panel wide"><div class="panel-head"><h3>Precio × velocidad</h3><span>Ofertas del corte seleccionado</span></div><canvas id="scatter-chart"></canvas></article>
+        <article class="panel chart-panel wide"><div class="panel-head"><h3>Precio × velocidad</h3><span>Haz clic en un punto para ver el detalle del operador</span></div><canvas id="scatter-chart"></canvas></article>
         <article id="operator-price-panel" class="panel chart-panel"><div class="panel-head"><h3>Precio mínimo y máximo por competidor</h3><span>Rango comercial registrado</span></div><canvas id="operators-chart"></canvas></article>
         <article id="operator-speed-panel" class="panel chart-panel"><div class="panel-head"><h3>Velocidad mínima y máxima por competidor</h3><span>Rango de Mbps registrado</span></div><canvas id="speeds-chart"></canvas></article>
       </div>
+      <div id="chart-operator-detail-slot" class="operator-detail-slot"></div>
     </section>
 
     <section id="coverage-section" class="section coverage-section view-block hidden" data-view="territory">
@@ -133,7 +134,7 @@
       </div>
       <article class="panel compare-table-panel">
         <div class="panel-head"><h3>Competidores vs. oferta seleccionada</h3><span>Se usa la oferta de menor precio registrada por competidor</span></div>
-        <div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Competidor</th><th>Precio</th><th>Velocidad</th><th>Dif. precio</th><th>Dif. Mbps</th><th>Tecnología</th><th>TV</th></tr></thead><tbody id="fibrazo-compare-body"></tbody></table></div>
+        <div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Competidor</th><th>Precio</th><th>Velocidad</th><th>Dif. precio / %</th><th>Dif. Mbps / %</th><th>Tecnología</th><th>TV</th></tr></thead><tbody id="fibrazo-compare-body"></tbody></table></div>
       </article>
     </section>
     <section id="compare-section" class="section view-block hidden" data-view="compare">
@@ -194,6 +195,7 @@
   </main>
 
   <script src="table-enhancements.js?v=20260904-2"></script>
-  <script src="auth.js?v=20260907-5"></script>
+  <script src="operator-details.js?v=20260908-1"></script>
+  <script src="auth.js?v=20260908-1"></script>
 </body>
 </html>
