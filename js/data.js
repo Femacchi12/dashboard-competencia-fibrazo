@@ -2,7 +2,7 @@
   "use strict";
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
-  const {clean,fold,toNum,formatYearMonth,periodValue}=FZ.u;
+  const {clean,fold,toNum,formatYearMonth,periodValue,formatPeriod}=FZ.u;
   const state=FZ.state;
 
   function csvUrl(source){
@@ -66,6 +66,7 @@
           ...r,
           Fecha_Mes:formatYearMonth(r.Fecha_Relevamiento),
           Periodo_Corte:periodValue(r.Periodo_Corte),
+          Periodo_Label:formatPeriod(r.Periodo_Corte),
           Grupo_Operador:clean(op.Grupo_Operador)||clean(op.Marca_Comercial)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),
           Barrio:clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ),
           Precio_Usado_COP:used==null?"":String(used),
@@ -91,6 +92,7 @@
         return {
           ...r,
           Periodo_Corte:periodValue(r.Periodo_Corte),
+          Periodo_Label:formatPeriod(r.Periodo_Corte),
           Grupo_Operador:clean(op.Grupo_Operador)||clean(op.Marca_Comercial)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)
         };
       });
