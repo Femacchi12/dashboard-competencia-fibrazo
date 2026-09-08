@@ -38,6 +38,7 @@
     ["Departamento","Departamento"],
     ["Operador_Normalizado","Detalle operador"],
     ["Barrio","Barrio"],
+    ["Troncales_Ciudad","Troncales"],
     ["Tipo_Servicio","Servicio"],
     ["TV_Incluida","TV"],
     ["Tecnologia","Tecnología"],
@@ -146,6 +147,31 @@
     return `<a class="phone-link" href="tel:${escapeHtml(dial)}">${escapeHtml(label)}</a>`;
   }
 
+  function rowOperator(r){
+    return clean(r?.Grupo_Operador)||clean(r?.Operador_Normalizado);
+  }
+
+  function matchingCoverageForPlan(r){
+    const city=clean(r?.Ciudad), op=rowOperator(r), opId=clean(r?.ID_Operador), tech=clean(r?.Tecnologia), period=clean(r?.Periodo_Corte);
+    let rows=state.coverage.filter(c=>{
+      if(clean(c.Ciudad)!==city) return false;
+      const sameOperator=opId ? clean(c.ID_Operador)===opId : rowOperator(c)===op;
+      if(!sameOperator) return false;
+      if(tech && clean(c.Tecnologia) && fold(c.Tecnologia)!==fold(tech)) return false;
+      return true;
+    });
+    if(period){
+      const exact=rows.filter(c=>clean(c.Periodo_Corte)===period);
+      if(exact.length) rows=exact;
+    }
+    return rows;
+  }
+
+  function trunksForPlan(r){
+    return [...new Set(matchingCoverageForPlan(r).map(c=>clean(c.Troncal_FIBRAZO)).filter(Boolean))]
+      .sort((a,b)=>a.localeCompare(b,"es",{numeric:true}))
+      .join(" · ");
+  }
   function csvUrl(source){
     const params=new URLSearchParams({tqx:"out:csv",gid:source.gid,cb:String(Date.now())});
     if(source.range) params.set("range",source.range);
@@ -1168,10 +1194,12 @@
 
   function tableRows(){
     const q=fold(state.tableSearch);
-    const rows=state.filtered.filter(r=>!q||columns.some(([k])=>fold(r[k]).includes(q)));
+    const valueFor=(r,k)=>k==="Troncales_Ciudad"?trunksForPlan(r):r[k];
+    const rows=state.filtered.filter(r=>!q||columns.some(([k])=>fold(valueFor(r,k)).includes(q)));
     const {key,dir}=state.sort;
     return [...rows].sort((a,b)=>{
       if(key==="Periodo_Label") return (periodSortValue(a.Periodo_Corte)-periodSortValue(b.Periodo_Corte))*dir;
+      if(key==="Troncales_Ciudad") return trunksForPlan(a).localeCompare(trunksForPlan(b),"es",{numeric:true})*dir;
       const an=toNum(a[key]),bn=toNum(b[key]);
       if(an!=null&&bn!=null) return (an-bn)*dir;
       return clean(a[key]).localeCompare(clean(b[key]),"es",{numeric:true})*dir;
@@ -1198,7 +1226,15 @@
     return picked;
   }
 
-  function formatCell(key,value){
+  function formatCell(key,value,row){
+    if(key==="Troncales_Ciudad"){
+      const trunks=trunksForPlan(row);
+      return trunks?escapeHtml(trunks):'<span class="link-empty">—</span>';
+    }
+    if(key==="Grupo_Operador"){
+      const op=rowOperator(row)||"—";
+      return '<button type="button" class="operator-detail-trigger" data-plan-id="'+escapeHtml(clean(row?.ID_Plan_Registro))+'">'+escapeHtml(op)+'</button>';
+    }
     if(linkFields.has(key)) return linkCell(value,key);
     if(phoneFields.has(key)) return phoneCell(value);
     const n=toNum(value);
@@ -1214,7 +1250,7 @@
     $("table-head").innerHTML=`<tr>${cols.map(([k,l])=>`<th data-key="${escapeHtml(k)}">${escapeHtml(l)}${state.sort.key===k?`<span class="sort-mark">${state.sort.dir===1?"▲":"▼"}</span>`:""}</th>`).join("")}</tr>`;
     $("table-head").querySelectorAll("th").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.key;if(state.sort.key===k)state.sort.dir*=-1;else state.sort={key:k,dir:1};renderTable()}));
     const shown=state.expanded?rows:diverseInitialRows(rows,10);
-    $("table-body").innerHTML=shown.map(r=>`<tr>${cols.map(([k])=>`<td>${formatCell(k,r[k])}</td>`).join("")}</tr>`).join("");
+    $("table-body").innerHTML=shown.map(r=>`<tr data-plan-row="${escapeHtml(clean(r.ID_Plan_Registro))}">${cols.map(([k])=>`<td>${formatCell(k,r[k],r)}</td>`).join("")}</tr>`).join("");
     $("table-count").textContent=state.expanded?`${formatNum(rows.length)} de ${formatNum(rows.length)} registros`:`${formatNum(shown.length)} de ${formatNum(rows.length)} registros · muestra inicial por ciudades`;
     $("more-btn").textContent=state.expanded?"Ver menos":"Ver más";
     $("more-btn").style.display=rows.length>10?"inline-flex":"none";
