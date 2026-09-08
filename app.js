@@ -1127,6 +1127,7 @@
       coverageRows,plans,ops,
       minPrice:bestPrices.length?Math.min(...bestPrices):null,
       medianPrice:priceMedian,
+      medianSpeed:speedMedian,
       maxSpeed:maxSpeeds.length?Math.max(...maxSpeeds):null,
       fz,pros,cons
     };
@@ -1211,7 +1212,7 @@
           <div><span>Velocidad máx.</span><b>${m.maxSpeed==null?"—":formatNum(m.maxSpeed)+" Mbps"}</b></div>
         </div>
         <div class="fibrazo-benchmark-row">
-          <span>FIBRAZO</span><b>${fz?formatCOP(fz.Precio_COP)+" · "+formatNum(fz.Velocidad_Mbps)+" Mbps":"Sin oferta compatible"}</b>
+          <span>FIBRAZO</span><b>${fz?formatCOP(fz.Precio_COP)+" · "+formatNum(fz.Velocidad_Mbps)+" Mbps"+(m.medianPrice!=null?" · Precio vs mediana "+formatPct(pctVs(fz.Precio_COP,m.medianPrice)):"")+(m.medianSpeed!=null?" · Velocidad vs mediana "+formatPct(pctVs(fz.Velocidad_Mbps,m.medianSpeed)):""):"Sin oferta compatible"}</b>
         </div>
         <div class="compare-procon">
           <div class="pro"><b>Pros FIBRAZO</b><span>${m.pros.map(escapeHtml).join(" · ")}</span></div>
