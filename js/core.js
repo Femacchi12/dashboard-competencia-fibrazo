@@ -13,11 +13,12 @@
     markets: { gid:"1320750580", label:"07_CONFIG · Mercados", range:"X2:AI300" },
     territories: { gid:"1320750580", label:"07_CONFIG · Territorio", range:"AK2:AQ400" },
     offers: { gid:"1320750580", label:"07_CONFIG · Oferta FIBRAZO", range:"AS2:BC300" },
-    fibrazoMetrics: { gid:"1344959609", label:"10_FIBRAZO_METRICAS", range:"A1:X400" }
+    fibrazoMetrics: { gid:"1344959609", label:"10_FIBRAZO_METRICAS", range:"A1:X400" },
+    mobile: { gid:"1227923955", label:"12_COMPETENCIA_MOVIL", range:"A1:S400" }
   };
 
   FZ.state = {
-    plans: [], operators: [], coverage: [], markets: [], territories: [], offers: [], metrics: [],
+    plans: [], operators: [], coverage: [], markets: [], territories: [], offers: [], metrics: [], mobile: [],
     filtered: [], filteredCoverage: [],
     filters: {
       period:new Set(), city:new Set(), operator:new Set(), technology:new Set(),
@@ -38,6 +39,7 @@
     openTrunkKey:"",
     networkSearch:"",
     networkSort:{key:"Troncal_FIBRAZO",dir:1},
+    mobileView:{period:"2026-09",operator:"all",modality:"all",status:"all",search:"",sort:{key:"Operador",dir:1},openKey:""},
     indexes:{}
   };
 
