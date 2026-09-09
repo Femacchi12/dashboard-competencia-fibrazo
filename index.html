@@ -70,7 +70,6 @@
     <nav class="analysis-tabs panel" aria-label="Vistas de análisis">
       <button type="button" class="analysis-tab active" data-analysis-view="general">Vista general</button>
       <button type="button" class="analysis-tab" data-analysis-view="fibrazo">Vs. FIBRAZO</button>
-      <button type="button" class="analysis-tab" data-analysis-view="territory">Territorio</button>
       <button type="button" class="analysis-tab" data-analysis-view="compare">Comparador</button>
       <button type="button" class="analysis-tab" data-analysis-view="mobile">Competencia móvil</button>
       <button type="button" class="analysis-tab" data-analysis-view="network">FIBRAZO</button>
@@ -191,8 +190,11 @@
         <article class="panel compare-card"><span>Velocidad competitiva</span><strong id="fz-better-speed">—</strong><small>competidores por encima</small></article>
       </div>
       <article class="panel compare-table-panel">
-        <div class="panel-head"><h3>Competidores vs. oferta seleccionada</h3><span>Se usa la oferta de menor precio registrada por competidor</span></div>
-        <div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Competidor</th><th>Precio</th><th>Velocidad</th><th>Dif. precio / %</th><th>Dif. Mbps / %</th><th>Tecnología</th><th>TV</th></tr></thead><tbody id="fibrazo-compare-body"></tbody></table></div>
+        <div class="panel-head fz-table-head">
+          <div><h3>Competidores vs. oferta seleccionada</h3><span>Se usa la oferta de menor precio registrada por operador y ciudad</span></div>
+          <input id="fz-table-search" class="search-input fz-table-search" type="search" placeholder="Buscar en la tabla…" autocomplete="off" />
+        </div>
+        <div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Ciudad</th><th>Competidor</th><th>Precio</th><th>Velocidad</th><th>Dif. precio / %</th><th>Dif. Mbps / %</th><th>Tecnología</th><th>TV</th></tr></thead><tbody id="fibrazo-compare-body"></tbody></table></div>
       </article>
     </section>
     <section id="compare-section" class="section view-block hidden" data-view="compare">
