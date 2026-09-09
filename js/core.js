@@ -26,7 +26,7 @@
     cityScopeMode:"fibrazo",
     analysisView:"general",
     selectedOfferKey:"",
-    comparison:{level:"city",items:new Set(),initialized:false},
+    comparison:{level:"city",items:new Set(),cityFilter:"all",search:""},
     tableSearch:"",
     tableMode:"offer",
     expanded:false,
