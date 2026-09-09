@@ -536,3 +536,117 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
 @media(max-width:560px){
   .network-kpi-grid,.trunk-detail-kpis,.compare-operational-grid{grid-template-columns:1fr}
 }
+
+
+/* 2026-09-09 · Interaction and consolidated-table refinements */
+.kpi-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+.operator-detail-trigger{
+  display:inline-flex!important;
+  align-items:center;
+  gap:7px;
+  min-width:0;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--green);
+  font:700 12px Inter,sans-serif;
+  cursor:pointer;
+  text-align:left;
+}
+.operator-detail-trigger:hover{color:#63ffc3}
+.operator-toggle-arrow{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:14px;
+  height:14px;
+  color:var(--green);
+  font-size:12px;
+  transition:transform .16s ease;
+  flex:0 0 auto;
+}
+.operator-detail-trigger.expanded .operator-toggle-arrow{transform:rotate(90deg)}
+.operator-detail-trigger.expanded{color:#fff}
+.operator-detail-slot.open{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin-top:14px;
+}
+.operator-detail-instance{min-width:0}
+.operator-detail-row .operator-detail-card{margin:0}
+.operator-detail-row>td{padding:0!important;background:#07100c!important}
+.chart-panel.wide{position:relative;overflow:visible}
+.scatter-interactive-tooltip{
+  position:absolute;
+  z-index:45;
+  padding:10px;
+  border:1px solid #176443;
+  border-radius:12px;
+  background:#06110d;
+  box-shadow:0 18px 48px rgba(0,0,0,.58);
+  color:var(--text);
+  pointer-events:auto;
+  touch-action:manipulation;
+}
+.scatter-interactive-tooltip.hidden{display:none!important}
+.scatter-tooltip-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding:2px 2px 8px;
+  border-bottom:1px solid var(--border);
+}
+.scatter-tooltip-head>div{display:flex;flex-direction:column;gap:3px}
+.scatter-tooltip-head b{font-size:12px;color:#fff}
+.scatter-tooltip-head span{font-size:11px;color:var(--green)}
+.scatter-tooltip-close{
+  width:26px;
+  height:26px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:#0c1713;
+  color:var(--muted);
+  cursor:pointer;
+}
+.scatter-tooltip-close:hover{border-color:var(--green);color:var(--green)}
+.scatter-tooltip-list{
+  display:grid;
+  gap:6px;
+  max-height:238px;
+  overflow:auto;
+  padding-top:8px;
+}
+.scatter-tooltip-choice{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  min-height:40px;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:#0b1511;
+  color:var(--text);
+  cursor:pointer;
+  text-align:left;
+}
+.scatter-tooltip-choice:hover,
+.scatter-tooltip-choice:focus{
+  border-color:var(--green);
+  background:#0d2119;
+  outline:none;
+}
+.scatter-tooltip-choice b{font-size:11px;color:var(--green)}
+.scatter-tooltip-choice span{font-size:10px;color:var(--muted);text-align:right}
+#table-body td[data-key="Precio_Min_COP"],
+#table-body td[data-key="Precio_Max_COP"],
+#table-body td[data-key="Velocidad_Min_Mbps"],
+#table-body td[data-key="Velocidad_Max_Mbps"]{white-space:nowrap}
+@media(max-width:900px){
+  .operator-detail-slot.open{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  .scatter-interactive-tooltip{max-width:calc(100% - 20px)}
+}
