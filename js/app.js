@@ -43,12 +43,26 @@
     if(state.analysisView==="compare"){FZ.comparison?.renderComparator?.();}
   }
 
+  function clearTransientPanels(){
+    FZ.details?.clear?.();
+    state.openTrunkKey="";
+    document.querySelectorAll(".scatter-interactive-tooltip").forEach(el=>el.remove());
+    document.querySelectorAll(".operator-chooser-instance").forEach(el=>el.remove());
+  }
+
   function setAnalysisView(view){
+    const changing=state.analysisView!==view;
+    if(changing) clearTransientPanels();
+
     state.analysisView=view;
     document.querySelectorAll(".analysis-tab").forEach(b=>b.classList.toggle("active",b.dataset.analysisView===view));
     document.querySelectorAll(".view-block").forEach(el=>el.classList.toggle("hidden",el.dataset.view!==view));
     updateSectionVisibility();
 
+    if(view==="general"){
+      FZ.charts?.renderCharts?.();
+      FZ.table?.render?.();
+    }
     if(view==="territory") FZ.territory?.renderCoverage?.();
     if(view==="network") FZ.territory?.renderFibrazo?.();
     if(view==="fibrazo") FZ.comparison?.renderFibrazoComparison?.();
