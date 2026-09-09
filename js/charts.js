@@ -264,6 +264,47 @@
     const operator=operatorFromBarEvent(event,elements,chart);
     chart.canvas.style.cursor=operator?"pointer":"default";
   }
+  function labelIndexFromNativeEvent(nativeEvent,chart){
+    const rect=chart.canvas.getBoundingClientRect();
+    if(!rect.width||!rect.height) return -1;
+    const x=(nativeEvent.clientX-rect.left)*(chart.width/rect.width);
+    const y=(nativeEvent.clientY-rect.top)*(chart.height/rect.height);
+    const scale=chart.scales?.y;
+    const labels=chart.data.labels||[];
+    if(!scale||!labels.length) return -1;
+    if(x<0||x>chart.chartArea.left||y<scale.top||y>scale.bottom) return -1;
+
+    let bestIndex=-1,bestDistance=Infinity;
+    labels.forEach((_,i)=>{
+      const tickY=scale.getPixelForTick(i);
+      const distance=Math.abs(y-tickY);
+      if(distance<bestDistance){bestDistance=distance;bestIndex=i;}
+    });
+    const rowHeight=scale.height/labels.length;
+    return bestIndex>=0&&bestDistance<=Math.max(18,rowHeight*.58)?bestIndex:-1;
+  }
+
+  function bindBarLabelInteraction(chart){
+    const canvas=chart.canvas;
+    if(canvas._fibrazoLabelClickHandler) canvas.removeEventListener("click",canvas._fibrazoLabelClickHandler);
+    if(canvas._fibrazoLabelMoveHandler) canvas.removeEventListener("mousemove",canvas._fibrazoLabelMoveHandler);
+
+    canvas._fibrazoLabelClickHandler=event=>{
+      const index=labelIndexFromNativeEvent(event,chart);
+      if(index<0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      openBarOperator(clean(chart.data.labels[index]));
+    };
+
+    canvas._fibrazoLabelMoveHandler=event=>{
+      const index=labelIndexFromNativeEvent(event,chart);
+      if(index>=0) canvas.style.cursor="pointer";
+    };
+
+    canvas.addEventListener("click",canvas._fibrazoLabelClickHandler);
+    canvas.addEventListener("mousemove",canvas._fibrazoLabelMoveHandler);
+  }
 
   function renderCharts(){
     const rows=state.filtered;
@@ -337,6 +378,7 @@
           scales:{x:{...opt.scales.x,ticks:{callback:v=>"$"+Math.round(v/1000)+"k"}},y:{...opt.scales.y,ticks:{autoSkip:false,padding:8,font:{size:10}}}}
         }
       });
+      bindBarLabelInteraction(state.charts.operators);
     }
 
     const speedRanges=operatorOrder.map(op=>[op,speedMap.get(op)||{min:null,max:null,count:0}]);
@@ -359,6 +401,7 @@
           scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,ticks:{autoSkip:false,padding:8,font:{size:10}}}}
         }
       });
+      bindBarLabelInteraction(state.charts.speeds);
     }
   }
 
