@@ -46,7 +46,6 @@
       if(v.period&&clean(r.Periodo_Corte)!==v.period) return false;
       if(v.operator!=="all"&&clean(r.Operador)!==v.operator) return false;
       if(v.modality!=="all"&&clean(r.Modalidad)!==v.modality) return false;
-      if(v.status!=="all"&&clean(r.Estado_Dato)!==v.status) return false;
       if(q&&!Object.values(r).some(value=>fold(value).includes(q))) return false;
       return true;
     });
@@ -74,9 +73,8 @@
     const period=$("mobile-period-filter");
     const operator=$("mobile-operator-filter");
     const modality=$("mobile-modality-filter");
-    const status=$("mobile-status-filter");
     const search=$("mobile-search");
-    if(!period||!operator||!modality||!status||!search) return;
+    if(!period||!operator||!modality||!search) return;
 
     const periods=unique(state.mobile,"Periodo_Corte").sort().reverse();
     period.innerHTML=periods.map(p=>optionHtml(p,periodLabel(p),state.mobileView.period)).join("");
@@ -85,13 +83,9 @@
     if(state.mobileView.operator!=="all"&&!ops.includes(state.mobileView.operator)) state.mobileView.operator="all";
     operator.innerHTML=optionHtml("all","Todos los operadores",state.mobileView.operator)+ops.map(x=>optionHtml(x,x,state.mobileView.operator)).join("");
 
-    const mods=unique(base,"Modalidad");
+    const mods=["Prepago","Postpago"].filter(x=>base.some(r=>clean(r.Modalidad)===x));
     if(state.mobileView.modality!=="all"&&!mods.includes(state.mobileView.modality)) state.mobileView.modality="all";
     modality.innerHTML=optionHtml("all","Todas las modalidades",state.mobileView.modality)+mods.map(x=>optionHtml(x,x,state.mobileView.modality)).join("");
-
-    const statuses=unique(base,"Estado_Dato");
-    if(state.mobileView.status!=="all"&&!statuses.includes(state.mobileView.status)) state.mobileView.status="all";
-    status.innerHTML=optionHtml("all","Todos los estados",state.mobileView.status)+statuses.map(x=>optionHtml(x,x,state.mobileView.status)).join("");
 
     if(document.activeElement!==search) search.value=state.mobileView.search||"";
 
@@ -101,7 +95,6 @@
         state.mobileView.period=period.value;
         state.mobileView.operator="all";
         state.mobileView.modality="all";
-        state.mobileView.status="all";
         state.mobileView.search="";
         state.mobileView.openKey="";
         render();
@@ -114,10 +107,6 @@
     if(modality.dataset.bound!=="1"){
       modality.dataset.bound="1";
       modality.addEventListener("change",()=>{state.mobileView.modality=modality.value;state.mobileView.openKey="";render();});
-    }
-    if(status.dataset.bound!=="1"){
-      status.dataset.bound="1";
-      status.addEventListener("change",()=>{state.mobileView.status=status.value;state.mobileView.openKey="";render();});
     }
     if(search.dataset.bound!=="1"){
       search.dataset.bound="1";
