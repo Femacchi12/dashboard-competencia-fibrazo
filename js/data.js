@@ -2,7 +2,7 @@
   "use strict";
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
-  const {clean,fold,toNum,formatYearMonth,periodValue,formatPeriod}=FZ.u;
+  const {clean,fold,toNum,formatYearMonth,periodValue,formatPeriod,rowOperator}=FZ.u;
   const state=FZ.state;
 
   function csvUrl(source){
