@@ -209,10 +209,18 @@
         <div class="compare-step">
           <span class="compare-step-number">1</span>
           <div class="compare-step-body">
-            <span class="compare-step-label">QUÉ QUIERES COMPARAR</span>
-            <div class="compare-level-tabs" role="tablist" aria-label="Nivel de comparación">
-              <button type="button" class="compare-level-tab active" data-compare-level="city" role="tab" aria-selected="true">Ciudades</button>
-              <button type="button" class="compare-level-tab" data-compare-level="trunk" role="tab" aria-selected="false">Troncales</button>
+            <span class="compare-step-label">CONFIGURA LA COMPARACIÓN</span>
+            <div class="compare-config-row">
+              <div>
+                <small class="compare-config-label">Nivel</small>
+                <div class="compare-level-tabs" role="tablist" aria-label="Nivel de comparación">
+                  <button type="button" class="compare-level-tab active" data-compare-level="city" role="tab" aria-selected="true">Ciudades</button>
+                  <button type="button" class="compare-level-tab" data-compare-level="trunk" role="tab" aria-selected="false">Troncales</button>
+                </div>
+              </div>
+              <label class="compare-period-control">Corte competitivo
+                <select id="compare-period-filter"></select>
+              </label>
             </div>
           </div>
         </div>
@@ -227,6 +235,7 @@
               </div>
               <button id="compare-clear-selection" class="btn outline small" type="button">Limpiar selección</button>
             </div>
+            <div id="compare-selected-strip" class="compare-selected-strip hidden"></div>
             <div class="compare-own-filters">
               <select id="compare-city-filter" class="compare-own-select hidden" aria-label="Filtrar troncales por ciudad"></select>
               <input id="compare-search" class="search-input compare-search" type="search" placeholder="Buscar ciudad…" autocomplete="off" />
