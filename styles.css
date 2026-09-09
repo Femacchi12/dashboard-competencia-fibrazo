@@ -2050,3 +2050,59 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
     flex-direction:column;
   }
 }
+
+
+/* 2026-09-09 · Vs FIBRAZO table readability */
+.fz-table-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+}
+.fz-table-head>div{
+  min-width:0;
+}
+.fz-table-head h3{
+  margin:0;
+}
+.fz-table-head>div>span{
+  display:block;
+  margin-top:4px;
+}
+.fz-table-search{
+  width:300px;
+  min-height:38px;
+  padding:8px 11px;
+  border:1px solid #30433B;
+  border-radius:10px;
+  background:#101815;
+  color:#F4FFF9;
+  font:500 11px Inter,sans-serif;
+  outline:none;
+}
+.fz-table-search:focus{
+  border-color:#00F29A;
+}
+.compare-table{
+  font-size:11px!important;
+}
+.compare-table th{
+  font-size:9.5px!important;
+}
+.compare-table td{
+  font-size:11px!important;
+  line-height:1.35;
+  padding:10px!important;
+}
+.compare-table .operator-detail-trigger{
+  font-size:11px!important;
+}
+@media(max-width:700px){
+  .fz-table-head{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .fz-table-search{
+    width:100%;
+  }
+}
