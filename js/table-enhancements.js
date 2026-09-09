@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const preferredOrder = ["Periodo_Label", "Grupo_Operador", "Ciudad", "Departamento"];
+  const preferredOrder = ["Periodo_Label", "Grupo_Operador", "Ciudad", "Tecnologia", "Precio_Min_COP", "Precio_Max_COP", "Velocidad_Min_Mbps", "Velocidad_Max_Mbps"];
   const stickyKeys = ["Periodo_Label", "Grupo_Operador", "Ciudad"];
   let scheduled = false;
 
