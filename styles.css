@@ -2284,3 +2284,56 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
     grid-template-columns:1fr;
   }
 }
+
+
+/* 2026-09-09 · Operator lists instead of cards */
+.compare-operator-list{
+  display:block!important;
+  border-top:1px solid #23342D;
+}
+.compare-operator-btn{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:3px 12px!important;
+  width:100%;
+  min-height:44px!important;
+  padding:8px 4px!important;
+  border:0!important;
+  border-bottom:1px solid #23342D!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#D8E5E0;
+  cursor:pointer;
+  text-align:left;
+}
+.compare-operator-btn:hover{
+  background:#0E1814!important;
+}
+.compare-operator-btn>b{
+  min-width:0;
+  color:#00F29A;
+  font-size:11px!important;
+  font-weight:750;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.compare-operator-btn>small{
+  grid-column:1/2!important;
+  color:#8FA39A;
+  font-size:9.5px!important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.compare-operator-btn>span{
+  grid-column:2!important;
+  grid-row:1/3!important;
+  align-self:center;
+  color:#8AB9A5;
+  font-size:9px!important;
+  white-space:nowrap;
+}
+.compare-operators-block{
+  padding:10px 11px!important;
+}
