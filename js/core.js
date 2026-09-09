@@ -149,6 +149,22 @@
     };
   }
 
+  function operatorPriorityRank(value){
+    const name=fold(value);
+    if(name.includes("tigo")) return 0;
+    if(name.includes("claro")) return 1;
+    if(name.includes("movistar")) return 2;
+    return 3;
+  }
+
+  function compareOperatorsTraditionalFirst(a,b){
+    const aName=typeof a==="string"?a:(a?.operator||rowOperator(a)||"");
+    const bName=typeof b==="string"?b:(b?.operator||rowOperator(b)||"");
+    const rank=operatorPriorityRank(aName)-operatorPriorityRank(bName);
+    if(rank) return rank;
+    return clean(aName).localeCompare(clean(bName),"es",{numeric:true,sensitivity:"base"});
+  }
+
   function trunkCompetitiveSummaryHtml(operators,total=null){
     const names=[...operators].map(clean).filter(Boolean);
     const presence=traditionalOperatorPresence(names);
@@ -165,7 +181,7 @@
 
   FZ.u = {
     $,clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,pctVs,priceBand,normalizeTV,
-    periodValue,formatPeriod,periodSortValue,formatYearMonth,safeUrl,linkCell,phoneCell,rowOperator,traditionalOperatorPresence,trunkCompetitiveSummaryHtml
+    periodValue,formatPeriod,periodSortValue,formatYearMonth,safeUrl,linkCell,phoneCell,rowOperator,traditionalOperatorPresence,operatorPriorityRank,compareOperatorsTraditionalFirst,trunkCompetitiveSummaryHtml
   };
 
   FZ.filterDefs = [
