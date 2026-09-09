@@ -225,6 +225,7 @@
           '<div><span>Competidores relevados</span><b>'+formatNum(competitors.length)+'</b></div>'+
         '</div>'+
         strataDetailHtml(metric)+
+        '<div class="detail-table-tools"><input type="search" class="detail-table-search trunk-detail-search" placeholder="Buscar en la tabla…" autocomplete="off"></div>'+
         '<div class="trunk-competitors-wrap">'+
           '<table class="trunk-competitors-table"><thead><tr><th>Operador</th><th>Tecnología</th><th>Zonas</th><th>Barrios</th><th>Precio mín.</th><th>Velocidad máx.</th></tr></thead>'+
           '<tbody>'+(
@@ -383,6 +384,13 @@
 
     root.querySelectorAll(".network-trunk-row").forEach(btn=>btn.addEventListener("click",()=>{
       renderTrunkDetail(btn.dataset.city,btn.dataset.trunk);
+    }));
+    root.querySelectorAll(".trunk-detail-search").forEach(input=>input.addEventListener("input",event=>{
+      const q=(event.target.value||"").trim().toLowerCase();
+      const detail=event.target.closest(".network-trunk-inline-detail");
+      detail?.querySelectorAll(".trunk-competitors-table tbody tr").forEach(tr=>{
+        tr.style.display=!q||tr.textContent.toLowerCase().includes(q)?"":"none";
+      });
     }));
 
     if(!rows.length){
