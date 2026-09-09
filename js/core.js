@@ -145,7 +145,7 @@
   };
 
   FZ.filterDefs = [
-    {key:"period", label:"Corte", getter:r=>FZ.u.clean(r.Periodo_Label), allLabel:"Último corte", maxSelections:2},
+    {key:"period", label:"Corte", getter:r=>FZ.u.clean(r.Periodo_Label), allLabel:"Último corte", maxSelections:1},
     {key:"city", label:"Ciudad / localidad", getter:r=>FZ.u.clean(r.Ciudad), allLabel:"Todas"},
     {key:"operator", label:"Operador", getter:r=>FZ.u.clean(r.Grupo_Operador)||FZ.u.clean(r.Operador_Normalizado), allLabel:"Todos"},
     {key:"technology", label:"Tecnología", getter:r=>FZ.u.clean(r.Tecnologia)||"No informado", allLabel:"Todos"},
