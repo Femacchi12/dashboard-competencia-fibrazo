@@ -115,13 +115,17 @@
   }
 
   function buildMetrics(raw){
-    return raw.filter(r=>clean(r.ID_Metrica)).map(r=>({
-      ...r,
-      HHPP:toNum(r.HHPP),
-      Clientes_Activos:toNum(r.Clientes_Activos),
-      Penetracion:toNum(r.Penetracion),
-      Filas_Fuente_Consolidadas:toNum(r.Filas_Fuente_Consolidadas)||0
-    }));
+    return raw.filter(r=>clean(r.ID_Metrica)).map(r=>{
+      const hhpp=toNum(r.HHPP);
+      const active=toNum(r.Clientes_Activos);
+      return {
+        ...r,
+        HHPP:hhpp,
+        Clientes_Activos:active,
+        Penetracion:hhpp!=null&&hhpp>0&&active!=null?active/hhpp:null,
+        Filas_Fuente_Consolidadas:toNum(r.Filas_Fuente_Consolidadas)||0
+      };
+    });
   }
 
   async function load(){
