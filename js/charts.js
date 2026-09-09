@@ -240,10 +240,15 @@
     let index=elements?.[0]?.index;
     const scale=chart.scales?.y;
     if(index==null&&scale&&event.x<=chart.chartArea.left&&event.y>=scale.top&&event.y<=scale.bottom){
-      const raw=scale.getValueForPixel(event.y);
-      const numeric=Number(raw);
-      if(Number.isFinite(numeric)) index=Math.round(numeric);
-      else index=chart.data.labels.indexOf(raw);
+      const labels=chart.data.labels||[];
+      let bestIndex=-1,bestDistance=Infinity;
+      labels.forEach((_,i)=>{
+        const y=scale.getPixelForTick(i);
+        const distance=Math.abs(event.y-y);
+        if(distance<bestDistance){bestDistance=distance;bestIndex=i;}
+      });
+      const rowHeight=labels.length?scale.height/labels.length:0;
+      if(bestIndex>=0&&bestDistance<=Math.max(16,rowHeight*.55)) index=bestIndex;
     }
     if(index==null||index<0||index>=chart.data.labels.length) return "";
     return clean(chart.data.labels[index]);
@@ -305,15 +310,22 @@
       return;
     }
 
-    const priceRanges=[...rangeByOperator(rows,"Precio_Usado_COP").entries()].sort((a,b)=>a[1].min-b[1].min).slice(0,14);
+    const priceMap=rangeByOperator(rows,"Precio_Usado_COP");
+    const speedMap=rangeByOperator(rows,"Velocidad_Bajada_Mbps");
+    const operatorOrder=[...new Set([...priceMap.keys(),...speedMap.keys()])]
+      .sort((a,b)=>a.localeCompare(b,"es",{numeric:true,sensitivity:"base"}))
+      .slice(0,14);
+    const sharedColors=operatorOrder.map((_,i)=>palette[i%palette.length]);
+    const priceRanges=operatorOrder.map(op=>[op,priceMap.get(op)||{min:null,max:null,count:0}]);
+
     if($("operators-chart")){
-      const colors=priceRanges.map((_,i)=>palette[i%palette.length]);
-      setAdaptiveChartHeight("operators-chart",priceRanges.length,{min:320,row:36,max:760});
+      const colors=sharedColors;
+      setAdaptiveChartHeight("operators-chart",operatorOrder.length,{min:320,row:36,max:760});
       destroyChart("operators");
       let opt=chartDefaults();
       state.charts.operators=new Chart($("operators-chart"),{
         type:"bar",
-        data:{labels:priceRanges.map(x=>x[0]),datasets:[
+        data:{labels:operatorOrder,datasets:[
           {label:"Mínimo",data:priceRanges.map(x=>x[1].min),backgroundColor:colors.map(c=>hexToRgba(c,.52)),borderColor:colors,borderWidth:1,borderRadius:5},
           {label:"Máximo",data:priceRanges.map(x=>x[1].max),backgroundColor:colors.map(c=>hexToRgba(c,.92)),borderColor:colors,borderWidth:1,borderRadius:5}
         ]},
@@ -327,15 +339,15 @@
       });
     }
 
-    const speedRanges=[...rangeByOperator(rows,"Velocidad_Bajada_Mbps").entries()].sort((a,b)=>b[1].max-a[1].max).slice(0,14);
+    const speedRanges=operatorOrder.map(op=>[op,speedMap.get(op)||{min:null,max:null,count:0}]);
     if($("speeds-chart")){
-      const colors=speedRanges.map((_,i)=>palette[i%palette.length]);
-      setAdaptiveChartHeight("speeds-chart",speedRanges.length,{min:320,row:36,max:760});
+      const colors=sharedColors;
+      setAdaptiveChartHeight("speeds-chart",operatorOrder.length,{min:320,row:36,max:760});
       destroyChart("speeds");
       let opt=chartDefaults();
       state.charts.speeds=new Chart($("speeds-chart"),{
         type:"bar",
-        data:{labels:speedRanges.map(x=>x[0]),datasets:[
+        data:{labels:operatorOrder,datasets:[
           {label:"Mínimo",data:speedRanges.map(x=>x[1].min),backgroundColor:colors.map(c=>hexToRgba(c,.52)),borderColor:colors,borderWidth:1,borderRadius:5},
           {label:"Máximo",data:speedRanges.map(x=>x[1].max),backgroundColor:colors.map(c=>hexToRgba(c,.92)),borderColor:colors,borderWidth:1,borderRadius:5}
         ]},
