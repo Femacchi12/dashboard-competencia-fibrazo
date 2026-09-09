@@ -13,7 +13,7 @@
     markets: { gid:"1320750580", label:"07_CONFIG · Mercados", range:"X2:AI300" },
     territories: { gid:"1320750580", label:"07_CONFIG · Territorio", range:"AK2:AQ400" },
     offers: { gid:"1320750580", label:"07_CONFIG · Oferta FIBRAZO", range:"AS2:BC300" },
-    fibrazoMetrics: { gid:"1344959609", label:"10_FIBRAZO_METRICAS", range:"A1:N400" }
+    fibrazoMetrics: { gid:"1344959609", label:"10_FIBRAZO_METRICAS", range:"A1:X400" }
   };
 
   FZ.state = {
