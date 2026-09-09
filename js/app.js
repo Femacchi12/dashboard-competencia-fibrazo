@@ -30,14 +30,17 @@
 
   function renderAll(){
     updateSectionVisibility();
-    FZ.charts?.renderKPIs?.();
-    FZ.charts?.renderEvolution?.();
-    FZ.charts?.renderCharts?.();
-    FZ.territory?.renderCoverage?.();
-    FZ.table?.render?.();
-    FZ.comparison?.renderFibrazoComparison?.();
-    FZ.comparison?.renderComparator?.();
-    FZ.territory?.renderFibrazo?.();
+    if(state.analysisView==="general"){
+      FZ.charts?.renderKPIs?.();
+      FZ.charts?.renderEvolution?.();
+      FZ.charts?.renderCharts?.();
+      FZ.table?.render?.();
+      return;
+    }
+    if(state.analysisView==="territory"){FZ.territory?.renderCoverage?.();return;}
+    if(state.analysisView==="network"){FZ.territory?.renderFibrazo?.();return;}
+    if(state.analysisView==="fibrazo"){FZ.comparison?.renderFibrazoComparison?.();return;}
+    if(state.analysisView==="compare"){FZ.comparison?.renderComparator?.();}
   }
 
   function setAnalysisView(view){
@@ -60,7 +63,7 @@
       $("refresh-btn").textContent="Actualizando…";
     }
     try{
-      await FZ.data.load();
+      await FZ.data.load({mode:silent?"dynamic":"full"});
       FZ.filters.ensurePeriodSelection();
       state.lastLoadAt=Date.now();
       if($("last-load")) $("last-load").textContent=new Intl.DateTimeFormat("es-CO",{dateStyle:"short",timeStyle:"short"}).format(new Date());
