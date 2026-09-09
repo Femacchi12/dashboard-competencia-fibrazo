@@ -181,15 +181,16 @@
   }
 
   function trunkCompetitiveSummaryHtml(operators,total=null){
-    const names=[...operators].map(clean).filter(Boolean);
-    const presence=traditionalOperatorPresence(names);
-    const count=total==null?new Set(names.map(fold)).size:total;
-    const badge=(label,yes)=>
-      '<div class="trunk-market-signal '+(yes?"present":"absent")+'"><span>'+escapeHtml(label)+'</span><b>'+(yes?"Sí":"No")+'</b></div>';
+    const names=[...new Map(
+      [...operators].map(clean).filter(Boolean).map(name=>[fold(name),name])
+    ).values()].sort(compareOperatorsTraditionalFirst);
+    const count=total==null?names.length:total;
+    const badge=name=>
+      '<div class="trunk-market-signal present"><span>'+escapeHtml(name)+'</span></div>';
     return '<div class="trunk-market-summary">'+
       '<div class="trunk-market-total"><span>Competidores</span><b>'+formatNum(count)+'</b></div>'+
-      '<div class="trunk-market-traditional"><span>Operadores tradicionales</span><div>'+
-        badge("Tigo",presence.tigo)+badge("Claro",presence.claro)+badge("Movistar",presence.movistar)+
+      '<div class="trunk-market-traditional trunk-market-all-operators"><span>Operadores presentes</span><div>'+
+        (names.length?names.map(badge).join(""):'<small>Sin operadores identificados</small>')+
       '</div></div>'+
     '</div>';
   }
