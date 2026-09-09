@@ -6,57 +6,6 @@
   const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,rowOperator,compareOperatorsTraditionalFirst,trunkCompetitiveSummaryHtml}=FZ.u;
   const $=FZ.u.$;
 
-  function renderCoverage(){
-    const rows=state.filteredCoverage;
-    if($("coverage-visible")) $("coverage-visible").textContent=formatNum(rows.length);
-
-    const grouped=new Map();
-    rows.forEach(r=>{
-      const city=clean(r.Ciudad)||"No informado";
-      const op=rowOperator(r)||"No informado";
-      if(!grouped.has(city)) grouped.set(city,new Set());
-      grouped.get(city).add(op);
-    });
-    const data=[...grouped.entries()].map(([city,set])=>[city,set.size]).sort((a,b)=>b[1]-a[1]);
-    const totalPairs=data.reduce((s,[,n])=>s+n,0)||1;
-    const root=$("coverage-ranking");
-    if(root){
-      root.innerHTML="";
-      data.slice(0,12).forEach(([city,count])=>{
-        const pct=count/totalPairs*100;
-        const row=document.createElement("div");
-        row.className="coverage-rank-row";
-        row.innerHTML='<div class="coverage-rank-name">'+escapeHtml(city)+'</div><div class="coverage-rank-track"><span style="width:'+Math.max(3,pct)+'%"></span></div><strong>'+formatNum(count)+'</strong><b>'+pct.toFixed(1).replace(".",",")+'%</b>';
-        root.appendChild(row);
-      });
-      if(!data.length) root.innerHTML='<span class="subtitle">Sin presencia observada compatible con los filtros.</span>';
-    }
-
-    const territoryGroups=new Map();
-    rows.forEach(r=>{
-      const city=clean(r.Ciudad)||"—";
-      const zone=clean(r.Zona_FIBRAZO),trunk=clean(r.Troncal_FIBRAZO);
-      const barrio=clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ);
-      const place=[city,barrio||zone||trunk||"Nivel ciudad"].filter(Boolean).join(" · ");
-      const extra=[zone?"Zona: "+zone:"",trunk?"Troncal: "+trunk:""].filter(Boolean).join(" · ");
-      const key=place+"|"+extra;
-      if(!territoryGroups.has(key)) territoryGroups.set(key,{place,extra,ops:new Set()});
-      territoryGroups.get(key).ops.add(rowOperator(r)||"No informado");
-    });
-
-    const list=$("coverage-list");
-    if(list){
-      list.innerHTML="";
-      [...territoryGroups.values()].sort((a,b)=>a.place.localeCompare(b.place,"es")).slice(0,80).forEach(g=>{
-        const el=document.createElement("div");
-        el.className="territory-group";
-        el.innerHTML='<div><strong>'+escapeHtml(g.place)+'</strong>'+(g.extra?'<small>'+escapeHtml(g.extra)+'</small>':"")+'</div><p>'+[...g.ops].sort((a,b)=>a.localeCompare(b,"es")).map(escapeHtml).join(" · ")+'</p>';
-        list.appendChild(el);
-      });
-      if(!rows.length) list.innerHTML='<span class="subtitle">Sin presencia observada compatible con los filtros.</span>';
-    }
-  }
-
   function metricRows(){
     return state.metrics.filter(r=>FZ.filters.cityScopeAllows(r.Ciudad));
   }
@@ -399,5 +348,5 @@
     }
   }
 
-  FZ.territory={renderCoverage,metricRows,metricForTrunk,trunkCompetitionRows,competitorSummaries,aggregateMetrics,renderFibrazo,renderTrunkDetail};
+  FZ.territory={metricRows,metricForTrunk,trunkCompetitionRows,competitorSummaries,aggregateMetrics,renderFibrazo,renderTrunkDetail};
 })();
