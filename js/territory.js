@@ -3,7 +3,7 @@
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
   const state=FZ.state;
-  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,rowOperator,trunkCompetitiveSummaryHtml}=FZ.u;
+  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,rowOperator,compareOperatorsTraditionalFirst,trunkCompetitiveSummaryHtml}=FZ.u;
   const $=FZ.u.$;
 
   function renderCoverage(){
@@ -113,7 +113,7 @@
         maxSpeed:speeds.length?Math.max(...speeds):null,
         plans:plans.length
       };
-    }).sort((a,b)=>a.operator.localeCompare(b.operator,"es"));
+    }).sort(compareOperatorsTraditionalFirst);
   }
 
   function aggregateMetrics(rows){
