@@ -3,7 +3,7 @@
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
   const state=FZ.state;
-  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,pctVs,normalizeTV,rowOperator,trunkCompetitiveSummaryHtml}=FZ.u;
+  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,pctVs,normalizeTV,rowOperator,compareOperatorsTraditionalFirst,trunkCompetitiveSummaryHtml}=FZ.u;
   const $=FZ.u.$;
 
   function offerLabel(o){
@@ -266,7 +266,7 @@
       maxSpeed:item.speeds.length?Math.max(...item.speeds):null,
       technologies:[...item.tech].sort((a,b)=>a.localeCompare(b,"es",{numeric:true})),
       planId:clean(item.plans[0]?.ID_Plan_Registro)
-    })).sort((a,b)=>a.operator.localeCompare(b.operator,"es",{numeric:true,sensitivity:"base"}));
+    })).sort(compareOperatorsTraditionalFirst);
 
     const fz=fibrazoOfferForCity(scope.city);
     const operatorBestPrices=operatorSummaries.map(x=>x.minPrice).filter(n=>n!=null);
