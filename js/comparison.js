@@ -54,37 +54,61 @@
     const period=FZ.filters.selectedPeriodValue();
     const best=new Map();
     state.filtered.forEach(r=>{
-      const op=rowOperator(r),city=clean(r.Ciudad),price=toNum(r.Precio_Usado_COP);
-      if(!op||!city||!(price>0)) return;
+      const op=rowOperator(r),city=clean(r.Ciudad);
+      if(!op||!city) return;
       const key=city+"|"+op;
       const cur=best.get(key);
-      if(!cur||price<toNum(cur.Precio_Usado_COP)) best.set(key,r);
+      const price=toNum(r.Precio_Usado_COP),curPrice=toNum(cur?.Precio_Usado_COP);
+      if(!cur||(price>0&&(curPrice==null||price<curPrice))) best.set(key,r);
+    });
+    state.filteredCoverage.forEach(r=>{
+      const op=rowOperator(r),city=clean(r.Ciudad);
+      if(!op||!city) return;
+      const key=city+"|"+op;
+      if(best.has(key)) return;
+      best.set(key,{
+        Ciudad:city,
+        ID_Operador:clean(r.ID_Operador),
+        Grupo_Operador:op,
+        Operador_Normalizado:clean(r.Operador_Normalizado),
+        Tecnologia:clean(r.Tecnologia)||"No informado",
+        TV_Incluida:"No informado",
+        Periodo_Corte:period
+      });
     });
     const rows=[...best.values()].sort((a,b)=>{
       const cityOrder=clean(a.Ciudad).localeCompare(clean(b.Ciudad),"es",{numeric:true,sensitivity:"base"});
-      return cityOrder||toNum(a.Precio_Usado_COP)-toNum(b.Precio_Usado_COP);
+      if(cityOrder) return cityOrder;
+      const ap=toNum(a.Precio_Usado_COP),bp=toNum(b.Precio_Usado_COP);
+      if(ap!=null&&bp!=null) return ap-bp;
+      if(ap!=null) return -1;
+      if(bp!=null) return 1;
+      return rowOperator(a).localeCompare(rowOperator(b),"es",{numeric:true,sensitivity:"base"});
     });
 
-    const cheaper=rows.filter(r=>toNum(r.Precio_Usado_COP)<fz.Precio_COP).length;
-    const faster=rows.filter(r=>toNum(r.Velocidad_Bajada_Mbps)>fz.Velocidad_Mbps).length;
-    if($("fz-better-price")) $("fz-better-price").textContent=rows.length?formatNum(cheaper)+" ("+formatPct(cheaper/rows.length*100).replace("+","")+")":"—";
-    if($("fz-better-speed")) $("fz-better-speed").textContent=rows.length?formatNum(faster)+" ("+formatPct(faster/rows.length*100).replace("+","")+")":"—";
+    const pricedRows=rows.filter(r=>toNum(r.Precio_Usado_COP)>0);
+    const speedRows=rows.filter(r=>toNum(r.Velocidad_Bajada_Mbps)!=null);
+    const cheaper=pricedRows.filter(r=>toNum(r.Precio_Usado_COP)<fz.Precio_COP).length;
+    const faster=speedRows.filter(r=>toNum(r.Velocidad_Bajada_Mbps)>fz.Velocidad_Mbps).length;
+    if($("fz-better-price")) $("fz-better-price").textContent=pricedRows.length?formatNum(cheaper)+" ("+formatPct(cheaper/pricedRows.length*100).replace("+","")+")":"—";
+    if($("fz-better-speed")) $("fz-better-speed").textContent=speedRows.length?formatNum(faster)+" ("+formatPct(faster/speedRows.length*100).replace("+","")+")":"—";
 
     const body=$("fibrazo-compare-body");
     if(body){
       body.innerHTML=rows.length?rows.map(r=>{
         const p=toNum(r.Precio_Usado_COP),s=toNum(r.Velocidad_Bajada_Mbps);
-        const dp=p-fz.Precio_COP,ds=(s??0)-fz.Velocidad_Mbps;
-        const pricePct=pctVs(p,fz.Precio_COP),speedPct=s==null?null:pctVs(s,fz.Velocidad_Mbps);
-        const dpLabel=dp===0?"=":(dp>0?"+":"")+formatCOP(dp).replace("COP","").trim();
+        const dp=p==null?null:p-fz.Precio_COP,ds=s==null?null:s-fz.Velocidad_Mbps;
+        const pricePct=p==null?null:pctVs(p,fz.Precio_COP),speedPct=s==null?null:pctVs(s,fz.Velocidad_Mbps);
+        const dpLabel=dp==null?"—":(dp===0?"=":(dp>0?"+":"")+formatCOP(dp).replace("COP","").trim());
+        const dsLabel=ds==null?"—":(ds>0?"+":"")+formatNum(ds);
         const op=rowOperator(r),city=clean(r.Ciudad);
         return '<tr class="fz-compare-data-row">'+
           '<td>'+escapeHtml(city)+'</td>'+
           '<td><button type="button" class="operator-detail-trigger fz-operator-detail-trigger" data-operator="'+escapeHtml(op)+'" data-city="'+escapeHtml(city)+'" data-plan-id="'+escapeHtml(clean(r.ID_Plan_Registro))+'" data-period="'+escapeHtml(period)+'" aria-expanded="false"><span class="operator-toggle-arrow" aria-hidden="true">▸</span><span>'+escapeHtml(op)+'</span></button></td>'+
           '<td>'+formatCOP(p)+'</td>'+
           '<td>'+(s==null?"—":formatNum(s)+" Mbps")+'</td>'+
-          '<td class="'+(dp<=0?"negative":"positive")+'">'+dpLabel+' <small>'+formatPct(pricePct)+'</small></td>'+
-          '<td class="'+(ds>=0?"positive":"negative")+'">'+(ds>0?"+":"")+formatNum(ds)+' <small>'+formatPct(speedPct)+'</small></td>'+
+          '<td class="'+(dp==null?"":dp<=0?"negative":"positive")+'">'+dpLabel+(pricePct==null?"":' <small>'+formatPct(pricePct)+'</small>')+'</td>'+
+          '<td class="'+(ds==null?"":ds>=0?"positive":"negative")+'">'+dsLabel+(speedPct==null?"":' <small>'+formatPct(speedPct)+'</small>')+'</td>'+
           '<td>'+escapeHtml(clean(r.Tecnologia)||"—")+'</td>'+
           '<td>'+escapeHtml(normalizeTV(r.TV_Incluida))+'</td>'+
         '</tr>';
