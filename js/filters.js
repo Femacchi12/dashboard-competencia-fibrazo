@@ -86,7 +86,6 @@
 
   function normalizeTerritoryFilters(){
     if(selectedSingleCity()) return;
-    state.filters.zone.clear();
     state.filters.trunk.clear();
   }
 
@@ -100,39 +99,34 @@
   }
 
   function coveragePassesFilters(r,skipKey=null,includePeriod=true){
+    if(!FZ.u.competitiveCoverageAllowed(r)) return false;
     const checks={
       period:clean(r.Periodo_Label),
       city:clean(r.Ciudad),
       operator:clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),
       technology:clean(r.Tecnologia)||"No informado",
-      zone:clean(r.Zona_FIBRAZO),
       trunk:clean(r.Troncal_FIBRAZO)
     };
     if(skipKey!=="city"&&!cityScopeAllows(r.Ciudad)) return false;
-    return ["period","city","operator","technology","zone","trunk"].every(key=>{
+    return ["period","city","operator","technology","trunk"].every(key=>{
       if(key===skipKey||(!includePeriod&&key==="period")) return true;
       const set=state.filters[key];
       return !set.size||set.has(checks[key]);
     });
   }
 
-  function hasPlanSpecificFilters(){
-    return state.filters.modality.size>0||state.filters.price.size>0;
-  }
-
   function territoryCoverageBase(skipKey=null){
     const city=selectedSingleCity();
     if(!city) return [];
     return state.coverage.filter(r=>{
-      if(clean(r.Ciudad)!==city) return false;
+      if(!FZ.u.competitiveCoverageAllowed(r)||clean(r.Ciudad)!==city) return false;
       const checks={
         period:clean(r.Periodo_Label),
         operator:clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),
         technology:clean(r.Tecnologia)||"No informado",
-        zone:clean(r.Zona_FIBRAZO),
         trunk:clean(r.Troncal_FIBRAZO)
       };
-      return ["period","operator","technology","zone","trunk"].every(key=>{
+      return ["period","operator","technology","trunk"].every(key=>{
         if(key===skipKey) return true;
         const set=state.filters[key];
         return !set.size||set.has(checks[key]);
@@ -141,20 +135,19 @@
   }
 
   function planMatchesTerritory(r){
-    if(!state.filters.zone.size&&!state.filters.trunk.size) return true;
+    if(!state.filters.trunk.size) return true;
     const city=clean(r.Ciudad),op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),opId=clean(r.ID_Operador);
     const rows=state.indexes?.coverageByCityOperator?.get(city+"|"+(opId||op))||[];
     return rows.some(c=>{
+      if(!FZ.u.competitiveCoverageAllowed(c)) return false;
       if(state.filters.period.size&&!state.filters.period.has(clean(c.Periodo_Label))) return false;
       if(state.filters.technology.size&&!state.filters.technology.has(clean(c.Tecnologia)||"No informado")) return false;
-      if(state.filters.zone.size&&!state.filters.zone.has(clean(c.Zona_FIBRAZO))) return false;
       if(state.filters.trunk.size&&!state.filters.trunk.has(clean(c.Troncal_FIBRAZO))) return false;
       return true;
     });
   }
 
   function planPasses(r){ return rowPassesFilters(r)&&planMatchesTerritory(r); }
-  function evolutionPasses(r){ return rowPassesFilters(r,"period")&&planMatchesTerritory(r); }
 
   function refresh(){
     state.expanded=false;
@@ -351,7 +344,6 @@
 
   function renderFilters(){
     normalizeTerritoryFilters();
-    state.filters.zone.clear();
     const root=$("filters");
     if(!root) return;
     root.innerHTML="";
@@ -437,20 +429,15 @@
 
   function apply(){
     state.filtered=state.plans.filter(planPasses);
-    if(hasPlanSpecificFilters()){
-      const allowed=new Set(state.filtered.map(r=>[r.Periodo_Label,clean(r.Ciudad),clean(r.Grupo_Operador)].join("|")));
-      state.filteredCoverage=state.coverage.filter(r=>FZ.u.competitiveCoverageAllowed(r)&&allowed.has([r.Periodo_Label,clean(r.Ciudad),clean(r.Grupo_Operador)].join("|"))&&coveragePassesFilters(r));
-    }else{
-      state.filteredCoverage=state.coverage.filter(r=>FZ.u.competitiveCoverageAllowed(r)&&coveragePassesFilters(r));
-    }
+    state.filteredCoverage=state.coverage.filter(coveragePassesFilters);
     FZ.app?.renderAll?.();
   }
 
   FZ.filters={
     availablePeriods,ensurePeriodSelection,selectedPeriodValue,marketAppliesToPeriod,fibrazoMarkets,quickMarkets,
     fibrazoCitySet,allRelevantCities,cityScopeAllows,comparatorCities,selectedSingleCity,effectiveCityCount,
-    isSingleOperatorSingleCity,normalizeTerritoryFilters,rowPassesFilters,coveragePassesFilters,hasPlanSpecificFilters,
-    territoryCoverageBase,planMatchesTerritory,planPasses,evolutionPasses,setCityScope,toggleCitySelection,
+    isSingleOperatorSingleCity,normalizeTerritoryFilters,rowPassesFilters,coveragePassesFilters,
+    territoryCoverageBase,planMatchesTerritory,planPasses,setCityScope,toggleCitySelection,
     toggleAllFibrazoCities,renderCityQuickbar,renderFilters,apply
   };
 })();
