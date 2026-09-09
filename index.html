@@ -72,6 +72,7 @@
       <button type="button" class="analysis-tab" data-analysis-view="fibrazo">Vs. FIBRAZO</button>
       <button type="button" class="analysis-tab" data-analysis-view="territory">Territorio</button>
       <button type="button" class="analysis-tab" data-analysis-view="compare">Comparador</button>
+      <button type="button" class="analysis-tab" data-analysis-view="mobile">Competencia móvil</button>
       <button type="button" class="analysis-tab" data-analysis-view="network">FIBRAZO</button>
     </nav>
 
@@ -107,6 +108,51 @@
         <article id="operator-speed-panel" class="panel chart-panel"><div class="panel-head"><h3>Velocidad mínima y máxima por competidor</h3><span>Rango de Mbps registrado</span></div><canvas id="speeds-chart"></canvas></article>
       </div>
       <div id="chart-operator-detail-slot" class="operator-detail-slot"></div>
+    </section>
+
+    <section id="mobile-section" class="section view-block hidden" data-view="mobile">
+      <div class="section-title section-heading mobile-page-heading">
+        <div>
+          <span>COMPETENCIA MÓVIL</span>
+          <h2>Competencia móvil</h2>
+          <p>Consulta la foto histórica de junio 2025 y el corte web de septiembre 2026. Esta pestaña usa filtros propios y no depende de los filtros generales del dashboard.</p>
+        </div>
+      </div>
+
+      <article class="panel mobile-filter-panel">
+        <div class="mobile-filter-grid">
+          <label>Corte
+            <select id="mobile-period-filter"></select>
+          </label>
+          <label>Operador
+            <select id="mobile-operator-filter"></select>
+          </label>
+          <label>Modalidad
+            <select id="mobile-modality-filter"></select>
+          </label>
+          <label>Estado
+            <select id="mobile-status-filter"></select>
+          </label>
+          <label class="mobile-search-label">Buscar
+            <input id="mobile-search" class="search-input" type="search" placeholder="Buscar plan, beneficio, fuente…" autocomplete="off" />
+          </label>
+        </div>
+      </article>
+
+      <div id="mobile-kpis" class="mobile-kpi-grid"></div>
+
+      <article class="panel mobile-table-panel">
+        <div class="panel-head">
+          <h3>Oferta móvil consolidada</h3>
+          <span id="mobile-result-count">—</span>
+        </div>
+        <div class="mobile-table-wrap">
+          <table class="mobile-table">
+            <thead id="mobile-table-head"></thead>
+            <tbody id="mobile-table-body"></tbody>
+          </table>
+        </div>
+      </article>
     </section>
 
     <section id="fibrazo-network-section" class="section view-block hidden" data-view="network">
@@ -235,6 +281,7 @@
   <script src="js/charts.js?v=20260909-7"></script>
   <script src="js/territory.js?v=20260909-7"></script>
   <script src="js/comparison.js?v=20260909-7"></script>
+  <script src="js/mobile.js?v=20260909-7"></script>
   <script src="js/table.js?v=20260909-7"></script>
   <script src="js/operator-details.js?v=20260909-7"></script>
   <script src="auth.js?v=20260909-7"></script>
