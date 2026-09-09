@@ -205,7 +205,7 @@
   }
 
   function scopeCoverageRows(scope,period){
-    const rows=periodRowsForCity(state.coverage,scope.city,period);
+    const rows=periodRowsForCity(state.coverage,scope.city,period).filter(FZ.u.competitiveCoverageAllowed);
     if(scope.level==="city") return rows;
     return rows.filter(r=>clean(r.Troncal_FIBRAZO)===scope.value);
   }
