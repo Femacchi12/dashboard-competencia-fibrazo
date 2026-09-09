@@ -181,7 +181,7 @@
       detailRow.className="operator-detail-row";
       detailRow.dataset.detailKey=key;
       const td=document.createElement("td");
-      td.colSpan=document.querySelectorAll("#table-head th").length||12;
+      td.colSpan=row?.children?.length||document.querySelectorAll("#table-head th").length||12;
       td.innerHTML=html;
       detailRow.appendChild(td);
       row.after(detailRow);
@@ -252,6 +252,7 @@
         operator:clean(trigger.dataset.operator),
         city:clean(trigger.dataset.city),
         planId:clean(trigger.dataset.planId),
+        period:clean(trigger.dataset.period),
         mode:"table",
         row,
         trigger
