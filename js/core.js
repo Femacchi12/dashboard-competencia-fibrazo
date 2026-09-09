@@ -165,6 +165,21 @@
     return clean(aName).localeCompare(clean(bName),"es",{numeric:true,sensitivity:"base"});
   }
 
+  function isInheritedCoverageRow(row){
+    const id=clean(row?.ID_Cobertura);
+    const notes=fold((row?.Observaciones||"")+" "+(row?.Observacion_Territorial||""));
+    return id.startsWith("CV_CPY26_")||notes.includes("heredada del corte 2025-06");
+  }
+
+  function competitiveCoverageAllowed(row){
+    if(!isInheritedCoverageRow(row)) return true;
+    const period=clean(row?.Periodo_Corte);
+    const city=clean(row?.Ciudad);
+    const operator=rowOperator(row);
+    if(!period||!city||!operator) return false;
+    return FZ.state.indexes?.confirmedOperatorCityPeriod?.has(period+"|"+city+"|"+operator)===true;
+  }
+
   function trunkCompetitiveSummaryHtml(operators,total=null){
     const names=[...operators].map(clean).filter(Boolean);
     const presence=traditionalOperatorPresence(names);
@@ -181,7 +196,7 @@
 
   FZ.u = {
     $,clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,pctVs,priceBand,normalizeTV,
-    periodValue,formatPeriod,periodSortValue,formatYearMonth,safeUrl,linkCell,phoneCell,rowOperator,traditionalOperatorPresence,operatorPriorityRank,compareOperatorsTraditionalFirst,trunkCompetitiveSummaryHtml
+    periodValue,formatPeriod,periodSortValue,formatYearMonth,safeUrl,linkCell,phoneCell,rowOperator,traditionalOperatorPresence,operatorPriorityRank,compareOperatorsTraditionalFirst,isInheritedCoverageRow,competitiveCoverageAllowed,trunkCompetitiveSummaryHtml
   };
 
   FZ.filterDefs = [
