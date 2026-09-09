@@ -62,7 +62,7 @@
   }
 
   function metricForTrunk(city,trunk){
-    return state.metrics.find(r=>clean(r.Ciudad)===clean(city)&&clean(r.Troncal_FIBRAZO)===clean(trunk))||null;
+    return state.indexes?.metricByCityTrunk?.get(clean(city)+"|"+clean(trunk))||null;
   }
 
   function selectedCoveragePeriodLabels(){
@@ -71,8 +71,7 @@
 
   function trunkCompetitionRows(city,trunk){
     const periods=selectedCoveragePeriodLabels();
-    return state.coverage.filter(r=>{
-      if(clean(r.Ciudad)!==clean(city)||clean(r.Troncal_FIBRAZO)!==clean(trunk)) return false;
+    return (state.indexes?.coverageByCityTrunk?.get(clean(city)+"|"+clean(trunk))||[]).filter(r=>{
       if(periods.size&&!periods.has(clean(r.Periodo_Label))) return false;
       if(state.filters.technology.size&&!state.filters.technology.has(clean(r.Tecnologia)||"No informado")) return false;
       return true;
@@ -80,7 +79,7 @@
   }
 
   function plansForOperator(city,operator){
-    let rows=state.plans.filter(r=>clean(r.Ciudad)===clean(city)&&rowOperator(r)===operator);
+    let rows=state.indexes?.plansByCityOperator?.get(clean(city)+"|"+operator)||[];
     if(state.filters.period.size){
       const exact=rows.filter(r=>state.filters.period.has(clean(r.Periodo_Label)));
       if(exact.length) rows=exact;
