@@ -14,8 +14,7 @@
     ["Precio_COP","Precio"],
     ["GB","GB"],
     ["Vigencia_Dias","Vigencia"],
-    ["Datos_Ilimitados","Ilimitados"],
-    ["Estado_Dato","Estado"]
+    ["Datos_Ilimitados","Ilimitados"]
   ];
 
   function periodLabel(value){
