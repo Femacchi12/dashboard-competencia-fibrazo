@@ -94,7 +94,6 @@
     state.metrics.forEach(r=>{
       if(toNum(r.HHPP)>0&&clean(r.Ciudad)) set.add(clean(r.Ciudad));
     });
-    state.plans.forEach(r=>{if(clean(r.Ciudad)) set.add(clean(r.Ciudad));});
     return [...set].sort((a,b)=>a.localeCompare(b,"es",{numeric:true,sensitivity:"base"}));
   }
 
