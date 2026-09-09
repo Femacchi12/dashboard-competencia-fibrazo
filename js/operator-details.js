@@ -124,6 +124,7 @@
     html+='<span><b>Zonas:</b> '+escapeHtml(zones.join(" · ")||"—")+'</span>';
     if(outside) html+='<span class="detail-warning"><b>Fuera de troncal:</b> '+formatNum(outside)+' registros territoriales</span>';
     html+='</div>';
+    html+='<div class="detail-table-tools"><input type="search" class="detail-table-search" placeholder="Buscar en la tabla…" autocomplete="off"></div>';
     html+='<div class="operator-detail-table-wrap"><table class="operator-detail-table"><thead><tr><th>Plan</th><th>Servicio</th><th>Tecnología</th><th>Velocidad</th><th>Precio usado</th><th>Regular</th><th>Promo</th><th>Modalidad</th><th>TV</th><th>Permanencia</th></tr></thead><tbody>'+planRowsHtml(d.plans)+'</tbody></table></div>';
     html+='<div class="operator-detail-footer"><div class="operator-detail-contact">';
     if(phones.length) html+='<span>Tel. '+phones.map(escapeHtml).join(" · ")+'</span>';
@@ -135,6 +136,12 @@
 
   function bindPanel(root,operator,city,entry){
     root.querySelector(".operator-detail-close")?.addEventListener("click",()=>removeEntry(entry));
+    root.querySelector(".detail-table-search")?.addEventListener("input",event=>{
+      const q=(event.target.value||"").trim().toLowerCase();
+      root.querySelectorAll(".operator-detail-table tbody tr").forEach(tr=>{
+        tr.style.display=!q||tr.textContent.toLowerCase().includes(q)?"":"none";
+      });
+    });
     root.querySelector(".detail-compare-btn")?.addEventListener("click",()=>{
       clear();
       if(city) FZ.app?.compareWithFibrazo?.(operator,city);
