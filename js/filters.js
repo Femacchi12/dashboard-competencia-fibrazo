@@ -142,10 +142,9 @@
 
   function planMatchesTerritory(r){
     if(!state.filters.zone.size&&!state.filters.trunk.size) return true;
-    const city=clean(r.Ciudad),op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado);
-    return state.coverage.some(c=>{
-      const cop=clean(c.Grupo_Operador)||clean(c.Operador_Normalizado);
-      if(clean(c.Ciudad)!==city||cop!==op) return false;
+    const city=clean(r.Ciudad),op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),opId=clean(r.ID_Operador);
+    const rows=state.indexes?.coverageByCityOperator?.get(city+"|"+(opId||op))||[];
+    return rows.some(c=>{
       if(state.filters.period.size&&!state.filters.period.has(clean(c.Periodo_Label))) return false;
       if(state.filters.technology.size&&!state.filters.technology.has(clean(c.Tecnologia)||"No informado")) return false;
       if(state.filters.zone.size&&!state.filters.zone.has(clean(c.Zona_FIBRAZO))) return false;
