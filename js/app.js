@@ -15,31 +15,41 @@
     document.querySelector("main")?.insertAdjacentHTML("afterbegin",'<div id="source-error" class="error-box"><strong>No fue posible cargar Base General.</strong><br>'+FZ.u.escapeHtml(message)+'</div>');
   }
 
+  function renderSourceHealth(result){
+    const el=$("source-health");
+    if(!el) return;
+    const total=result?.sourcesTotal||Object.keys(state.sourceHealth||{}).length;
+    const ok=result?.sourcesOk??Object.values(state.sourceHealth||{}).filter(x=>x?.ok).length;
+    if(!total){
+      el.textContent="Fuentes: —";
+      el.classList.remove("warn");
+      return;
+    }
+    el.textContent="Fuentes "+ok+"/"+total;
+    el.classList.toggle("warn",ok<total);
+    if(ok<total){
+      const failed=Object.values(state.sourceHealth||{}).filter(x=>!x?.ok).map(x=>x.label).filter(Boolean);
+      el.title=failed.length?"Pendientes: "+failed.join(", "):"Hay fuentes que no respondieron en la última consulta.";
+    }else{
+      el.title="Todas las fuentes del dashboard cargaron correctamente.";
+    }
+  }
+
   function updateSectionVisibility(){
     const inGeneral=state.analysisView==="general";
-    const compareCuts=state.filters.period.size===2;
-    $("evolution-section")?.classList.toggle("hidden",!inGeneral||!compareCuts);
-
     const hideRankings=FZ.filters.isSingleOperatorSingleCity();
     ["operator-price-panel","operator-speed-panel"].forEach(id=>$(id)?.classList.toggle("hidden",!inGeneral||hideRankings));
-
     document.querySelector(".filters")?.classList.toggle("hidden",state.analysisView==="compare"||state.analysisView==="mobile");
-
-    if(state.analysisView==="territory"){
-      $("coverage-ranking-panel")?.classList.toggle("hidden",FZ.filters.effectiveCityCount()<=1);
-    }
   }
 
   function renderAll(){
     updateSectionVisibility();
     if(state.analysisView==="general"){
       FZ.charts?.renderKPIs?.();
-      FZ.charts?.renderEvolution?.();
       FZ.charts?.renderCharts?.();
       FZ.table?.render?.();
       return;
     }
-    if(state.analysisView==="territory"){FZ.territory?.renderCoverage?.();return;}
     if(state.analysisView==="network"){FZ.territory?.renderFibrazo?.();return;}
     if(state.analysisView==="fibrazo"){FZ.comparison?.renderFibrazoComparison?.();return;}
     if(state.analysisView==="compare"){FZ.comparison?.renderComparator?.();return;}
@@ -67,7 +77,6 @@
       FZ.charts?.renderCharts?.();
       FZ.table?.render?.();
     }
-    if(view==="territory") FZ.territory?.renderCoverage?.();
     if(view==="network") FZ.territory?.renderFibrazo?.();
     if(view==="fibrazo") FZ.comparison?.renderFibrazoComparison?.();
     if(view==="compare") FZ.comparison?.renderComparator?.();
@@ -82,8 +91,9 @@
       $("refresh-btn").textContent="Actualizando…";
     }
     try{
-      await FZ.data.load({mode:silent?"dynamic":"full"});
+      const result=await FZ.data.load();
       FZ.filters.ensurePeriodSelection();
+      renderSourceHealth(result);
       state.lastLoadAt=Date.now();
       if($("last-load")) $("last-load").textContent=new Intl.DateTimeFormat("es-CO",{dateStyle:"short",timeStyle:"short"}).format(new Date());
       removeErrorBox();
@@ -109,7 +119,6 @@
     state.filters.city.add(city);
     state.filters.operator.clear();
     state.filters.operator.add(operator);
-    state.filters.zone.clear();
     state.filters.trunk.clear();
     state.expanded=false;
     FZ.filters.renderCityQuickbar();
