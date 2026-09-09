@@ -120,12 +120,14 @@
   function aggregateMetrics(rows){
     const valid=rows.filter(r=>Number.isFinite(r.HHPP)&&r.HHPP>0);
     const hhpp=valid.reduce((s,r)=>s+r.HHPP,0);
-    const active=valid.reduce((s,r)=>s+(r.Clientes_Activos||0),0);
+    const activeForPenetration=valid.reduce((s,r)=>s+(r.Clientes_Activos||0),0);
+    const active=rows.reduce((s,r)=>s+(Number.isFinite(r.Clientes_Activos)?r.Clientes_Activos:0),0);
     return {
       trunks:rows.length,
       hhpp,
       active,
-      penetration:hhpp?active/hhpp:null,
+      activeForPenetration,
+      penetration:hhpp?activeForPenetration/hhpp:null,
       withData:rows.filter(r=>r.Filas_Fuente_Consolidadas>0).length
     };
   }
@@ -188,7 +190,7 @@
     summary.innerHTML=
       '<article class="panel network-kpi"><span>Troncales</span><strong>'+formatNum(total.trunks)+'</strong><small>'+formatNum(total.withData)+' con dato junio</small></article>'+
       '<article class="panel network-kpi"><span>HHPP</span><strong>'+formatNum(total.hppp)+'</strong><small>Casas posibles de conectar</small></article>'+
-      '<article class="panel network-kpi"><span>Clientes activos</span><strong>'+formatNum(total.active)+'</strong><small>Sobre troncales con HHPP válido</small></article>'+
+      '<article class="panel network-kpi"><span>Clientes activos</span><strong>'+formatNum(total.active)+'</strong><small>Total reportado en el corte operativo</small></article>'+
       '<article class="panel network-kpi primary"><span>Penetración</span><strong>'+(total.penetration==null?"—":formatPct(total.penetration*100).replace("+",""))+'</strong><small>Ponderada por HHPP</small></article>';
 
     const byCity=new Map();
