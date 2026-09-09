@@ -14,7 +14,7 @@
     const prices=d.map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0);
     const speeds=d.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
     if($("kpi-operators")) $("kpi-operators").textContent=formatNum(operators.size);
-    if($("kpi-cities-note")) $("kpi-cities-note").textContent=formatNum(cities.size)+" ciudades con datos";
+    if($("kpi-cities-note")) $("kpi-cities-note").textContent=formatNum(cities.size)+(cities.size===1?" ciudad con datos":" ciudades con datos");
     if($("kpi-min-price")) $("kpi-min-price").textContent=prices.length?formatCOP(Math.min(...prices)):"—";
     if($("kpi-max-price")) $("kpi-max-price").textContent=prices.length?formatCOP(Math.max(...prices)):"—";
     if($("kpi-min-speed")) $("kpi-min-speed").textContent=speeds.length?formatNum(Math.min(...speeds)):"—";
@@ -262,6 +262,8 @@
 
   function renderCharts(){
     const rows=state.filtered;
+    if(scatterHideTimer) clearTimeout(scatterHideTimer);
+    document.querySelectorAll(".scatter-interactive-tooltip").forEach(el=>el.remove());
 
     destroyChart("scatter");
     if($("scatter-chart")){
