@@ -61,6 +61,8 @@
     }else if(s.includes(",")){
       const parts=s.split(",");
       s=parts.length===2&&parts[1].length<=2?parts[0].replace(/\./g,"")+"."+parts[1]:s.replace(/,/g,"");
+    }else if(/^-?\d{1,3}(?:\.\d{3})+$/.test(s)){
+      s=s.replace(/\./g,"");
     }
     const n=Number(s);
     return Number.isFinite(n)?n:null;
