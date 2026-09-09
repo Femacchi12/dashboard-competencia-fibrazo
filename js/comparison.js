@@ -399,12 +399,22 @@
 
     renderSelectedStrip();
 
-    optionsRoot.innerHTML=options.map(o=>
-      '<label class="compare-scope-option compare-scope-option-clean">'+
-        '<input type="checkbox" data-key="'+escapeHtml(o.key)+'" '+(state.comparison.items.has(o.key)?"checked":"")+'>'+
-        '<span><b>'+escapeHtml(o.label)+'</b>'+(o.level==="trunk"?'<small>'+formatNum(o.hhpp)+' HHPP</small>':"")+'</span>'+
-      '</label>'
-    ).join("");
+    optionsRoot.innerHTML=options.map(o=>{
+      const checked=state.comparison.items.has(o.key)?"checked":"";
+      if(o.level==="trunk"){
+        return '<label class="compare-scope-option compare-scope-option-clean compare-trunk-option">'+
+          '<input type="checkbox" data-key="'+escapeHtml(o.key)+'" '+checked+'>'+
+          '<span class="compare-trunk-option-content">'+
+            '<small class="compare-trunk-city">'+escapeHtml(o.city)+'</small>'+
+            '<span class="compare-trunk-main"><b>'+escapeHtml(o.value)+'</b><em>'+formatNum(o.hhpp)+' HHPP</em></span>'+
+          '</span>'+
+        '</label>';
+      }
+      return '<label class="compare-scope-option compare-scope-option-clean compare-city-option">'+
+        '<input type="checkbox" data-key="'+escapeHtml(o.key)+'" '+checked+'>'+
+        '<span><b>'+escapeHtml(o.label)+'</b></span>'+
+      '</label>';
+    }).join("");
 
     if(!options.length){
       optionsRoot.innerHTML='<div class="compare-filter-empty">No hay resultados para esta búsqueda.</div>';
