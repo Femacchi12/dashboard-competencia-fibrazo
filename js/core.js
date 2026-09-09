@@ -203,9 +203,7 @@
     {key:"period", label:"Corte", getter:r=>FZ.u.clean(r.Periodo_Label), allLabel:"Último corte", maxSelections:1},
     {key:"city", label:"Ciudad / localidad", getter:r=>FZ.u.clean(r.Ciudad), allLabel:"Todas"},
     {key:"operator", label:"Operador", getter:r=>FZ.u.clean(r.Grupo_Operador)||FZ.u.clean(r.Operador_Normalizado), allLabel:"Todos"},
-    {key:"technology", label:"Tecnología", getter:r=>FZ.u.clean(r.Tecnologia)||"No informado", allLabel:"Todos"},
-    {key:"modality", label:"Modalidad", getter:r=>FZ.u.clean(r.Modalidad)||"No informado", allLabel:"Todos"},
-    {key:"price", label:"Rango de precio", getter:r=>FZ.u.priceBand(FZ.u.toNum(r.Precio_Usado_COP)), allLabel:"Todos"}
+    {key:"technology", label:"Tecnología", getter:r=>FZ.u.clean(r.Tecnologia)||"No informado", allLabel:"Todos"}
   ];
 
   FZ.columns = [
