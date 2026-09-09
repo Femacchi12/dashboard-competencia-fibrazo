@@ -27,7 +27,7 @@
     const headerMap = new Map(headers.map(th => [th.dataset.key, th]));
 
     if (changed) {
-      const rows = [...document.querySelectorAll("#table-body tr")];
+      const rows = [...document.querySelectorAll("#table-body tr:not(.operator-detail-row)")];
       rows.forEach(row => {
         const cells = [...row.children];
         const cellMap = new Map(currentKeys.map((key, index) => [key, cells[index]]));
@@ -44,7 +44,7 @@
 
     const finalHeaders = [...headRow.children];
     const finalKeys = finalHeaders.map(th => th.dataset.key);
-    document.querySelectorAll("#table-body tr").forEach(row => {
+    document.querySelectorAll("#table-body tr:not(.operator-detail-row)").forEach(row => {
       [...row.children].forEach((td, index) => {
         if (finalKeys[index]) td.dataset.key = finalKeys[index];
       });
@@ -83,7 +83,7 @@
       if (!th) return;
 
       const width = Math.ceil(th.getBoundingClientRect().width);
-      const cells = [th, ...document.querySelectorAll(`#table-body td[data-key="${key}"]`)];
+      const cells = [th, ...document.querySelectorAll(`#table-body tr:not(.operator-detail-row) td[data-key="${key}"]`)];
       cells.forEach(cell => {
         cell.style.left = `${left}px`;
         cell.dataset.stickyColumn = String(stickyIndex + 1);
