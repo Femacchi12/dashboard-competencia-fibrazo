@@ -175,9 +175,9 @@
 
     root.innerHTML=
       '<article class="panel mobile-kpi primary"><span>Operadores</span><strong>'+formatNum(operators.size)+'</strong><small>'+escapeHtml(periodLabel(state.mobileView.period))+'</small></article>'+
-      '<article class="panel mobile-kpi"><span>Precio mínimo</span><strong>'+(prices.length?formatCOP(Math.min(...prices)):"—")+'</strong><small>Oferta con precio registrado</small></article>'+
-      '<article class="panel mobile-kpi"><span>Precio máximo</span><strong>'+(prices.length?formatCOP(Math.max(...prices)):"—")+'</strong><small>Oferta con precio registrado</small></article>'+
-      '<article class="panel mobile-kpi"><span>Mayor bolsa</span><strong>'+(gb.length?formatNum(Math.max(...gb))+" GB":"—")+'</strong><small>Sin contar planes ilimitados</small></article>'+
+      '<article class="panel mobile-kpi metric-price"><span>Precio mínimo</span><strong>'+(prices.length?formatCOP(Math.min(...prices)):"—")+'</strong><small>Oferta con precio registrado</small></article>'+
+      '<article class="panel mobile-kpi metric-price"><span>Precio máximo</span><strong>'+(prices.length?formatCOP(Math.max(...prices)):"—")+'</strong><small>Oferta con precio registrado</small></article>'+
+      '<article class="panel mobile-kpi metric-speed"><span>Mayor bolsa</span><strong>'+(gb.length?formatNum(Math.max(...gb))+" GB":"—")+'</strong><small>Sin contar planes ilimitados</small></article>'+
       '<article class="panel mobile-kpi warn"><span>Por revisar</span><strong>'+formatNum(review)+'</strong><small>Registros con alerta o validación pendiente</small></article>';
   }
 
