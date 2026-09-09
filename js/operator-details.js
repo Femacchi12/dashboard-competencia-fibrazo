@@ -17,21 +17,23 @@
     return [...new Set(values.map(clean).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es",{numeric:true}));
   }
 
-  function detailData(operator,city,planId){
+  function detailData(operator,city,planId,periodOverride=""){
     const reference=state.plans.find(r=>clean(r.ID_Plan_Registro)===clean(planId))||null;
     const selectedPeriod=FZ.filters.selectedPeriodValue();
-    const period=clean(reference?.Periodo_Corte)||selectedPeriod;
+    const period=clean(periodOverride)||clean(reference?.Periodo_Corte)||selectedPeriod;
 
-    let plans=state.filtered.filter(r=>fold(rowOperator(r))===fold(operator)&&(!city||fold(r.Ciudad)===fold(city)));
-    if(reference||state.filters.period.size<=1) plans=exactPeriodRows(plans,period);
+    const planSource=periodOverride?state.plans:state.filtered;
+    let plans=planSource.filter(r=>fold(rowOperator(r))===fold(operator)&&(!city||fold(r.Ciudad)===fold(city)));
+    if(periodOverride||reference||state.filters.period.size<=1) plans=exactPeriodRows(plans,period);
     plans=[...plans].sort((a,b)=>(toNum(a.Precio_Usado_COP)??Infinity)-(toNum(b.Precio_Usado_COP)??Infinity));
 
     const opId=clean(reference?.ID_Operador)||clean(plans[0]?.ID_Operador);
-    let coverage=state.filteredCoverage.filter(r=>{
+    const coverageSource=periodOverride?state.coverage:state.filteredCoverage;
+    let coverage=coverageSource.filter(r=>{
       const op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado);
       return fold(op)===fold(operator)&&(!city||fold(r.Ciudad)===fold(city));
     });
-    if(reference||state.filters.period.size<=1) coverage=exactPeriodRows(coverage,period);
+    if(periodOverride||reference||state.filters.period.size<=1) coverage=exactPeriodRows(coverage,period);
 
     const meta=state.operators.find(o=>opId&&clean(o.ID_Operador)===opId)
       ||state.operators.find(o=>fold(clean(o.Operador_Normalizado)||clean(o.Marca_Comercial))===fold(operator))
@@ -62,12 +64,12 @@
     [...openEntries].filter(entry=>entry.mode==="table").forEach(removeEntry);
   }
 
-  function detailKey(operator,city){
-    return fold(operator)+"|"+fold(city||"*");
+  function detailKey(operator,city,period=""){
+    return fold(operator)+"|"+fold(city||"*")+"|"+fold(period||"*");
   }
 
   function isOpen({operator,city=""}={}){
-    const key=detailKey(operator,city);
+    const key=detailKey(operator,city,period);
     return openEntries.some(entry=>entry.key===key);
   }
 
@@ -90,8 +92,8 @@
     }).join("");
   }
 
-  function panelHtml(operator,city,planId){
-    const d=detailData(operator,city,planId);
+  function panelHtml(operator,city,planId,periodOverride=""){
+    const d=detailData(operator,city,planId,periodOverride);
     const prices=d.plans.map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0);
     const speeds=d.plans.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
     const trunks=uniq(d.coverage.map(r=>r.Troncal_FIBRAZO));
@@ -152,7 +154,7 @@
     while(openEntries.length>=2) removeEntry(openEntries[0]);
   }
 
-  function open({operator,city="",planId="",mode="chart",row=null,trigger=null}){
+  function open({operator,city="",planId="",period="",mode="chart",row=null,trigger=null}){
     if(!operator) return;
     const key=detailKey(operator,city);
     const existing=openEntries.find(entry=>entry.key===key);
@@ -169,7 +171,7 @@
     }
 
     enforceLimit();
-    const html=panelHtml(operator,city,planId);
+    const html=panelHtml(operator,city,planId,period);
     let entry;
 
     if(mode==="table"&&row){
