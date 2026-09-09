@@ -351,6 +351,7 @@
 
   function renderFilters(){
     normalizeTerritoryFilters();
+    state.filters.zone.clear();
     const root=$("filters");
     if(!root) return;
     root.innerHTML="";
@@ -431,7 +432,6 @@
       updateFilterLabel(wrap,def);
     });
 
-    renderTerritoryFilter(root,"zone","Zona FIBRAZO","Zona_FIBRAZO");
     renderTerritoryFilter(root,"trunk","Troncal FIBRAZO","Troncal_FIBRAZO");
   }
 
