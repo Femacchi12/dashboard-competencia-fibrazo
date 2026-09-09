@@ -69,10 +69,10 @@
 
     <nav class="analysis-tabs panel" aria-label="Vistas de análisis">
       <button type="button" class="analysis-tab active" data-analysis-view="general">Vista general</button>
-      <button type="button" class="analysis-tab" data-analysis-view="network">FIBRAZO</button>
       <button type="button" class="analysis-tab" data-analysis-view="fibrazo">Vs. FIBRAZO</button>
       <button type="button" class="analysis-tab" data-analysis-view="territory">Territorio</button>
       <button type="button" class="analysis-tab" data-analysis-view="compare">Comparador</button>
+      <button type="button" class="analysis-tab" data-analysis-view="network">FIBRAZO</button>
     </nav>
 
     <section class="kpi-grid view-block" data-view="general" aria-label="Indicadores principales">
@@ -110,13 +110,15 @@
     </section>
 
     <section id="fibrazo-network-section" class="section view-block hidden" data-view="network">
-      <div class="section-title section-heading">
+      <div class="section-title section-heading network-section-heading">
         <div><span>FIBRAZO</span><h2>Troncales, HHPP y penetración</h2></div>
-        <div class="coverage-meta"><strong>2026-06</strong><span>corte operativo consolidado</span></div>
+        <div class="network-heading-actions">
+          <input id="network-search" class="search-input network-search" type="search" placeholder="Buscar troncal, ciudad o dato…" autocomplete="off" />
+          <div class="coverage-meta"><strong>2026-06</strong><span>corte operativo consolidado</span></div>
+        </div>
       </div>
       <div id="fibrazo-network-kpis" class="network-kpi-grid"></div>
       <div id="fibrazo-city-groups" class="network-city-groups"></div>
-      <div id="fibrazo-trunk-detail" class="operator-detail-slot"></div>
     </section>
 
     <section id="coverage-section" class="section coverage-section view-block hidden" data-view="territory">
