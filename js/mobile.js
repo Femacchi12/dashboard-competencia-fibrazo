@@ -3,7 +3,7 @@
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
   const state=FZ.state;
-  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum}=FZ.u;
+  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,compareOperatorsTraditionalFirst}=FZ.u;
   const $=FZ.u.$;
 
   const columns=[
@@ -60,6 +60,7 @@
         const bv=bn==null?(dir===1?Infinity:-Infinity):bn;
         return (av-bv)*dir;
       }
+      if(key==="Operador") return compareOperatorsTraditionalFirst(a.Operador,b.Operador)*dir;
       return clean(a[key]).localeCompare(clean(b[key]),"es",{numeric:true,sensitivity:"base"})*dir;
     });
   }
