@@ -11,15 +11,36 @@
     return clean(o.Ciudad)+trunk+" · "+clean(o.Servicio)+" · "+formatNum(o.Velocidad_Mbps)+" Mbps · "+formatCOP(o.Precio_COP)+" · "+clean(o.Etapa_Vigencia);
   }
 
+  function offerSignature(o){
+    return [clean(o?.Servicio),toNum(o?.Velocidad_Mbps),normalizeTV(o?.TV),clean(o?.Modalidad),toNum(o?.Dias),clean(o?.Etapa_Vigencia),clean(o?.Troncal_FIBRAZO)].join("|");
+  }
+
   function compatibleOffers(){
     const cities=state.filters.city.size?state.filters.city:FZ.filters.fibrazoCitySet();
     const rows=state.offers.filter(o=>!cities.size||cities.has(clean(o.Ciudad)));
     const seen=new Set();
     return rows.filter(o=>{
-      const k=[o.Servicio,o.Velocidad_Mbps,o.TV,o.Precio_COP,o.Etapa_Vigencia,o.Troncal_FIBRAZO].join("|");
+      const k=[clean(o.Ciudad),offerSignature(o),toNum(o.Precio_COP)].join("|");
       if(seen.has(k)) return false;
       seen.add(k); return true;
     });
+  }
+
+  function benchmarkOfferForCity(city,selected){
+    const local=state.offers.filter(o=>clean(o.Ciudad)===clean(city));
+    if(!local.length) return null;
+    if(selected){
+      const signature=offerSignature(selected);
+      const exact=local.find(o=>offerSignature(o)===signature);
+      if(exact) return exact;
+      const sameServiceSpeed=local.find(o=>
+        clean(o.Servicio)===clean(selected.Servicio)&&
+        toNum(o.Velocidad_Mbps)===toNum(selected.Velocidad_Mbps)&&
+        normalizeTV(o.TV)===normalizeTV(selected.TV)
+      );
+      if(sameServiceSpeed) return sameServiceSpeed;
+    }
+    return fibrazoOfferForCity(city);
   }
 
   function fibrazoOfferForCity(city){
@@ -47,9 +68,23 @@
     }
     select.innerHTML=offers.map(o=>'<option value="'+escapeHtml(o.ID_Oferta)+'" '+(o.ID_Oferta===state.selectedOfferKey?"selected":"")+'>'+escapeHtml(offerLabel(o))+"</option>").join("");
     const fz=offers.find(o=>o.ID_Oferta===state.selectedOfferKey)||offers[0];
-    if($("fz-price")) $("fz-price").textContent=formatCOP(fz.Precio_COP);
-    if($("fz-speed")) $("fz-speed").textContent=formatNum(fz.Velocidad_Mbps);
-    if($("fz-offer-name")) $("fz-offer-name").textContent=clean(fz.Servicio)+" · "+clean(fz.Etapa_Vigencia);
+    const activeCities=state.filters.city.size?[...state.filters.city]:[...FZ.filters.fibrazoCitySet()];
+    const localBenchmarks=activeCities.map(city=>benchmarkOfferForCity(city,fz)).filter(Boolean);
+    const benchmarkPrices=localBenchmarks.map(o=>toNum(o.Precio_COP)).filter(n=>n>0);
+    const benchmarkSpeeds=localBenchmarks.map(o=>toNum(o.Velocidad_Mbps)).filter(n=>n>0);
+    const rangeLabel=(values,formatter)=>{
+      if(!values.length) return "—";
+      const min=Math.min(...values),max=Math.max(...values);
+      return min===max?formatter(min):formatter(min)+" – "+formatter(max);
+    };
+    if($("fz-price")) $("fz-price").textContent=rangeLabel(benchmarkPrices,formatCOP);
+    if($("fz-speed")) $("fz-speed").textContent=rangeLabel(benchmarkSpeeds,formatNum);
+    if($("fz-offer-name")) $("fz-offer-name").textContent=clean(fz.Servicio)+" · "+clean(fz.Etapa_Vigencia)+(activeCities.length>1?" · benchmark local por ciudad":"");
+    if($("fibrazo-benchmark-note")){
+      $("fibrazo-benchmark-note").innerHTML=activeCities.length>1
+        ?'La misma referencia comercial se busca en cada ciudad; si no existe, se usa la oferta base local de FIBRAZO.'
+        :'Oferta normalizada desde <b>Precios y Propuesta Comercial Fibrazo</b>';
+    }
 
     const period=FZ.filters.selectedPeriodValue();
     const best=new Map();
@@ -86,10 +121,16 @@
       return rowOperator(a).localeCompare(rowOperator(b),"es",{numeric:true,sensitivity:"base"});
     });
 
-    const pricedRows=rows.filter(r=>toNum(r.Precio_Usado_COP)>0);
-    const speedRows=rows.filter(r=>toNum(r.Velocidad_Bajada_Mbps)!=null);
-    const cheaper=pricedRows.filter(r=>toNum(r.Precio_Usado_COP)<fz.Precio_COP).length;
-    const faster=speedRows.filter(r=>toNum(r.Velocidad_Bajada_Mbps)>fz.Velocidad_Mbps).length;
+    const pricedRows=rows.filter(r=>toNum(r.Precio_Usado_COP)>0&&benchmarkOfferForCity(r.Ciudad,fz)?.Precio_COP>0);
+    const speedRows=rows.filter(r=>toNum(r.Velocidad_Bajada_Mbps)!=null&&benchmarkOfferForCity(r.Ciudad,fz)?.Velocidad_Mbps>0);
+    const cheaper=pricedRows.filter(r=>{
+      const benchmark=benchmarkOfferForCity(r.Ciudad,fz);
+      return benchmark&&toNum(r.Precio_Usado_COP)<toNum(benchmark.Precio_COP);
+    }).length;
+    const faster=speedRows.filter(r=>{
+      const benchmark=benchmarkOfferForCity(r.Ciudad,fz);
+      return benchmark&&toNum(r.Velocidad_Bajada_Mbps)>toNum(benchmark.Velocidad_Mbps);
+    }).length;
     if($("fz-better-price")) $("fz-better-price").textContent=pricedRows.length?formatNum(cheaper)+" ("+formatPct(cheaper/pricedRows.length*100).replace("+","")+")":"—";
     if($("fz-better-speed")) $("fz-better-speed").textContent=speedRows.length?formatNum(faster)+" ("+formatPct(faster/speedRows.length*100).replace("+","")+")":"—";
 
@@ -97,8 +138,10 @@
     if(body){
       body.innerHTML=rows.length?rows.map(r=>{
         const p=toNum(r.Precio_Usado_COP),s=toNum(r.Velocidad_Bajada_Mbps);
-        const dp=p==null?null:p-fz.Precio_COP,ds=s==null?null:s-fz.Velocidad_Mbps;
-        const pricePct=p==null?null:pctVs(p,fz.Precio_COP),speedPct=s==null?null:pctVs(s,fz.Velocidad_Mbps);
+        const benchmark=benchmarkOfferForCity(r.Ciudad,fz);
+        const benchmarkPrice=toNum(benchmark?.Precio_COP),benchmarkSpeed=toNum(benchmark?.Velocidad_Mbps);
+        const dp=p==null||benchmarkPrice==null?null:p-benchmarkPrice,ds=s==null||benchmarkSpeed==null?null:s-benchmarkSpeed;
+        const pricePct=p==null||benchmarkPrice==null?null:pctVs(p,benchmarkPrice),speedPct=s==null||benchmarkSpeed==null?null:pctVs(s,benchmarkSpeed);
         const dpLabel=dp==null?"—":(dp===0?"=":(dp>0?"+":"")+formatCOP(dp).replace("COP","").trim());
         const dsLabel=ds==null?"—":(ds>0?"+":"")+formatNum(ds);
         const op=rowOperator(r),city=clean(r.Ciudad);
