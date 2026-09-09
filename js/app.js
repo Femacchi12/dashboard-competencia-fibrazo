@@ -23,7 +23,7 @@
     const hideRankings=FZ.filters.isSingleOperatorSingleCity();
     ["operator-price-panel","operator-speed-panel"].forEach(id=>$(id)?.classList.toggle("hidden",!inGeneral||hideRankings));
 
-    document.querySelector(".filters")?.classList.toggle("hidden",state.analysisView==="compare");
+    document.querySelector(".filters")?.classList.toggle("hidden",state.analysisView==="compare"||state.analysisView==="mobile");
 
     if(state.analysisView==="territory"){
       $("coverage-ranking-panel")?.classList.toggle("hidden",FZ.filters.effectiveCityCount()<=1);
@@ -42,7 +42,8 @@
     if(state.analysisView==="territory"){FZ.territory?.renderCoverage?.();return;}
     if(state.analysisView==="network"){FZ.territory?.renderFibrazo?.();return;}
     if(state.analysisView==="fibrazo"){FZ.comparison?.renderFibrazoComparison?.();return;}
-    if(state.analysisView==="compare"){FZ.comparison?.renderComparator?.();}
+    if(state.analysisView==="compare"){FZ.comparison?.renderComparator?.();return;}
+    if(state.analysisView==="mobile"){FZ.mobile?.render?.();}
   }
 
   function clearTransientPanels(){
@@ -50,6 +51,7 @@
     state.openTrunkKey="";
     document.querySelectorAll(".scatter-interactive-tooltip").forEach(el=>el.remove());
     document.querySelectorAll(".operator-chooser-instance").forEach(el=>el.remove());
+    FZ.mobile?.clearTransient?.();
   }
 
   function setAnalysisView(view){
@@ -69,6 +71,7 @@
     if(view==="network") FZ.territory?.renderFibrazo?.();
     if(view==="fibrazo") FZ.comparison?.renderFibrazoComparison?.();
     if(view==="compare") FZ.comparison?.renderComparator?.();
+    if(view==="mobile") FZ.mobile?.render?.();
   }
 
   async function load({silent=false}={}){
@@ -126,6 +129,7 @@
     state.expanded=false;
     state.sort={key:"Grupo_Operador",dir:1};
     state.comparison={level:"city",items:new Set(),cityFilter:"all",search:""};
+    state.mobileView={period:"2026-09",operator:"all",modality:"all",status:"all",search:"",sort:{key:"Operador",dir:1},openKey:""};
     FZ.filters.renderCityQuickbar();
     FZ.filters.renderFilters();
     FZ.filters.apply();
