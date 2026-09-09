@@ -1492,7 +1492,7 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
 }
 .mobile-filter-grid{
   display:grid;
-  grid-template-columns:repeat(4,minmax(140px,1fr)) minmax(250px,1.5fr);
+  grid-template-columns:repeat(4,minmax(140px,1fr));
   gap:10px;
   align-items:end;
 }
@@ -1758,4 +1758,87 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
   .mobile-detail-grid{grid-template-columns:1fr}
   .mobile-search-label,
   .mobile-detail-grid>div.wide{grid-column:auto}
+}
+
+
+/* 2026-09-09 · Unified table typography and search */
+:root{
+  --table-body-size:11px;
+  --table-head-size:9.5px;
+}
+.table-scroll table,
+.operator-detail-table,
+.trunk-competitors-table,
+.mobile-table,
+.compare-table{
+  font-size:var(--table-body-size)!important;
+}
+.table-scroll th,
+.operator-detail-table th,
+.trunk-competitors-table th,
+.compare-table th{
+  font-size:var(--table-head-size)!important;
+}
+.mobile-sort-btn{
+  font-size:var(--table-head-size)!important;
+}
+.table-scroll td,
+.operator-detail-table td,
+.trunk-competitors-table td,
+.mobile-table td,
+.compare-table td{
+  font-size:var(--table-body-size)!important;
+  line-height:1.35;
+}
+.operator-detail-table th,
+.operator-detail-table td,
+.trunk-competitors-table th,
+.trunk-competitors-table td,
+.mobile-table td{
+  padding:9px 10px;
+}
+.mobile-row-trigger{
+  font-size:var(--table-body-size)!important;
+}
+.mobile-table-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+.mobile-table-head-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+}
+.mobile-table-search{
+  width:300px;
+  min-height:38px;
+  padding:8px 11px;
+  border:1px solid #30433B;
+  border-radius:10px;
+  background:#101815;
+  color:#F4FFF9;
+  font:500 11px Inter,sans-serif;
+  outline:none;
+}
+.mobile-table-search:focus{
+  border-color:#00F29A;
+}
+.mobile-table-panel .panel-head span{
+  font-size:10.5px;
+}
+@media(max-width:700px){
+  .mobile-table-head{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .mobile-table-head-actions{
+    width:100%;
+    justify-content:space-between;
+  }
+  .mobile-table-search{
+    width:100%;
+  }
 }
