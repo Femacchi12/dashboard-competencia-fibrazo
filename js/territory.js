@@ -3,7 +3,7 @@
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
   const state=FZ.state;
-  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,rowOperator}=FZ.u;
+  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,rowOperator,trunkCompetitiveSummaryHtml}=FZ.u;
   const $=FZ.u.$;
 
   function renderCoverage(){
@@ -218,12 +218,12 @@
         '<div class="trunk-detail-head">'+
           '<div><span>TRONCAL FIBRAZO</span><h3>'+escapeHtml(trunk)+'</h3><p>'+escapeHtml(city)+' · corte operativo '+escapeHtml(metric?.Periodo_Corte||"sin dato")+'</p></div>'+
         '</div>'+
-        '<div class="trunk-detail-kpis">'+
+        '<div class="trunk-detail-kpis three">'+
           '<div><span>HHPP</span><b>'+(hhpp==null?"—":formatNum(hhpp))+'</b></div>'+
           '<div><span>Clientes activos</span><b>'+(active==null?"—":formatNum(active))+'</b></div>'+
           '<div><span>Penetración</span><b>'+(pen==null?"—":formatPct(pen*100).replace("+",""))+'</b></div>'+
-          '<div><span>Competidores relevados</span><b>'+formatNum(competitors.length)+'</b></div>'+
         '</div>'+
+        trunkCompetitiveSummaryHtml(competitors.map(c=>c.operator),competitors.length)+
         strataDetailHtml(metric)+
         '<div class="detail-table-tools"><input type="search" class="detail-table-search trunk-detail-search" placeholder="Buscar en la tabla…" autocomplete="off"></div>'+
         '<div class="trunk-competitors-wrap">'+
