@@ -14,12 +14,12 @@
   function detailData(operator,city,planId){
     const reference=state.plans.find(r=>clean(r.ID_Plan_Registro)===clean(planId))||null;
     const period=clean(reference?.Periodo_Corte)||FZ.filters.selectedPeriodValue();
-    let plans=state.plans.filter(r=>rowOperator(r)===operator&&clean(r.Ciudad)===city);
+    let plans=state.indexes?.plansByCityOperator?.get(city+"|"+operator)||[];
     plans=exactPeriodRows(plans,period).sort((a,b)=>(toNum(a.Precio_Usado_COP)??Infinity)-(toNum(b.Precio_Usado_COP)??Infinity));
-    let coverage=state.coverage.filter(r=>rowOperator(r)===operator&&clean(r.Ciudad)===city);
+    const opId=clean(reference?.ID_Operador)||clean(plans[0]?.ID_Operador);
+    let coverage=state.indexes?.coverageByCityOperator?.get(city+"|"+(opId||operator))||[];
     coverage=exactPeriodRows(coverage,period);
 
-    const opId=clean(reference?.ID_Operador)||clean(plans[0]?.ID_Operador);
     const meta=state.operators.find(o=>opId&&clean(o.ID_Operador)===opId)
       ||state.operators.find(o=>fold(clean(o.Operador_Normalizado)||clean(o.Marca_Comercial))===fold(operator))
       ||{};
