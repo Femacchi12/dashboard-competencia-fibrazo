@@ -149,9 +149,23 @@
     };
   }
 
+  function trunkCompetitiveSummaryHtml(operators,total=null){
+    const names=[...operators].map(clean).filter(Boolean);
+    const presence=traditionalOperatorPresence(names);
+    const count=total==null?new Set(names.map(fold)).size:total;
+    const badge=(label,yes)=>
+      '<div class="trunk-market-signal '+(yes?"present":"absent")+'"><span>'+escapeHtml(label)+'</span><b>'+(yes?"Sí":"No")+'</b></div>';
+    return '<div class="trunk-market-summary">'+
+      '<div class="trunk-market-total"><span>Competidores</span><b>'+formatNum(count)+'</b></div>'+
+      '<div class="trunk-market-traditional"><span>Operadores tradicionales</span><div>'+
+        badge("Tigo",presence.tigo)+badge("Claro",presence.claro)+badge("Movistar",presence.movistar)+
+      '</div></div>'+
+    '</div>';
+  }
+
   FZ.u = {
     $,clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,pctVs,priceBand,normalizeTV,
-    periodValue,formatPeriod,periodSortValue,formatYearMonth,safeUrl,linkCell,phoneCell,rowOperator,traditionalOperatorPresence
+    periodValue,formatPeriod,periodSortValue,formatYearMonth,safeUrl,linkCell,phoneCell,rowOperator,traditionalOperatorPresence,trunkCompetitiveSummaryHtml
   };
 
   FZ.filterDefs = [
