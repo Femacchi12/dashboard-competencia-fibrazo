@@ -150,29 +150,48 @@
       </article>
     </section>
     <section id="compare-section" class="section view-block hidden" data-view="compare">
-      <div class="section-title section-heading">
-        <div><span>COMPARADOR</span><h2>Compara mercados y territorios</h2></div>
-        <div id="compare-summary" class="coverage-meta">Selecciona al menos 2 ámbitos</div>
-      </div>
-
-      <div class="comparison-builder panel">
-        <label class="compare-level-control">Nivel de comparación
-          <select id="compare-level">
-            <option value="city">Ciudades</option>
-            <option value="zone">Zonas FIBRAZO</option>
-            <option value="trunk">Troncales FIBRAZO</option>
-            <option value="barrio">Barrios</option>
-          </select>
-        </label>
-        <div class="compare-scope-control">
-          <span>Ámbitos a comparar</span>
-          <small id="compare-scope-hint">Las ciudades se toman del selector general de arriba.</small>
-          <div id="compare-scope-options" class="compare-scope-options"></div>
+      <div class="section-title section-heading compare-page-heading">
+        <div>
+          <span>COMPARADOR</span>
+          <h2>Comparador</h2>
+          <p class="compare-page-note">Selecciona dos o más ciudades o troncales para contrastar tamaño de mercado, penetración, precios, velocidades y la posición de FIBRAZO. Esta vista usa filtros propios y no depende de los filtros generales.</p>
         </div>
+        <div id="compare-summary" class="compare-selection-summary">Sin selección</div>
       </div>
 
-      <div id="compare-benchmark" class="panel compare-benchmark"></div>
-      <div id="compare-cards" class="compare-grid"></div>
+      <article class="panel compare-setup">
+        <div class="compare-step">
+          <span class="compare-step-number">1</span>
+          <div class="compare-step-body">
+            <span class="compare-step-label">QUÉ QUIERES COMPARAR</span>
+            <div class="compare-level-tabs" role="tablist" aria-label="Nivel de comparación">
+              <button type="button" class="compare-level-tab active" data-compare-level="city" role="tab" aria-selected="true">Ciudades</button>
+              <button type="button" class="compare-level-tab" data-compare-level="trunk" role="tab" aria-selected="false">Troncales</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="compare-step compare-step-selection">
+          <span class="compare-step-number">2</span>
+          <div class="compare-step-body">
+            <div class="compare-step-title-row">
+              <div>
+                <span class="compare-step-label">SELECCIONA 2 O MÁS</span>
+                <small id="compare-scope-hint">Elige las ciudades que quieres comparar.</small>
+              </div>
+              <button id="compare-clear-selection" class="btn outline small" type="button">Limpiar selección</button>
+            </div>
+            <div class="compare-own-filters">
+              <select id="compare-city-filter" class="compare-own-select hidden" aria-label="Filtrar troncales por ciudad"></select>
+              <input id="compare-search" class="search-input compare-search" type="search" placeholder="Buscar ciudad…" autocomplete="off" />
+            </div>
+            <div id="compare-scope-options" class="compare-scope-options compare-scope-options-clean"></div>
+          </div>
+        </div>
+      </article>
+
+      <div id="compare-benchmark" class="compare-results-head hidden"></div>
+      <div id="compare-cards" class="compare-grid compare-grid-managerial"></div>
     </section>
 
     <section class="section panel records view-block" data-view="general">
