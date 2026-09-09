@@ -43,7 +43,8 @@
       const sameServiceSpeed=local.find(o=>
         clean(o.Servicio)===clean(selected.Servicio)&&
         toNum(o.Velocidad_Mbps)===toNum(selected.Velocidad_Mbps)&&
-        normalizeTV(o.TV)===normalizeTV(selected.TV)
+        normalizeTV(o.TV)===normalizeTV(selected.TV)&&
+        clean(o.Etapa_Vigencia)===clean(selected.Etapa_Vigencia)
       );
       if(sameServiceSpeed) return sameServiceSpeed;
     }
