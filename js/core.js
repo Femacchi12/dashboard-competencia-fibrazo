@@ -139,9 +139,19 @@
 
   const rowOperator = r => clean(r?.Grupo_Operador)||clean(r?.Operador_Normalizado);
 
+  function traditionalOperatorPresence(operators){
+    const names=[...operators].map(fold).filter(Boolean);
+    const has=term=>names.some(name=>name.includes(term));
+    return {
+      tigo:has("tigo"),
+      claro:has("claro"),
+      movistar:has("movistar")
+    };
+  }
+
   FZ.u = {
     $,clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,pctVs,priceBand,normalizeTV,
-    periodValue,formatPeriod,periodSortValue,formatYearMonth,safeUrl,linkCell,phoneCell,rowOperator
+    periodValue,formatPeriod,periodSortValue,formatYearMonth,safeUrl,linkCell,phoneCell,rowOperator,traditionalOperatorPresence
   };
 
   FZ.filterDefs = [
