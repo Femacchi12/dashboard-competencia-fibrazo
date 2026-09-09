@@ -34,7 +34,8 @@
     charts:{},
     loading:false,
     lastLoadAt:0,
-    openTrunkKey:""
+    openTrunkKey:"",
+    indexes:{}
   };
 
   FZ.months = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
