@@ -123,7 +123,16 @@
         HHPP:hhpp,
         Clientes_Activos:active,
         Penetracion:hhpp!=null&&hhpp>0&&active!=null?active/hhpp:null,
-        Filas_Fuente_Consolidadas:toNum(r.Filas_Fuente_Consolidadas)||0
+        Filas_Fuente_Consolidadas:toNum(r.Filas_Fuente_Consolidadas)||0,
+        HHPP_Estrato_0:toNum(r.HHPP_Estrato_0),
+        HHPP_Estrato_1:toNum(r.HHPP_Estrato_1),
+        HHPP_Estrato_2:toNum(r.HHPP_Estrato_2),
+        HHPP_Estrato_3:toNum(r.HHPP_Estrato_3),
+        HHPP_Estrato_4:toNum(r.HHPP_Estrato_4),
+        HHPP_Estrato_5:toNum(r.HHPP_Estrato_5),
+        HHPP_Estrato_6:toNum(r.HHPP_Estrato_6),
+        HHPP_Sin_Estrato:toNum(r.HHPP_Sin_Estrato),
+        Total_HHPP_Estratos:toNum(r.Total_HHPP_Estratos)
       };
     });
   }
