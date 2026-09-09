@@ -30,13 +30,14 @@
       <div class="hero-copy">
         <div class="hero-brand"><span>fibrazo</span><i></i><b>GROWTH</b></div>
         <h1>Dashboard de Competencia</h1>
-        <p>Lectura ejecutiva por ciudad y corte: competidores, precios, planes, velocidad y evolución del mercado.</p>
+        <p>Lectura ejecutiva por ciudad y corte: competidores, precios, velocidades, presencia y posición frente a FIBRAZO.</p>
       </div>
 
       <div class="update-cards single">
         <article>
           <span>Última consulta</span>
           <b id="last-load">—</b>
+          <small id="source-health" class="source-health">Fuentes: —</small>
           <button id="refresh-btn" class="refresh-button" type="button">↻ Actualizar</button>
         </article>
       </div>
@@ -81,22 +82,6 @@
       <article class="kpi-card warn"><span>Precio máximo</span><strong id="kpi-max-price">—</strong><small>COP · oferta más alta</small></article>
       <article class="kpi-card info"><span>Velocidad mínima</span><strong id="kpi-min-speed">—</strong><small>Mbps de bajada</small></article>
       <article class="kpi-card info"><span>Velocidad máxima</span><strong id="kpi-max-speed">—</strong><small>Mbps de bajada</small></article>
-    </section>
-
-    <section id="evolution-section" class="section evolution-section view-block hidden" data-view="general">
-      <div class="section-title section-heading evolution-heading">
-        <div><span>EVOLUCIÓN</span><h2>Cambios del mercado</h2></div>
-        <div class="evolution-period"><strong id="evolution-current">—</strong><span id="evolution-compare">Primer corte disponible</span></div>
-      </div>
-      <div class="evolution-summary">
-        <article class="panel evo-card"><span>Nuevos competidores</span><strong id="evo-new">—</strong><small id="evo-new-note">Sin periodo anterior</small></article>
-        <article class="panel evo-card"><span>Salieron del mercado</span><strong id="evo-lost">—</strong><small id="evo-lost-note">Sin periodo anterior</small></article>
-        <article class="panel evo-card"><span>Cambios de precio</span><strong id="evo-price-change">—</strong><small id="evo-price-note">Operadores vs. corte anterior</small></article>
-      </div>
-      <div class="evolution-grid">
-        <article class="panel chart-panel compact"><div class="panel-head"><h3>Competidores por corte</h3><span>Evolución del mercado filtrado</span></div><canvas id="competitors-evolution-chart"></canvas></article>
-        <article class="panel chart-panel compact"><div class="panel-head"><h3>Precio mínimo y máximo por corte</h3><span>Rango de la oferta</span></div><canvas id="price-evolution-chart"></canvas></article>
-      </div>
     </section>
 
     <section class="section market-section view-block" data-view="general">
@@ -163,28 +148,17 @@
       <div id="fibrazo-city-groups" class="network-city-groups"></div>
     </section>
 
-    <section id="coverage-section" class="section coverage-section view-block hidden" data-view="territory">
-      <div class="section-title section-heading">
-        <div><span>TERRITORIO</span><h2>Competidores con presencia observada</h2></div>
-        <div class="coverage-meta"><strong id="coverage-visible">—</strong><span>registros compatibles</span></div>
-      </div>
-      <div class="coverage-grid compact">
-        <article id="coverage-ranking-panel" class="panel ranking-panel coverage-ranking-panel"><div class="panel-head"><h3>Competidores por ciudad</h3></div><div id="coverage-ranking" class="coverage-ranking"></div></article>
-        <article class="panel coverage-list-panel compact"><div class="panel-head"><h3>Detalle territorial</h3><span>Ciudad · barrio/zona/troncal → competidores</span></div><div id="coverage-list" class="coverage-list grouped"></div></article>
-      </div>
-    </section>
-
     <section id="fibrazo-section" class="section view-block hidden" data-view="fibrazo">
       <div class="section-title section-heading"><div><span>VS. FIBRAZO</span><h2>Comparación de propuesta comercial</h2></div></div>
       <div class="comparison-toolbar panel">
-        <label>Plan FIBRAZO<select id="fibrazo-offer-select"></select></label>
-        <div class="comparison-source">Oferta normalizada desde <b>Precios y Propuesta Comercial Fibrazo</b></div>
+        <label>Oferta FIBRAZO de referencia<select id="fibrazo-offer-select"></select></label>
+        <div class="comparison-source"><span id="fibrazo-benchmark-note">Oferta normalizada desde <b>Precios y Propuesta Comercial Fibrazo</b></span></div>
       </div>
       <div class="comparison-kpis">
-        <article class="panel compare-card"><span>FIBRAZO · Precio</span><strong id="fz-price">—</strong><small id="fz-offer-name">—</small></article>
-        <article class="panel compare-card"><span>FIBRAZO · Velocidad</span><strong id="fz-speed">—</strong><small>Mbps</small></article>
-        <article class="panel compare-card"><span>Precio competitivo</span><strong id="fz-better-price">—</strong><small>competidores por debajo</small></article>
-        <article class="panel compare-card"><span>Velocidad competitiva</span><strong id="fz-better-speed">—</strong><small>competidores por encima</small></article>
+        <article class="panel compare-card metric-price"><span>FIBRAZO · Precio</span><strong id="fz-price">—</strong><small id="fz-offer-name">—</small></article>
+        <article class="panel compare-card metric-speed"><span>FIBRAZO · Velocidad</span><strong id="fz-speed">—</strong><small>Mbps</small></article>
+        <article class="panel compare-card metric-price"><span>Precio competitivo</span><strong id="fz-better-price">—</strong><small>competidores por debajo</small></article>
+        <article class="panel compare-card metric-speed"><span>Velocidad competitiva</span><strong id="fz-better-speed">—</strong><small>competidores por encima</small></article>
       </div>
       <article class="panel compare-table-panel">
         <div class="panel-head fz-table-head">
