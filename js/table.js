@@ -3,7 +3,7 @@
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
   const state=FZ.state;
-  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,rowOperator,normalizeTV,phoneCell,linkCell}=FZ.u;
+  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,rowOperator,normalizeTV,phoneCell,linkCell,compareOperatorsTraditionalFirst}=FZ.u;
   const $=FZ.u.$;
 
   function matchingCoverageForPlan(r){
@@ -125,6 +125,7 @@
     const {key,dir}=state.sort;
     return [...rows].sort((a,b)=>{
       if(key==="Periodo_Label") return (FZ.u.periodSortValue(a.Periodo_Corte)-FZ.u.periodSortValue(b.Periodo_Corte))*dir;
+      if(key==="Grupo_Operador") return compareOperatorsTraditionalFirst(a,b)*dir;
       const an=toNum(a[key]),bn=toNum(b[key]);
       if(an!=null&&bn!=null) return (an-bn)*dir;
       return clean(a[key]).localeCompare(clean(b[key]),"es",{numeric:true})*dir;
