@@ -146,15 +146,22 @@
     state.plans.forEach(r=>{if(clean(r.Periodo_Corte)) periods.add(clean(r.Periodo_Corte));});
     state.coverage.forEach(r=>{if(clean(r.Periodo_Corte)) periods.add(clean(r.Periodo_Corte));});
     const ordered=[...periods].sort((a,b)=>FZ.u.periodSortValue(b)-FZ.u.periodSortValue(a));
-    if(ordered.length&&!ordered.includes(state.comparison.period)) state.comparison.period=ordered[0];
+
+    if(!(state.comparison.periods instanceof Set)) state.comparison.periods=new Set();
+    [...state.comparison.periods].forEach(p=>{if(!ordered.includes(p)) state.comparison.periods.delete(p);});
+    if(ordered.length&&!state.comparison.periods.size) state.comparison.periods.add(ordered[0]);
     return ordered;
   }
 
-  function periodRowsForCity(rows,city){
-    const period=clean(state.comparison.period);
+  function selectedComparisonPeriods(){
+    const ordered=comparisonPeriods();
+    return ordered.filter(p=>state.comparison.periods.has(p));
+  }
+
+  function periodRowsForCity(rows,city,period){
     return rows.filter(r=>
       clean(r.Ciudad)===clean(city)&&
-      (!period||clean(r.Periodo_Corte)===period)
+      (!period||clean(r.Periodo_Corte)===clean(period))
     );
   }
 
@@ -197,14 +204,14 @@
     });
   }
 
-  function scopeCoverageRows(scope){
-    const rows=periodRowsForCity(state.coverage,scope.city);
+  function scopeCoverageRows(scope,period){
+    const rows=periodRowsForCity(state.coverage,scope.city,period);
     if(scope.level==="city") return rows;
     return rows.filter(r=>clean(r.Troncal_FIBRAZO)===scope.value);
   }
 
-  function scopePlanRows(scope,coverageRows){
-    let rows=periodRowsForCity(state.plans,scope.city);
+  function scopePlanRows(scope,coverageRows,period){
+    let rows=periodRowsForCity(state.plans,scope.city,period);
     if(scope.level==="city") return rows;
     const ops=new Set(coverageRows.map(rowOperator).filter(Boolean));
     if(!ops.size) return [];
@@ -227,9 +234,9 @@
     return {hhpp,active,penetration:hhpp>0?active/hhpp:null};
   }
 
-  function comparisonMetrics(scope){
-    const coverageRows=scopeCoverageRows(scope);
-    const plans=scopePlanRows(scope,coverageRows);
+  function comparisonMetrics(scope,period){
+    const coverageRows=scopeCoverageRows(scope,period);
+    const plans=scopePlanRows(scope,coverageRows,period);
     const ops=new Set();
     coverageRows.forEach(r=>{const op=rowOperator(r);if(op)ops.add(op);});
     plans.forEach(r=>{const op=rowOperator(r);if(op)ops.add(op);});
@@ -317,16 +324,22 @@
     const periods=comparisonPeriods();
     if(periodFilter){
       periodFilter.innerHTML=periods.map(p=>
-        '<option value="'+escapeHtml(p)+'" '+(p===state.comparison.period?"selected":"")+'>'+escapeHtml(comparisonPeriodLabel(p))+'</option>'
+        '<label class="compare-period-option '+(state.comparison.periods.has(p)?"active":"")+'">'+
+          '<input type="checkbox" value="'+escapeHtml(p)+'" '+(state.comparison.periods.has(p)?"checked":"")+'>'+
+          '<span>'+escapeHtml(comparisonPeriodLabel(p))+'</span>'+
+        '</label>'
       ).join("");
-      if(periodFilter.dataset.boundComparePeriod!=="1"){
-        periodFilter.dataset.boundComparePeriod="1";
-        periodFilter.addEventListener("change",()=>{
-          state.comparison.period=periodFilter.value;
-          FZ.details?.clear?.();
-          renderComparator();
-        });
-      }
+      periodFilter.querySelectorAll("input").forEach(input=>input.addEventListener("change",e=>{
+        const p=e.target.value;
+        if(e.target.checked){
+          state.comparison.periods.add(p);
+        }else{
+          if(state.comparison.periods.size<=1){e.target.checked=true;return;}
+          state.comparison.periods.delete(p);
+        }
+        FZ.details?.clear?.();
+        renderComparator();
+      }));
     }
 
     document.querySelectorAll("[data-compare-level]").forEach(btn=>{
@@ -377,9 +390,11 @@
     }
 
     if(hint){
+      const cutCount=selectedComparisonPeriods().length;
       hint.textContent=state.comparison.level==="trunk"
-        ?"Solo se muestran troncales con HHPP construidos. La presencia competitiva corresponde al corte seleccionado."
-        :"Selecciona una o más ciudades. La información competitiva corresponde al corte seleccionado.";
+        ?"Solo se muestran troncales con HHPP construidos. Puedes comparar uno o dos cortes competitivos."
+        :"Selecciona una o más ciudades. Puedes comparar uno o dos cortes competitivos.";
+      if(cutCount>1) hint.textContent+=" Los resultados se separan por corte.";
     }
 
     renderSelectedStrip();
@@ -413,7 +428,7 @@
     }
   }
 
-  function operatorListHtml(scope,m){
+  function operatorListHtml(scope,m,period){
     if(!m.operatorSummaries.length){
       return '<div class="compare-operators-block"><div class="compare-operators-head"><span>OPERADORES PRESENTES</span><b>0</b></div><div class="compare-operators-empty">Sin operadores identificados para este ámbito y corte.</div></div>';
     }
@@ -425,22 +440,22 @@
           o.maxSpeed!=null?formatNum(o.maxSpeed)+" Mbps":"",
           o.technologies.length?o.technologies.join(" · "):""
         ].filter(Boolean).join(" · ")||"Sin plan estructurado";
-        return '<button type="button" class="compare-operator-btn" data-compare-operator="'+escapeHtml(o.operator)+'" data-compare-city="'+escapeHtml(scope.city)+'" data-compare-plan="'+escapeHtml(o.planId||"")+'">'+
+        return '<button type="button" class="compare-operator-btn" data-compare-operator="'+escapeHtml(o.operator)+'" data-compare-city="'+escapeHtml(scope.city)+'" data-compare-plan="'+escapeHtml(o.planId||"")+'" data-compare-period="'+escapeHtml(period)+'">'+
           '<b>'+escapeHtml(o.operator)+'</b><small>'+escapeHtml(detail)+'</small><span>Ver detalle →</span>'+
         '</button>';
       }).join("")+'</div>'+
     '</div>';
   }
 
-  function resultCard(scope){
-    const m=comparisonMetrics(scope),op=m.operational,fz=m.fz;
+  function resultCard(scope,period){
+    const m=comparisonMetrics(scope,period),op=m.operational,fz=m.fz;
     const cheaperPct=percentPart(m.cheaper,m.pricedOperators);
     const fasterPct=percentPart(m.faster,m.speedOperators);
     const scopeType=scope.level==="trunk"?"TRONCAL":"CIUDAD";
 
     return '<article class="panel compare-scope-card compare-scope-card-managerial">'+
       '<div class="compare-scope-head">'+
-        '<div><span>'+scopeType+' · '+escapeHtml(comparisonPeriodLabel(state.comparison.period))+'</span><h3>'+escapeHtml(scope.label)+'</h3></div>'+
+        '<div><span>'+scopeType+' · '+escapeHtml(comparisonPeriodLabel(period))+'</span><h3>'+escapeHtml(scope.label)+'</h3></div>'+
         '<strong>'+formatNum(m.ops.size)+' competidores</strong>'+
       '</div>'+
       '<div class="compare-managerial-block">'+
@@ -452,7 +467,7 @@
         '</div>'+
       '</div>'+
       '<div class="compare-managerial-block">'+
-        '<span class="compare-block-title">MERCADO · '+escapeHtml(comparisonPeriodLabel(state.comparison.period))+'</span>'+
+        '<span class="compare-block-title">MERCADO · '+escapeHtml(comparisonPeriodLabel(period))+'</span>'+
         '<div class="compare-market-grid">'+
           '<div><span>Precio mín.</span><b>'+formatCOP(m.minPrice)+'</b></div>'+
           '<div><span>Precio máx.</span><b>'+formatCOP(m.maxPrice)+'</b></div>'+
@@ -460,7 +475,7 @@
           '<div><span>Velocidad máx.</span><b>'+(m.maxSpeed==null?"—":formatNum(m.maxSpeed)+" Mbps")+'</b></div>'+
         '</div>'+
       '</div>'+
-      operatorListHtml(scope,m)+
+      operatorListHtml(scope,m,period)+
       '<div class="fibrazo-benchmark-row managerial">'+
         '<div><span>BENCHMARK FIBRAZO ACTUAL</span><b>'+(fz?formatCOP(fz.Precio_COP)+' · '+formatNum(fz.Velocidad_Mbps)+' Mbps':"Sin oferta normalizada")+'</b></div>'+
       '</div>'+
@@ -476,11 +491,11 @@
       const operator=clean(btn.dataset.compareOperator);
       const city=clean(btn.dataset.compareCity);
       const planId=clean(btn.dataset.comparePlan);
+      const period=clean(btn.dataset.comparePeriod);
       if(!operator) return;
       FZ.details?.clear?.();
       FZ.details?.open?.({
-        operator,city,planId,
-        period:state.comparison.period,
+        operator,city,planId,period,
         mode:"chart",
         slotId:"compare-operator-detail-slot"
       });
@@ -488,7 +503,8 @@
   }
 
   function renderComparator(){
-    comparisonPeriods();
+    const availablePeriods=comparisonPeriods();
+    const selectedPeriods=selectedComparisonPeriods();
     const allValid=new Set(allScopeOptions().map(o=>o.key));
     state.comparison.items=new Set([...state.comparison.items].filter(k=>allValid.has(k)));
 
@@ -498,9 +514,12 @@
     const uniqueSelected=selectedScopes();
     const summary=$("compare-summary"),benchmark=$("compare-benchmark"),cards=$("compare-cards");
     if(summary){
-      summary.textContent=uniqueSelected.length
-        ?formatNum(uniqueSelected.length)+" seleccionado"+(uniqueSelected.length===1?"":"s")
-        :"Sin selección";
+      if(uniqueSelected.length){
+        summary.textContent=formatNum(uniqueSelected.length)+" ámbito"+(uniqueSelected.length===1?"":"s")+
+          " · "+formatNum(selectedPeriods.length)+" corte"+(selectedPeriods.length===1?"":"s");
+      }else{
+        summary.textContent="Sin selección";
+      }
     }
     if(!cards) return;
 
@@ -513,12 +532,15 @@
 
     if(benchmark){
       benchmark.classList.remove("hidden");
-      benchmark.innerHTML='<div><span>RESULTADO</span><h3>'+(uniqueSelected.length===1?"Vista seleccionada":"Lectura comparativa")+'</h3></div><p>'+
+      const cutsLabel=selectedPeriods.map(comparisonPeriodLabel).join(" · ");
+      benchmark.innerHTML='<div><span>RESULTADO</span><h3>'+(uniqueSelected.length===1&&selectedPeriods.length===1?"Vista seleccionada":"Lectura comparativa")+'</h3></div><p>'+
         formatNum(uniqueSelected.length)+' '+(state.comparison.level==="trunk"?"troncal"+(uniqueSelected.length===1?"":"es"):"ciudad"+(uniqueSelected.length===1?"":"es"))+
-        ' · corte '+escapeHtml(comparisonPeriodLabel(state.comparison.period))+' · FIBRAZO como benchmark actual</p>';
+        ' · '+escapeHtml(cutsLabel)+' · FIBRAZO como benchmark actual</p>';
     }
 
-    cards.innerHTML=uniqueSelected.map(resultCard).join("");
+    const resultItems=[];
+    uniqueSelected.forEach(scope=>selectedPeriods.forEach(period=>resultItems.push({scope,period})));
+    cards.innerHTML=resultItems.map(x=>resultCard(x.scope,x.period)).join("");
     bindComparatorOperators();
   }
 
