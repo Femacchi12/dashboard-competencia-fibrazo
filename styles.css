@@ -2436,3 +2436,6 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
 @media(max-width:560px){
   .filters-grid{grid-template-columns:1fr}
 }
+
+.compare-market-grid .metric-price b{color:var(--price)}
+.compare-market-grid .metric-speed b{color:var(--speed)}
