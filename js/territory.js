@@ -3,7 +3,7 @@
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
   const state=FZ.state;
-  const {clean,escapeHtml,toNum,formatCOP,formatNum,formatPct,rowOperator}=FZ.u;
+  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,rowOperator}=FZ.u;
   const $=FZ.u.$;
 
   function renderCoverage(){
@@ -153,17 +153,32 @@
     return values.map(x=>({...x,pct:total>0?x.value/total:null,total}));
   }
 
+  function strataPct(metric,key){
+    const row=estratoBreakdown(metric).find(x=>x.key===key);
+    return row?.pct??null;
+  }
+
+  function pctLabel(value){
+    return value==null?"—":(value*100).toFixed(1).replace(".",",")+"%";
+  }
+
   function miniStrataHtml(metric){
     const data=estratoBreakdown(metric);
     const total=data[0]?.total||0;
-    if(!total) return '<span class="trunk-strata-cell empty"><span>Sin dato</span></span>';
+    if(!total) return '<span class="trunk-strata-cell empty"><span>Sin dato de estratos</span></span>';
     const segments=data.filter(x=>x.value>0).map(x=>
-      '<i class="strata-segment '+x.className+'" style="width:'+Math.max(.5,x.pct*100)+'%" title="'+escapeHtml(x.label)+': '+formatNum(x.value)+' · '+(x.pct*100).toFixed(1).replace(".",",")+'%"></i>'
+      '<i class="strata-segment '+x.className+'" style="width:'+Math.max(.5,x.pct*100)+'%" title="'+escapeHtml(x.label)+': '+formatNum(x.value)+' · '+pctLabel(x.pct)+'"></i>'
     ).join("");
-    const dominant=[...data].sort((a,b)=>b.value-a.value)[0];
+    const e1=data.find(x=>x.key==="HHPP_Estrato_1");
+    const e2=data.find(x=>x.key==="HHPP_Estrato_2");
+    const e3=data.find(x=>x.key==="HHPP_Estrato_3");
     return '<span class="trunk-strata-cell">'+
       '<span class="trunk-strata-mini">'+segments+'</span>'+
-      '<small>'+escapeHtml(dominant.label)+' · '+(dominant.pct*100).toFixed(1).replace(".",",")+'%</small>'+
+      '<small class="trunk-strata-summary">'+
+        '<span class="e1">E1 <b>'+pctLabel(e1?.pct)+'</b></span>'+
+        '<span class="e2">E2 <b>'+pctLabel(e2?.pct)+'</b></span>'+
+        '<span class="e3">E3 <b>'+pctLabel(e3?.pct)+'</b></span>'+
+      '</small>'+
     '</span>';
   }
 
@@ -174,48 +189,34 @@
       return '<section class="trunk-strata-section"><div class="trunk-subhead"><div><span>DISTRIBUCIÓN HHPP</span><h4>HHPP por estrato</h4></div></div><div class="detail-empty">Sin distribución de estratos disponible para esta troncal.</div></section>';
     }
 
-    const operational=toNum(metric?.HHPP);
-    const criterion=clean(metric?.Criterio_Total_HHPP);
-    const different=operational!=null&&Math.abs(operational-total)>=1;
-    const note=different
-      ?'<div class="trunk-strata-note '+(criterion.includes("MANTIENE")?"warn":"")+'">HHPP operativo: <b>'+formatNum(operational)+'</b> · Total usado para distribución por estrato: <b>'+formatNum(total)+'</b> · '+escapeHtml(criterion||"Criterio de conciliación aplicado")+'</div>'
-      :"";
-
     return '<section class="trunk-strata-section">'+
       '<div class="trunk-subhead"><div><span>DISTRIBUCIÓN HHPP</span><h4>HHPP por estrato</h4></div><small>'+formatNum(total)+' HHPP clasificados</small></div>'+
       '<div class="trunk-strata-overview">'+
         '<div class="trunk-strata-stack">'+data.filter(x=>x.value>0).map(x=>
-          '<i class="strata-segment '+x.className+'" style="width:'+Math.max(.5,x.pct*100)+'%" title="'+escapeHtml(x.label)+': '+formatNum(x.value)+'"></i>'
+          '<i class="strata-segment '+x.className+'" style="width:'+Math.max(.5,x.pct*100)+'%" title="'+escapeHtml(x.label)+': '+formatNum(x.value)+' · '+pctLabel(x.pct)+'"></i>'
         ).join("")+'</div>'+
       '</div>'+
       '<div class="trunk-strata-grid">'+data.map(x=>
         '<article class="trunk-strata-card '+x.className+'">'+
           '<div><span>'+escapeHtml(x.label)+'</span><strong>'+formatNum(x.value)+'</strong></div>'+
-          '<b>'+(x.pct==null?"—":(x.pct*100).toFixed(1).replace(".",",")+'%')+'</b>'+
+          '<b>'+pctLabel(x.pct)+'</b>'+
           '<div class="trunk-strata-track"><i style="width:'+(x.pct==null?0:Math.max(x.value>0?2:0,x.pct*100))+'%"></i></div>'+
         '</article>'
       ).join("")+'</div>'+
-      note+
     '</section>';
   }
 
-  function renderTrunkDetail(city,trunk){
-    const slot=$("fibrazo-trunk-detail");
-    if(!slot) return;
-    state.openTrunkKey=city+"|"+trunk;
+  function trunkDetailHtml(city,trunk){
     const metric=metricForTrunk(city,trunk);
     const competitors=competitorSummaries(city,trunk);
-    const status=metric?clean(metric.Estado_Dato):"Sin métrica";
     const hhpp=metric?.HHPP;
     const active=metric?.Clientes_Activos;
     const pen=metric?.Penetracion;
 
-    slot.classList.add("open");
-    slot.innerHTML=
-      '<article class="panel trunk-detail-card">'+
+    return '<div class="network-trunk-inline-detail">'+
+      '<article class="trunk-detail-card">'+
         '<div class="trunk-detail-head">'+
           '<div><span>TRONCAL FIBRAZO</span><h3>'+escapeHtml(trunk)+'</h3><p>'+escapeHtml(city)+' · corte operativo '+escapeHtml(metric?.Periodo_Corte||"sin dato")+'</p></div>'+
-          '<button type="button" class="operator-detail-close trunk-detail-close" aria-label="Cerrar">×</button>'+
         '</div>'+
         '<div class="trunk-detail-kpis">'+
           '<div><span>HHPP</span><b>'+(hhpp==null?"—":formatNum(hhpp))+'</b></div>'+
@@ -223,7 +224,6 @@
           '<div><span>Penetración</span><b>'+(pen==null?"—":formatPct(pen*100).replace("+",""))+'</b></div>'+
           '<div><span>Competidores relevados</span><b>'+formatNum(competitors.length)+'</b></div>'+
         '</div>'+
-        '<div class="trunk-detail-status"><span>'+escapeHtml(status||"—")+'</span></div>'+
         strataDetailHtml(metric)+
         '<div class="trunk-competitors-wrap">'+
           '<table class="trunk-competitors-table"><thead><tr><th>Operador</th><th>Tecnología</th><th>Zonas</th><th>Barrios</th><th>Precio mín.</th><th>Velocidad máx.</th></tr></thead>'+
@@ -238,18 +238,81 @@
             ).join(""):'<tr><td colspan="6" class="detail-empty">Sin competidores relevados para esta troncal con los filtros actuales.</td></tr>'
           )+'</tbody></table>'+
         '</div>'+
-      '</article>';
+      '</article>'+
+    '</div>';
+  }
 
-    slot.querySelector(".trunk-detail-close")?.addEventListener("click",()=>{
-      slot.classList.remove("open");
-      slot.innerHTML="";
-      state.openTrunkKey="";
+  function networkSearchPass(r){
+    const q=fold(state.networkSearch);
+    if(!q) return true;
+    const values=[
+      r.Ciudad,r.Troncal_FIBRAZO,r.HHPP,r.Clientes_Activos,
+      r.Penetracion==null?"":(r.Penetracion*100).toFixed(1)+"%",
+      pctLabel(strataPct(r,"HHPP_Estrato_1")),
+      pctLabel(strataPct(r,"HHPP_Estrato_2")),
+      pctLabel(strataPct(r,"HHPP_Estrato_3"))
+    ];
+    return values.some(v=>fold(v).includes(q));
+  }
+
+  function networkSortValue(r,key){
+    if(key==="Estrato_1_Pct") return strataPct(r,"HHPP_Estrato_1");
+    if(["HHPP","Clientes_Activos","Penetracion"].includes(key)) return toNum(r[key]);
+    return clean(r[key]);
+  }
+
+  function sortNetworkRows(rows){
+    const {key,dir}=state.networkSort||{key:"Troncal_FIBRAZO",dir:1};
+    return [...rows].sort((a,b)=>{
+      const av=networkSortValue(a,key),bv=networkSortValue(b,key);
+      if(typeof av==="number"||typeof bv==="number"){
+        const an=Number.isFinite(av)?av:(dir===1?Infinity:-Infinity);
+        const bn=Number.isFinite(bv)?bv:(dir===1?Infinity:-Infinity);
+        return (an-bn)*dir;
+      }
+      return clean(av).localeCompare(clean(bv),"es",{numeric:true,sensitivity:"base"})*dir;
     });
-    slot.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }
+
+  function networkSortMark(key){
+    if(state.networkSort?.key!==key) return '<span class="network-sort-mark">↕</span>';
+    return '<span class="network-sort-mark active">'+(state.networkSort.dir===1?"▲":"▼")+'</span>';
+  }
+
+  function headerButton(key,label,title=""){
+    return '<button type="button" class="network-sort-btn" data-network-sort="'+escapeHtml(key)+'" '+(title?'title="'+escapeHtml(title)+'"':"")+'>'+escapeHtml(label)+networkSortMark(key)+'</button>';
+  }
+
+  function bindNetworkControls(){
+    const search=$("network-search");
+    if(search&&search.dataset.boundNetworkSearch!=="1"){
+      search.dataset.boundNetworkSearch="1";
+      search.value=state.networkSearch||"";
+      search.addEventListener("input",()=>{
+        state.networkSearch=search.value;
+        if(state.openTrunkKey){
+          const visible=metricRows().filter(networkSearchPass).some(r=>clean(r.Ciudad)+"|"+clean(r.Troncal_FIBRAZO)===state.openTrunkKey);
+          if(!visible) state.openTrunkKey="";
+        }
+        renderFibrazo();
+      });
+    }
+  }
+
+  function renderTrunkDetail(city,trunk){
+    const key=clean(city)+"|"+clean(trunk);
+    state.openTrunkKey=state.openTrunkKey===key?"":key;
+    renderFibrazo();
+    requestAnimationFrame(()=>{
+      const row=document.querySelector('.network-trunk-row[data-key="'+CSS.escape(key)+'"]');
+      row?.scrollIntoView({behavior:"smooth",block:"nearest"});
+    });
   }
 
   function renderFibrazo(){
-    const rows=metricRows();
+    bindNetworkControls();
+    const sourceRows=metricRows();
+    const rows=sourceRows.filter(networkSearchPass);
     const summary=$("fibrazo-network-kpis");
     const root=$("fibrazo-city-groups");
     if(!summary||!root) return;
@@ -257,7 +320,7 @@
     const total=aggregateMetrics(rows);
     summary.innerHTML=
       '<article class="panel network-kpi"><span>Troncales</span><strong>'+formatNum(total.trunks)+'</strong><small>'+formatNum(total.withData)+' con dato junio</small></article>'+
-      '<article class="panel network-kpi"><span>HHPP</span><strong>'+formatNum(total.hppp)+'</strong><small>Casas posibles de conectar</small></article>'+
+      '<article class="panel network-kpi"><span>HHPP</span><strong>'+formatNum(total.hhpp)+'</strong><small>Total según filtros activos</small></article>'+
       '<article class="panel network-kpi"><span>Clientes activos</span><strong>'+formatNum(total.active)+'</strong><small>Total reportado en el corte operativo</small></article>'+
       '<article class="panel network-kpi primary"><span>Penetración</span><strong>'+(total.penetration==null?"—":formatPct(total.penetration*100).replace("+",""))+'</strong><small>Ponderada por HHPP</small></article>';
 
@@ -270,8 +333,8 @@
 
     root.innerHTML="";
     [...byCity.entries()].sort((a,b)=>a[0].localeCompare(b[0],"es")).forEach(([city,cityRows])=>{
-      cityRows.sort((a,b)=>clean(a.Troncal_FIBRAZO).localeCompare(clean(b.Troncal_FIBRAZO),"es",{numeric:true}));
-      const m=aggregateMetrics(cityRows);
+      const sortedRows=sortNetworkRows(cityRows);
+      const m=aggregateMetrics(sortedRows);
       const section=document.createElement("article");
       section.className="panel network-city-card";
       section.innerHTML=
@@ -279,27 +342,52 @@
           '<div><span>CIUDAD</span><h3>'+escapeHtml(city)+'</h3></div>'+
           '<div class="network-city-summary">'+
             '<b>'+formatNum(m.trunks)+' troncales</b>'+
-            '<span>'+formatNum(m.hppp)+' HHPP</span>'+
+            '<span>'+formatNum(m.hhpp)+' HHPP</span>'+
             '<span>'+formatNum(m.active)+' activos</span>'+
             '<strong>'+(m.penetration==null?"—":formatPct(m.penetration*100).replace("+",""))+'</strong>'+
           '</div>'+
         '</div>'+
-        '<div class="network-trunk-table"><div class="network-trunk-header"><span>Troncal</span><span>HHPP</span><span>Activos</span><span>Penetración</span><span>Estratos</span><span>Estado</span></div>'+
-        cityRows.map(r=>
-          '<button type="button" class="network-trunk-row" data-city="'+escapeHtml(city)+'" data-trunk="'+escapeHtml(clean(r.Troncal_FIBRAZO))+'">'+
-            '<b>'+escapeHtml(clean(r.Troncal_FIBRAZO)||"—")+'</b>'+
-            '<span>'+(r.HHPP==null?"—":formatNum(r.HHPP))+'</span>'+
-            '<span>'+(r.Clientes_Activos==null?"—":formatNum(r.Clientes_Activos))+'</span>'+
-            '<strong>'+(r.Penetracion==null?"—":formatPct(r.Penetracion*100).replace("+",""))+'</strong>'+
-            miniStrataHtml(r)+
-            '<em class="'+(clean(r.Estado_Dato)==="OK"||clean(r.Estado_Dato)==="Consolidado duplicados"?"ok":"warn")+'">'+escapeHtml(clean(r.Estado_Dato)||"—")+'</em>'+
-          '</button>'
-        ).join("")+'</div>';
+        '<div class="network-trunk-table">'+
+          '<div class="network-trunk-header">'+
+            headerButton("Troncal_FIBRAZO","Troncal")+
+            headerButton("HHPP","HHPP")+
+            headerButton("Clientes_Activos","Activos")+
+            headerButton("Penetracion","Penetración")+
+            headerButton("Estrato_1_Pct","Estratos","Ordena por porcentaje de Estrato 1")+
+          '</div>'+
+          sortedRows.map(r=>{
+            const trunk=clean(r.Troncal_FIBRAZO);
+            const key=city+"|"+trunk;
+            const open=state.openTrunkKey===key;
+            return '<div class="network-trunk-item '+(open?"open":"")+'">'+
+              '<button type="button" class="network-trunk-row '+(open?"expanded":"")+'" data-key="'+escapeHtml(key)+'" data-city="'+escapeHtml(city)+'" data-trunk="'+escapeHtml(trunk)+'" aria-expanded="'+(open?"true":"false")+'">'+
+                '<b class="network-trunk-name"><span class="network-trunk-arrow">▸</span><span>'+escapeHtml(trunk||"—")+'</span></b>'+
+                '<span>'+(r.HHPP==null?"—":formatNum(r.HHPP))+'</span>'+
+                '<span>'+(r.Clientes_Activos==null?"—":formatNum(r.Clientes_Activos))+'</span>'+
+                '<strong>'+(r.Penetracion==null?"—":formatPct(r.Penetracion*100).replace("+",""))+'</strong>'+
+                miniStrataHtml(r)+
+              '</button>'+
+              (open?trunkDetailHtml(city,trunk):"")+
+            '</div>';
+          }).join("")+
+        '</div>';
       root.appendChild(section);
     });
 
-    root.querySelectorAll(".network-trunk-row").forEach(btn=>btn.addEventListener("click",()=>renderTrunkDetail(btn.dataset.city,btn.dataset.trunk)));
-    if(!rows.length) root.innerHTML='<article class="panel compare-empty">Sin métricas FIBRAZO compatibles con las ciudades seleccionadas.</article>';
+    root.querySelectorAll(".network-sort-btn").forEach(btn=>btn.addEventListener("click",()=>{
+      const key=btn.dataset.networkSort;
+      if(state.networkSort?.key===key) state.networkSort.dir*=-1;
+      else state.networkSort={key,dir:key==="Troncal_FIBRAZO"?1:-1};
+      renderFibrazo();
+    }));
+
+    root.querySelectorAll(".network-trunk-row").forEach(btn=>btn.addEventListener("click",()=>{
+      renderTrunkDetail(btn.dataset.city,btn.dataset.trunk);
+    }));
+
+    if(!rows.length){
+      root.innerHTML='<article class="panel compare-empty">Sin troncales compatibles con los filtros y la búsqueda actual.</article>';
+    }
   }
 
   FZ.territory={renderCoverage,metricRows,metricForTrunk,trunkCompetitionRows,competitorSummaries,aggregateMetrics,renderFibrazo,renderTrunkDetail};
