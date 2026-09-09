@@ -129,7 +129,7 @@
     state.expanded=false;
     state.sort={key:"Grupo_Operador",dir:1};
     state.comparison={level:"city",periods:new Set(["2026-09"]),items:new Set(),cityFilter:"all",search:""};
-    state.mobileView={period:"2026-09",operator:"all",modality:"all",status:"all",search:"",sort:{key:"Operador",dir:1},openKey:""};
+    state.mobileView={period:"2026-09",operator:"all",modality:"all",search:"",sort:{key:"Operador",dir:1},openKey:""};
     FZ.filters.renderCityQuickbar();
     FZ.filters.renderFilters();
     FZ.filters.apply();
