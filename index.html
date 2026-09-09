@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260908-1" />
+  <link rel="stylesheet" href="styles.css?v=20260908-3" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -69,6 +69,7 @@
 
     <nav class="analysis-tabs panel" aria-label="Vistas de análisis">
       <button type="button" class="analysis-tab active" data-analysis-view="general">Vista general</button>
+      <button type="button" class="analysis-tab" data-analysis-view="network">FIBRAZO</button>
       <button type="button" class="analysis-tab" data-analysis-view="fibrazo">Vs. FIBRAZO</button>
       <button type="button" class="analysis-tab" data-analysis-view="territory">Territorio</button>
       <button type="button" class="analysis-tab" data-analysis-view="compare">Comparador</button>
@@ -107,6 +108,16 @@
         <article id="operator-speed-panel" class="panel chart-panel"><div class="panel-head"><h3>Velocidad mínima y máxima por competidor</h3><span>Rango de Mbps registrado</span></div><canvas id="speeds-chart"></canvas></article>
       </div>
       <div id="chart-operator-detail-slot" class="operator-detail-slot"></div>
+    </section>
+
+    <section id="fibrazo-network-section" class="section view-block hidden" data-view="network">
+      <div class="section-title section-heading">
+        <div><span>FIBRAZO</span><h2>Troncales, HHPP y penetración</h2></div>
+        <div class="coverage-meta"><strong>2026-06</strong><span>corte operativo consolidado</span></div>
+      </div>
+      <div id="fibrazo-network-kpis" class="network-kpi-grid"></div>
+      <div id="fibrazo-city-groups" class="network-city-groups"></div>
+      <div id="fibrazo-trunk-detail" class="operator-detail-slot"></div>
     </section>
 
     <section id="coverage-section" class="section coverage-section view-block hidden" data-view="territory">
@@ -195,7 +206,14 @@
   </main>
 
   <script src="table-enhancements.js?v=20260904-2"></script>
-  <script src="operator-details.js?v=20260908-1"></script>
-  <script src="auth.js?v=20260908-2"></script>
+  <script src="js/core.js?v=20260908-3"></script>
+  <script src="js/data.js?v=20260908-3"></script>
+  <script src="js/filters.js?v=20260908-3"></script>
+  <script src="js/charts.js?v=20260908-3"></script>
+  <script src="js/territory.js?v=20260908-3"></script>
+  <script src="js/comparison.js?v=20260908-3"></script>
+  <script src="js/table.js?v=20260908-3"></script>
+  <script src="js/operator-details.js?v=20260908-3"></script>
+  <script src="auth.js?v=20260908-3"></script>
 </body>
 </html>
