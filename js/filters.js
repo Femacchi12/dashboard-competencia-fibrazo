@@ -429,7 +429,7 @@
 
   function apply(){
     state.filtered=state.plans.filter(planPasses);
-    state.filteredCoverage=state.coverage.filter(coveragePassesFilters);
+    state.filteredCoverage=state.coverage.filter(r=>coveragePassesFilters(r));
     FZ.app?.renderAll?.();
   }
 
