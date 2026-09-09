@@ -11,12 +11,13 @@ La aplicación está separada por responsabilidad para facilitar iteraciones rá
 - `js/filters.js`: filtros, ciudades y alcance territorial.
 - `js/charts.js`: KPIs, evolución y gráficos.
 - `js/table.js`: tabla consolidada de planes y competencia.
+- `js/table-enhancements.js`: orden, columnas sticky y mejoras visuales de tabla.
 - `js/operator-details.js`: detalle interactivo de operadores.
 - `js/territory.js`: presencia territorial y vista FIBRAZO.
 - `js/comparison.js`: Vs. FIBRAZO y comparador.
 - `js/app.js`: orquestación, eventos y actualización automática.
 
-Los archivos antiguos `app.js`, `hotfix.js` y `operator-details.js` se conservan temporalmente como respaldo, pero ya no forman parte del flujo activo.
+Los archivos legados fueron retirados del árbol activo; el historial de Git conserva cualquier versión anterior.
 
 ## Datos principales
 
