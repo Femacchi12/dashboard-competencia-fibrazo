@@ -198,7 +198,6 @@
       ["operators",S.operators],
       ["coverage",S.coverage],
       ["markets",S.markets],
-      ["territories",S.territories],
       ["offers",S.offers],
       ["fibrazoMetrics",S.fibrazoMetrics],
       ["mobile",S.mobile]
@@ -221,9 +220,6 @@
     if(resultByKey.plans.status==="fulfilled") state.plans=buildPlans(resultByKey.plans.value,operators);
     if(resultByKey.coverage.status==="fulfilled") state.coverage=buildCoverage(resultByKey.coverage.value,operators);
     if(resultByKey.markets.status==="fulfilled") state.markets=buildMarkets(resultByKey.markets.value);
-    if(resultByKey.territories.status==="fulfilled"){
-      state.territories=resultByKey.territories.value.filter(r=>/^TERR_[ZT]_/.test(clean(r.ID_Territorio)));
-    }
     if(resultByKey.offers.status==="fulfilled") state.offers=buildOffers(resultByKey.offers.value);
     if(resultByKey.fibrazoMetrics.status==="fulfilled") state.metrics=buildMetrics(resultByKey.fibrazoMetrics.value);
     if(resultByKey.mobile.status==="fulfilled") state.mobile=buildMobile(resultByKey.mobile.value);
