@@ -1,22 +1,37 @@
-# Dashboard Competencia FIBRAZO
+# Dashboard de Competencia FIBRAZO
 
-Dashboard independiente de inteligencia competitiva de FIBRAZO.
+Dashboard interno de Growth e Inteligencia Competitiva.
 
-## Fuente única de datos
+## Arquitectura
 
-Google Sheet **Base General Competencia FIBRAZO** (`1v2sBVe_w-bTl438b8qWFmvw0gT66bj8TskcXbnY-gbU`).
+La aplicación está separada por responsabilidad para facilitar iteraciones rápidas y reducir el riesgo de cambios cruzados:
 
-El frontend consume exclusivamente estas hojas de salida:
-- `10_DASH_PLANES` (`gid=790372285`)
-- `11_DASH_COBERTURA` (`gid=2010490009`)
-- `12_DASH_COMPETENCIA` (`gid=970350613`)
+- `js/core.js`: estado compartido, fuentes y utilidades.
+- `js/data.js`: carga y normalización de Google Sheets.
+- `js/filters.js`: filtros, ciudades y alcance territorial.
+- `js/charts.js`: KPIs, evolución y gráficos.
+- `js/table.js`: tabla consolidada de planes y competencia.
+- `js/operator-details.js`: detalle interactivo de operadores.
+- `js/territory.js`: presencia territorial y vista FIBRAZO.
+- `js/comparison.js`: Vs. FIBRAZO y comparador.
+- `js/app.js`: orquestación, eventos y actualización automática.
 
-No contiene semillas estáticas de planes ni conexión al antiguo Sheet `Competencia`.
+Los archivos antiguos `app.js`, `hotfix.js` y `operator-details.js` se conservan temporalmente como respaldo, pero ya no forman parte del flujo activo.
 
-## Acceso
+## Datos principales
 
-Autenticación Google/Firebase. Se autoriza `@fibrazo.com` y la excepción ya definida para el propietario del dashboard.
+La Base General Competencia incluye:
+
+- operadores;
+- histórico de planes;
+- presencia territorial;
+- zonas y troncales FIBRAZO;
+- oferta FIBRAZO;
+- `10_FIBRAZO_METRICAS`: HHPP, clientes activos y penetración por troncal.
+
+El corte operativo actual de HHPP/penetración consolidado es **2026-06**.
 
 ## Publicación
 
-GitHub Pages desde la rama `main`, raíz `/`.
+GitHub Pages:
+https://femacchi12.github.io/dashboard-competencia-fibrazo/
