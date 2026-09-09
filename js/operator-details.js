@@ -68,7 +68,7 @@
     return fold(operator)+"|"+fold(city||"*")+"|"+fold(period||"*");
   }
 
-  function isOpen({operator,city=""}={}){
+  function isOpen({operator,city="",period=""}={}){
     const key=detailKey(operator,city,period);
     return openEntries.some(entry=>entry.key===key);
   }
@@ -156,7 +156,7 @@
 
   function open({operator,city="",planId="",period="",mode="chart",row=null,trigger=null}){
     if(!operator) return;
-    const key=detailKey(operator,city);
+    const key=detailKey(operator,city,period);
     const existing=openEntries.find(entry=>entry.key===key);
     if(existing){
       if(mode==="table"&&existing.mode==="table"){
