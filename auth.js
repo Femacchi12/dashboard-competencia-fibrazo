@@ -29,7 +29,7 @@
   const loadDashboard = () => {
     if (document.querySelector('script[data-dashboard-app]')) return;
     const script = document.createElement("script");
-    script.src = "js/app.js?v=20260908-5";
+    script.src = "js/app.js?v=20260908-6";
     script.dataset.dashboardApp = "true";
     document.body.appendChild(script);
   };
