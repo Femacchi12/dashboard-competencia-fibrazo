@@ -3,7 +3,7 @@
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
   const state=FZ.state;
-  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,rowOperator,normalizeTV}=FZ.u;
+  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,rowOperator,normalizeTV,phoneCell,linkCell}=FZ.u;
   const $=FZ.u.$;
 
   function matchingCoverageForPlan(r){
@@ -26,6 +26,10 @@
 
   function uniq(values){
     return [...new Set(values.map(clean).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es",{numeric:true}));
+  }
+
+  function currentColumns(){
+    return state.tableMode==="contact"?FZ.contactColumns:FZ.columns;
   }
 
   function buildSummaryRows(){
@@ -70,15 +74,54 @@
     });
   }
 
-  function summaryMatchesSearch(r,q){
+  function firstValue(rows,key){
+    return clean(rows.find(r=>clean(r[key]))?.[key]);
+  }
+
+  function buildContactRows(){
+    const groups=new Map();
+    state.filtered.forEach(r=>{
+      const operator=rowOperator(r);
+      if(!operator) return;
+      if(!groups.has(operator)) groups.set(operator,[]);
+      groups.get(operator).push(r);
+    });
+
+    return [...groups.entries()].map(([operator,plans])=>{
+      const cities=uniq(plans.map(r=>r.Ciudad));
+      const first=plans[0]||{};
+      return {
+        _groupKey:"contact||"+operator,
+        _plans:plans,
+        ID_Plan_Registro:clean(first.ID_Plan_Registro),
+        Grupo_Operador:operator,
+        Ciudad:cities.length===1?cities[0]:"",
+        Ciudades:cities.join(" · ")||"—",
+        Telefono_1:firstValue(plans,"Telefono_1"),
+        Telefono_2:firstValue(plans,"Telefono_2"),
+        Telefono_3:firstValue(plans,"Telefono_3"),
+        Telefono_4:firstValue(plans,"Telefono_4"),
+        Telefono_5:firstValue(plans,"Telefono_5"),
+        Sitio_Web:firstValue(plans,"Sitio_Web"),
+        Instagram:firstValue(plans,"Instagram"),
+        Facebook:firstValue(plans,"Facebook"),
+        TikTok:firstValue(plans,"TikTok"),
+        Imagenes_Folletos:firstValue(plans,"Imagenes_Folletos")
+      };
+    });
+  }
+
+  function rowMatchesSearch(r,q,columns){
     if(!q) return true;
-    if(FZ.columns.some(([k])=>fold(r[k]).includes(q))) return true;
-    return r._plans.some(plan=>Object.values(plan).some(value=>fold(value).includes(q)));
+    if(columns.some(([k])=>fold(r[k]).includes(q))) return true;
+    return (r._plans||[]).some(plan=>Object.values(plan).some(value=>fold(value).includes(q)));
   }
 
   function tableRows(){
     const q=fold(state.tableSearch);
-    const rows=buildSummaryRows().filter(r=>summaryMatchesSearch(r,q));
+    const columns=currentColumns();
+    const base=state.tableMode==="contact"?buildContactRows():buildSummaryRows();
+    const rows=base.filter(r=>rowMatchesSearch(r,q,columns));
     const {key,dir}=state.sort;
     return [...rows].sort((a,b)=>{
       if(key==="Periodo_Label") return (FZ.u.periodSortValue(a.Periodo_Corte)-FZ.u.periodSortValue(b.Periodo_Corte))*dir;
@@ -89,6 +132,7 @@
   }
 
   function diverseInitialRows(rows,limit=10){
+    if(state.tableMode==="contact") return rows.slice(0,limit);
     const picked=[],seen=new Set(),used=new Set();
     for(const r of rows){
       const key=clean(r.Ciudad)+"|"+clean(r.Grupo_Operador);
@@ -111,6 +155,8 @@
       const op=clean(row.Grupo_Operador)||"—";
       return '<button type="button" class="operator-detail-trigger" data-operator="'+escapeHtml(op)+'" data-city="'+escapeHtml(clean(row.Ciudad))+'" data-plan-id="'+escapeHtml(clean(row.ID_Plan_Registro))+'" aria-expanded="false"><span class="operator-toggle-arrow" aria-hidden="true">▸</span><span>'+escapeHtml(op)+'</span></button>';
     }
+    if(FZ.phoneFields.has(key)) return phoneCell(value);
+    if(FZ.linkFields.has(key)) return linkCell(value,key);
     if(["Precio_Min_COP","Precio_Max_COP"].includes(key)) return escapeHtml(formatCOP(toNum(value)));
     if(["Velocidad_Min_Mbps","Velocidad_Max_Mbps"].includes(key)){
       const n=toNum(value);
@@ -119,11 +165,46 @@
     return escapeHtml(clean(value)||"—");
   }
 
+  function syncModeUi(){
+    document.querySelectorAll("[data-table-mode]").forEach(btn=>{
+      const active=btn.dataset.tableMode===state.tableMode;
+      btn.classList.toggle("active",active);
+      btn.setAttribute("aria-selected",active?"true":"false");
+    });
+    const search=$("table-search");
+    if(search){
+      search.placeholder=state.tableMode==="contact"
+        ?"Buscar operador, teléfono, web o red social…"
+        :"Buscar operador, ciudad, tecnología o servicio…";
+    }
+  }
+
+  function bindModeTabs(){
+    document.querySelectorAll("[data-table-mode]").forEach(btn=>{
+      if(btn.dataset.boundTableMode==="1") return;
+      btn.dataset.boundTableMode="1";
+      btn.addEventListener("click",()=>{
+        const mode=btn.dataset.tableMode==="contact"?"contact":"offer";
+        if(state.tableMode===mode) return;
+        state.tableMode=mode;
+        state.expanded=false;
+        state.sort={key:"Grupo_Operador",dir:1};
+        state.hiddenColumns.clear();
+        FZ.details?.pruneTableEntries?.();
+        syncModeUi();
+        renderColumns();
+        render();
+      });
+    });
+  }
+
   function render(){
     const head=$("table-head"),body=$("table-body");
     if(!head||!body) return;
+    bindModeTabs();
+    syncModeUi();
     FZ.details?.pruneTableEntries?.();
-    const rows=tableRows(),cols=FZ.columns.filter(([k])=>!state.hiddenColumns.has(k));
+    const rows=tableRows(),cols=currentColumns().filter(([k])=>!state.hiddenColumns.has(k));
 
     head.innerHTML="<tr>"+cols.map(([k,l])=>'<th data-key="'+escapeHtml(k)+'">'+escapeHtml(l)+(state.sort.key===k?'<span class="sort-mark">'+(state.sort.dir===1?"▲":"▼")+"</span>":"")+"</th>").join("")+"</tr>";
     head.querySelectorAll("th").forEach(th=>th.addEventListener("click",()=>{
@@ -135,11 +216,6 @@
     const shown=state.expanded?rows:diverseInitialRows(rows,10);
     body.innerHTML=shown.map(r=>'<tr data-summary-key="'+escapeHtml(r._groupKey)+'">'+cols.map(([k])=>"<td>"+formatCell(k,r[k],r)+"</td>").join("")+"</tr>").join("");
 
-    if($("table-count")){
-      $("table-count").textContent=state.expanded
-        ?formatNum(rows.length)+" de "+formatNum(rows.length)+" combinaciones operador × tecnología"
-        :formatNum(shown.length)+" de "+formatNum(rows.length)+" combinaciones · muestra inicial por ciudades";
-    }
     if($("more-btn")){
       $("more-btn").textContent=state.expanded?"Ver menos":"Ver más";
       $("more-btn").style.display=rows.length>10?"inline-flex":"none";
@@ -150,7 +226,8 @@
   function renderColumns(){
     const menu=$("columns-menu");
     if(!menu) return;
-    menu.innerHTML=FZ.columns.map(([k,l])=>
+    const cols=currentColumns();
+    menu.innerHTML=cols.map(([k,l])=>
       '<label class="column-item"><input type="checkbox" data-key="'+escapeHtml(k)+'" '+(state.hiddenColumns.has(k)?"":"checked")+'><span>'+escapeHtml(l)+"</span></label>"
     ).join("");
     menu.querySelectorAll("input").forEach(i=>i.addEventListener("change",()=>{
@@ -160,5 +237,8 @@
     window.dispatchEvent(new CustomEvent("fibrazo:columns-rendered"));
   }
 
-  FZ.table={matchingCoverageForPlan,trunksForPlan,buildSummaryRows,tableRows,render,renderColumns};
+  FZ.table={
+    matchingCoverageForPlan,trunksForPlan,buildSummaryRows,buildContactRows,
+    tableRows,currentColumns,render,renderColumns
+  };
 })();
