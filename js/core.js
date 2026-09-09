@@ -36,6 +36,8 @@
     loading:false,
     lastLoadAt:0,
     openTrunkKey:"",
+    networkSearch:"",
+    networkSort:{key:"Troncal_FIBRAZO",dir:1},
     indexes:{}
   };
 
