@@ -2219,3 +2219,68 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
     grid-template-columns:1fr;
   }
 }
+
+
+/* 2026-09-09 · Comparator trunk selector readability */
+.compare-scope-options-clean{
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+}
+.compare-trunk-option{
+  min-height:58px;
+  padding:8px 10px;
+}
+.compare-trunk-option-content{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:4px!important;
+  align-items:stretch!important;
+  justify-content:stretch!important;
+  min-width:0;
+}
+.compare-trunk-city{
+  display:block;
+  color:#829A90!important;
+  font-size:9px!important;
+  font-weight:700;
+  line-height:1.15;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.compare-trunk-main{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  min-width:0;
+}
+.compare-trunk-main b{
+  display:block;
+  min-width:0;
+  color:#F4FFF9;
+  font-size:11.5px!important;
+  font-weight:800!important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.compare-trunk-main em{
+  color:#9EB1A9;
+  font-size:9.5px;
+  font-style:normal;
+  font-weight:700;
+  white-space:nowrap;
+}
+.compare-trunk-option:has(input:checked) .compare-trunk-city,
+.compare-trunk-option:has(input:checked) .compare-trunk-main b,
+.compare-trunk-option:has(input:checked) .compare-trunk-main em{
+  color:#00F29A!important;
+}
+.compare-city-option{
+  min-height:48px;
+}
+@media(max-width:700px){
+  .compare-scope-options-clean{
+    grid-template-columns:1fr;
+  }
+}
