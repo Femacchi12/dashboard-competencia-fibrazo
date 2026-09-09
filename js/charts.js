@@ -334,5 +334,5 @@
     }
   }
 
-  FZ.charts={renderKPIs,renderEvolution,renderCharts,rangeByOperator,chartDefaults,destroyChart};
+  FZ.charts={renderKPIs,renderCharts,rangeByOperator,chartDefaults,destroyChart};
 })();
