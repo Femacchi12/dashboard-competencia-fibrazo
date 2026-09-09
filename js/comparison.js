@@ -530,10 +530,10 @@
       '<div class="compare-managerial-block">'+
         '<span class="compare-block-title">MERCADO · '+escapeHtml(comparisonPeriodLabel(period))+'</span>'+
         '<div class="compare-market-grid">'+
-          '<div><span>Precio mín.</span><b>'+formatCOP(m.minPrice)+'</b></div>'+
-          '<div><span>Precio máx.</span><b>'+formatCOP(m.maxPrice)+'</b></div>'+
-          '<div><span>Velocidad mín.</span><b>'+(m.minSpeed==null?"—":formatNum(m.minSpeed)+" Mbps")+'</b></div>'+
-          '<div><span>Velocidad máx.</span><b>'+(m.maxSpeed==null?"—":formatNum(m.maxSpeed)+" Mbps")+'</b></div>'+
+          '<div class="metric-price"><span>Precio mín.</span><b>'+formatCOP(m.minPrice)+'</b></div>'+
+          '<div class="metric-price"><span>Precio máx.</span><b>'+formatCOP(m.maxPrice)+'</b></div>'+
+          '<div class="metric-speed"><span>Velocidad mín.</span><b>'+(m.minSpeed==null?"—":formatNum(m.minSpeed)+" Mbps")+'</b></div>'+
+          '<div class="metric-speed"><span>Velocidad máx.</span><b>'+(m.maxSpeed==null?"—":formatNum(m.maxSpeed)+" Mbps")+'</b></div>'+
         '</div>'+
       '</div>'+
       operatorListHtml(scope,m,period)+
