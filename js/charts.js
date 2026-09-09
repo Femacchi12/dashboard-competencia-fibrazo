@@ -3,7 +3,7 @@
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
   const state=FZ.state;
-  const {clean,toNum,formatCOP,formatNum,formatPeriod,rowOperator,escapeHtml}=FZ.u;
+  const {clean,toNum,formatCOP,formatNum,rowOperator,escapeHtml,compareOperatorsTraditionalFirst}=FZ.u;
   const $=FZ.u.$;
   let scatterHideTimer=null;
 
@@ -21,12 +21,6 @@
     if($("kpi-max-speed")) $("kpi-max-speed").textContent=speeds.length?formatNum(Math.max(...speeds)):"—";
   }
 
-  function shortNames(items){
-    const a=[...items].filter(Boolean);
-    if(!a.length) return "Sin cambios";
-    return a.length<=3?a.join(", "):a.slice(0,3).join(", ")+" +"+(a.length-3);
-  }
-
   function rangeByOperator(rows,key){
     const m=new Map();
     rows.forEach(r=>{
@@ -41,7 +35,7 @@
   function chartDefaults(){
     Chart.defaults.color="#8FA9A0";
     Chart.defaults.font.family="Inter";
-    Chart.defaults.font.size=10;
+    Chart.defaults.font.size=11;
     return {
       responsive:true,
       maintainAspectRatio:false,
@@ -72,70 +66,6 @@
       panel.style.height=height+"px";
       panel.style.minHeight=height+"px";
       panel.style.maxHeight=height+"px";
-    }
-  }
-
-  function renderEvolution(){
-    destroyChart("evoCompetitors");
-    destroyChart("evoPrice");
-    if(state.filters.period.size!==2) return;
-
-    const selected=[...state.filters.period].map(label=>{
-      const row=state.plans.find(r=>r.Periodo_Label===label);
-      return row?.Periodo_Corte||"";
-    }).filter(Boolean).sort((a,b)=>FZ.u.periodSortValue(a)-FZ.u.periodSortValue(b));
-    if(selected.length!==2) return;
-
-    const previous=selected[0],current=selected[1];
-    if($("evolution-current")) $("evolution-current").textContent=formatPeriod(current);
-    if($("evolution-compare")) $("evolution-compare").textContent="vs. "+formatPeriod(previous);
-
-    const filteredHistory=state.plans.filter(FZ.filters.evolutionPasses);
-    const rowsFor=p=>filteredHistory.filter(r=>r.Periodo_Corte===p);
-    const coverageFor=p=>state.coverage.filter(r=>r.Periodo_Corte===p&&FZ.filters.coveragePassesFilters(r,null,false));
-    const presenceFor=p=>{
-      const set=new Set(rowsFor(p).map(rowOperator).filter(Boolean));
-      if(!FZ.filters.hasPlanSpecificFilters()){
-        coverageFor(p).forEach(r=>{const op=rowOperator(r);if(op)set.add(op);});
-      }
-      return set;
-    };
-
-    const currentRows=rowsFor(current),previousRows=rowsFor(previous);
-    const currentOps=presenceFor(current),previousOps=presenceFor(previous);
-    const added=[...currentOps].filter(x=>!previousOps.has(x));
-    const lost=[...previousOps].filter(x=>!currentOps.has(x));
-    if($("evo-new")) $("evo-new").textContent=formatNum(added.length);
-    if($("evo-lost")) $("evo-lost").textContent=formatNum(lost.length);
-    if($("evo-new-note")) $("evo-new-note").textContent=shortNames(added);
-    if($("evo-lost-note")) $("evo-lost-note").textContent=shortNames(lost);
-
-    const curPrice=rangeByOperator(currentRows,"Precio_Usado_COP");
-    const prevPrice=rangeByOperator(previousRows,"Precio_Usado_COP");
-    const changed=[...curPrice.keys()].filter(op=>prevPrice.has(op)&&(Math.abs(curPrice.get(op).min-prevPrice.get(op).min)>=1||Math.abs(curPrice.get(op).max-prevPrice.get(op).max)>=1));
-    if($("evo-price-change")) $("evo-price-change").textContent=formatNum(changed.length);
-    if($("evo-price-note")) $("evo-price-note").textContent=shortNames(changed);
-
-    if($("competitors-evolution-chart")){
-      let opt=chartDefaults();
-      state.charts.evoCompetitors=new Chart($("competitors-evolution-chart"),{
-        type:"line",
-        data:{labels:selected.map(formatPeriod),datasets:[{label:"Competidores",data:selected.map(p=>presenceFor(p).size),borderColor:"#00F29A",backgroundColor:"rgba(0,242,154,.10)",pointBackgroundColor:"#00F29A",pointRadius:4,tension:.2,fill:true}]},
-        options:{...opt,plugins:{...opt.plugins,legend:{display:false}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,beginAtZero:true,ticks:{precision:0}}}}
-      });
-    }
-
-    if($("price-evolution-chart")){
-      const opt=chartDefaults();
-      const ranges=selected.map(p=>rowsFor(p).map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0));
-      state.charts.evoPrice=new Chart($("price-evolution-chart"),{
-        type:"line",
-        data:{labels:selected.map(formatPeriod),datasets:[
-          {label:"Mínimo",data:ranges.map(a=>a.length?Math.min(...a):null),borderColor:"#00F29A",pointBackgroundColor:"#00F29A",pointRadius:4,tension:.2},
-          {label:"Máximo",data:ranges.map(a=>a.length?Math.max(...a):null),borderColor:"#F5D547",pointBackgroundColor:"#F5D547",pointRadius:4,tension:.2}
-        ]},
-        options:{...opt,plugins:{...opt.plugins,legend:{display:true,position:"bottom"},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>c.dataset.label+": "+formatCOP(c.raw)}}},scales:{x:{...opt.scales.x},y:{...opt.scales.y,ticks:{callback:v=>"$"+Math.round(v/1000)+"k"}}}}
-      });
     }
   }
 
@@ -354,14 +284,13 @@
     const priceMap=rangeByOperator(rows,"Precio_Usado_COP");
     const speedMap=rangeByOperator(rows,"Velocidad_Bajada_Mbps");
     const operatorOrder=[...new Set([...priceMap.keys(),...speedMap.keys()])]
-      .sort((a,b)=>a.localeCompare(b,"es",{numeric:true,sensitivity:"base"}))
-      .slice(0,14);
+      .sort(compareOperatorsTraditionalFirst);
     const sharedColors=operatorOrder.map((_,i)=>palette[i%palette.length]);
     const priceRanges=operatorOrder.map(op=>[op,priceMap.get(op)||{min:null,max:null,count:0}]);
 
     if($("operators-chart")){
       const colors=sharedColors;
-      setAdaptiveChartHeight("operators-chart",operatorOrder.length,{min:320,row:36,max:760});
+      setAdaptiveChartHeight("operators-chart",operatorOrder.length,{min:320,row:36,max:1400});
       destroyChart("operators");
       let opt=chartDefaults();
       state.charts.operators=new Chart($("operators-chart"),{
@@ -384,7 +313,7 @@
     const speedRanges=operatorOrder.map(op=>[op,speedMap.get(op)||{min:null,max:null,count:0}]);
     if($("speeds-chart")){
       const colors=sharedColors;
-      setAdaptiveChartHeight("speeds-chart",operatorOrder.length,{min:320,row:36,max:760});
+      setAdaptiveChartHeight("speeds-chart",operatorOrder.length,{min:320,row:36,max:1400});
       destroyChart("speeds");
       let opt=chartDefaults();
       state.charts.speeds=new Chart($("speeds-chart"),{
