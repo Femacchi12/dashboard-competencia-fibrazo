@@ -152,8 +152,8 @@
   `;
   document.head.appendChild(style);
 
-  const observer = new MutationObserver(scheduleEnhance);
-  observer.observe(document.documentElement, { childList:true, subtree:true });
+  window.addEventListener("fibrazo:table-rendered", scheduleEnhance);
+  window.addEventListener("fibrazo:columns-rendered", scheduleEnhance);
   window.addEventListener("resize", scheduleEnhance);
   document.addEventListener("DOMContentLoaded", scheduleEnhance);
   scheduleEnhance();
