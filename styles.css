@@ -800,3 +800,68 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
 @media(max-width:520px){
   .trunk-strata-grid{grid-template-columns:1fr}
 }
+
+
+/* 2026-09-09 · Detailed table subviews */
+.records-subtabs{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:4px;
+  border:1px solid #20352c;
+  border-radius:11px;
+  background:#0a120f;
+}
+.records-subtab{
+  min-height:32px;
+  padding:7px 12px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:#7f978d;
+  font:700 10px Inter,sans-serif;
+  cursor:pointer;
+  transition:.15s ease;
+}
+.records-subtab:hover{
+  color:#cfe1da;
+  background:#101b17;
+}
+.records-subtab.active{
+  color:#00F29A;
+  background:#0e2119;
+  box-shadow:inset 0 0 0 1px #176443;
+}
+.table-scroll td[data-key="Telefono_1"],
+.table-scroll td[data-key="Telefono_2"],
+.table-scroll td[data-key="Telefono_3"],
+.table-scroll td[data-key="Telefono_4"],
+.table-scroll td[data-key="Telefono_5"]{
+  overflow:visible;
+}
+.table-scroll .phone-link,
+.table-scroll .detail-link{
+  color:#BFD0C9;
+  text-decoration:none;
+  font-weight:600;
+}
+.table-scroll .phone-link:hover,
+.table-scroll .detail-link:hover{
+  color:#00F29A;
+  text-decoration:underline;
+}
+@media(max-width:700px){
+  .records-tools{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .records-subtabs{
+    width:100%;
+  }
+  .records-subtab{
+    flex:1;
+  }
+  .table-actions{
+    justify-content:flex-end;
+  }
+}
