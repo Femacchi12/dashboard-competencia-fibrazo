@@ -11,14 +11,13 @@
     operators: { gid:"1091103584", label:"01_OPERADORES", range:"A1:AA300" },
     coverage: { gid:"718563813", label:"03_PRESENCIA", range:"A1:Y2500" },
     markets: { gid:"1320750580", label:"07_CONFIG · Mercados", range:"X2:AI300" },
-    territories: { gid:"1320750580", label:"07_CONFIG · Territorio", range:"AK2:AQ277" },
     offers: { gid:"1320750580", label:"07_CONFIG · Oferta FIBRAZO", range:"AS2:BC300" },
     fibrazoMetrics: { gid:"1344959609", label:"10_FIBRAZO_METRICAS", range:"A1:X400" },
     mobile: { gid:"1227923955", label:"12_COMPETENCIA_MOVIL", range:"A1:S400" }
   };
 
   FZ.state = {
-    plans: [], operators: [], coverage: [], markets: [], territories: [], offers: [], metrics: [], mobile: [],
+    plans: [], operators: [], coverage: [], markets: [], offers: [], metrics: [], mobile: [],
     filtered: [], filteredCoverage: [],
     filters: {
       period:new Set(), city:new Set(), operator:new Set(), technology:new Set(), trunk:new Set()
