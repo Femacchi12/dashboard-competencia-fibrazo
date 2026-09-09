@@ -3,7 +3,7 @@
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
   const state=FZ.state;
-  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,pctVs,normalizeTV,rowOperator}=FZ.u;
+  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,pctVs,normalizeTV,rowOperator,trunkCompetitiveSummaryHtml}=FZ.u;
   const $=FZ.u.$;
 
   function offerLabel(o){
@@ -456,7 +456,7 @@
     return '<article class="panel compare-scope-card compare-scope-card-managerial">'+
       '<div class="compare-scope-head">'+
         '<div><span>'+scopeType+' · '+escapeHtml(comparisonPeriodLabel(period))+'</span><h3>'+escapeHtml(scope.label)+'</h3></div>'+
-        '<strong>'+formatNum(m.ops.size)+' competidores</strong>'+
+        (scope.level==="city"?'<strong>'+formatNum(m.ops.size)+' competidores</strong>':"")+
       '</div>'+
       '<div class="compare-managerial-block">'+
         '<span class="compare-block-title">OPERACIÓN FIBRAZO ACTUAL</span>'+
@@ -466,6 +466,7 @@
           '<div><span>Penetración</span><b>'+(op.penetration==null?"—":formatPct(op.penetration*100).replace("+",""))+'</b></div>'+
         '</div>'+
       '</div>'+
+      (scope.level==="trunk"?trunkCompetitiveSummaryHtml(m.operatorSummaries.map(o=>o.operator),m.ops.size):"")+
       '<div class="compare-managerial-block">'+
         '<span class="compare-block-title">MERCADO · '+escapeHtml(comparisonPeriodLabel(period))+'</span>'+
         '<div class="compare-market-grid">'+
