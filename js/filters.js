@@ -354,7 +354,7 @@
       const baseRows=key==="period"?state.plans:state.plans.filter(r=>rowPassesFilters(r,key));
       let options=[...new Set(baseRows.map(getter).filter(Boolean))];
 
-      if(!hasPlanSpecificFilters()&&(key==="operator"||key==="technology")){
+      if(key==="operator"||key==="technology"){
         const coverageOptions=state.coverage
           .filter(r=>coveragePassesFilters(r,key))
           .map(r=>key==="operator"?(clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)):(clean(r.Tecnologia)||"No informado"))
