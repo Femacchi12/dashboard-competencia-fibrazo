@@ -136,6 +136,18 @@
       };
     });
   }
+  function buildMobile(raw){
+    return raw.filter(r=>clean(r.Periodo_Corte)&&clean(r.Operador)).map((r,index)=>({
+      ...r,
+      _key:[clean(r.Periodo_Corte),clean(r.Operador),clean(r.Plan_Referencia),index].join("|"),
+      Periodo_Corte:periodValue(r.Periodo_Corte),
+      Periodo_Label:formatPeriod(r.Periodo_Corte),
+      Precio_COP:toNum(r.Precio_COP),
+      GB:toNum(r.GB),
+      Vigencia_Dias:toNum(r.Vigencia_Dias)
+    }));
+  }
+
 
   function indexRows(rows,keyFn){
     const map=new Map();
@@ -168,7 +180,8 @@
         fetchCsv(S.markets),
         fetchCsv(S.territories),
         fetchCsv(S.offers),
-        fetchCsv(S.fibrazoMetrics)
+        fetchCsv(S.fibrazoMetrics),
+        fetchCsv(S.mobile)
       ]);
       if(results[0].status!=="fulfilled") throw results[0].reason;
       if(results[1].status!=="fulfilled") throw results[1].reason;
@@ -181,18 +194,21 @@
       state.territories=results[4].status==="fulfilled"?results[4].value.filter(r=>clean(r.ID_Territorio)):[];
       state.offers=results[5].status==="fulfilled"?buildOffers(results[5].value):[];
       state.metrics=results[6].status==="fulfilled"?buildMetrics(results[6].value):[];
+      state.mobile=results[7].status==="fulfilled"?buildMobile(results[7].value):[];
     }else{
       const results=await Promise.allSettled([
         fetchCsv(S.plans),
         fetchCsv(S.coverage),
         fetchCsv(S.offers),
-        fetchCsv(S.fibrazoMetrics)
+        fetchCsv(S.fibrazoMetrics),
+        fetchCsv(S.mobile)
       ]);
       if(results[0].status!=="fulfilled") throw results[0].reason;
       state.plans=buildPlans(results[0].value,state.operators);
       if(results[1].status==="fulfilled") state.coverage=buildCoverage(results[1].value,state.operators);
       if(results[2].status==="fulfilled") state.offers=buildOffers(results[2].value);
       if(results[3].status==="fulfilled") state.metrics=buildMetrics(results[3].value);
+      if(results[4].status==="fulfilled") state.mobile=buildMobile(results[4].value);
     }
 
     buildIndexes();
@@ -201,9 +217,10 @@
       mode:full?"full":"dynamic",
       plans:state.plans.length,
       coverage:state.coverage.length,
-      metrics:state.metrics.length
+      metrics:state.metrics.length,
+      mobile:state.mobile.length
     };
   }
 
-  FZ.data={csvUrl,parseCSV,fetchCsv,buildPlans,buildCoverage,buildOffers,buildMarkets,buildMetrics,buildIndexes,load};
+  FZ.data={csvUrl,parseCSV,fetchCsv,buildPlans,buildCoverage,buildOffers,buildMarkets,buildMetrics,buildMobile,buildIndexes,load};
 })();
