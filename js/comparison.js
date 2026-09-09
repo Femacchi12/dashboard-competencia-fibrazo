@@ -18,12 +18,19 @@
   function compatibleOffers(){
     const cities=state.filters.city.size?state.filters.city:FZ.filters.fibrazoCitySet();
     const rows=state.offers.filter(o=>!cities.size||cities.has(clean(o.Ciudad)));
+    const multiCity=cities.size!==1;
     const seen=new Set();
     return rows.filter(o=>{
-      const k=[clean(o.Ciudad),offerSignature(o),toNum(o.Precio_COP)].join("|");
+      const k=multiCity?offerSignature(o):[clean(o.Ciudad),offerSignature(o),toNum(o.Precio_COP)].join("|");
       if(seen.has(k)) return false;
       seen.add(k); return true;
     });
+  }
+
+  function offerFamilyLabel(o){
+    const tv=normalizeTV(o.TV);
+    const tvLabel=tv&&tv!=="No informado"?" · TV "+tv:"";
+    return clean(o.Servicio)+" · "+formatNum(o.Velocidad_Mbps)+" Mbps"+tvLabel+" · "+clean(o.Etapa_Vigencia);
   }
 
   function benchmarkOfferForCity(city,selected){
@@ -66,9 +73,9 @@
       const preferred=offers.find(o=>clean(o.Servicio)==="Internet"&&o.Velocidad_Mbps===400&&clean(o.Etapa_Vigencia)==="Precio normal")||offers[0];
       state.selectedOfferKey=preferred.ID_Oferta;
     }
-    select.innerHTML=offers.map(o=>'<option value="'+escapeHtml(o.ID_Oferta)+'" '+(o.ID_Oferta===state.selectedOfferKey?"selected":"")+'>'+escapeHtml(offerLabel(o))+"</option>").join("");
-    const fz=offers.find(o=>o.ID_Oferta===state.selectedOfferKey)||offers[0];
     const activeCities=state.filters.city.size?[...state.filters.city]:[...FZ.filters.fibrazoCitySet()];
+    select.innerHTML=offers.map(o=>'<option value="'+escapeHtml(o.ID_Oferta)+'" '+(o.ID_Oferta===state.selectedOfferKey?"selected":"")+'>'+escapeHtml(activeCities.length>1?offerFamilyLabel(o):offerLabel(o))+"</option>").join("");
+    const fz=offers.find(o=>o.ID_Oferta===state.selectedOfferKey)||offers[0];
     const localBenchmarks=activeCities.map(city=>benchmarkOfferForCity(city,fz)).filter(Boolean);
     const benchmarkPrices=localBenchmarks.map(o=>toNum(o.Precio_COP)).filter(n=>n>0);
     const benchmarkSpeeds=localBenchmarks.map(o=>toNum(o.Velocidad_Mbps)).filter(n=>n>0);
