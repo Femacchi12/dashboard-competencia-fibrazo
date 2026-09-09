@@ -397,8 +397,13 @@
           row.innerHTML='<input type="checkbox" '+(state.filters[key].has(o)?"checked":"")+'><span>'+escapeHtml(o)+'</span>';
           row.querySelector("input").addEventListener("change",e=>{
             if(e.target.checked){
-              if(def.maxSelections&&state.filters[key].size>=def.maxSelections){e.target.checked=false;return;}
-              state.filters[key].add(o);
+              if(key==="period"){
+                state.filters.period.clear();
+                state.filters.period.add(o);
+              }else{
+                if(def.maxSelections&&state.filters[key].size>=def.maxSelections){e.target.checked=false;return;}
+                state.filters[key].add(o);
+              }
             }else{
               state.filters[key].delete(o);
               if(key==="period"&&!state.filters.period.size) ensurePeriodSelection();
