@@ -5,11 +5,6 @@
   const stickyKeys = ["Periodo_Label", "Grupo_Operador", "Ciudad"];
   let scheduled = false;
 
-  function parseCount(value) {
-    const digits = String(value || "").replace(/\D/g, "");
-    return digits ? Number(digits) : 0;
-  }
-
   function reorderTable() {
     const headRow = document.querySelector("#table-head tr");
     if (!headRow) return;
@@ -92,28 +87,10 @@
     });
   }
 
-  function updateMoreButton() {
-    const count = document.getElementById("table-count");
-    const button = document.getElementById("more-btn");
-    if (!count || !button) return;
-
-    const match = count.textContent.match(/([\d.,]+)\s+de\s+([\d.,]+)/i);
-    if (!match) return;
-
-    const shown = parseCount(match[1]);
-    const total = parseCount(match[2]);
-    const remaining = Math.max(total - shown, 0);
-    const formatted = new Intl.NumberFormat("es-CO").format(remaining);
-    const expanded = button.textContent.trim().toLowerCase().startsWith("ver menos");
-    const nextText = expanded ? `VER MENOS · ${formatted} POR MOSTRAR` : `VER MÁS (${formatted})`;
-    if (button.textContent !== nextText) button.textContent = nextText;
-  }
-
   function enhance() {
     reorderTable();
     reorderColumnPicker();
     applyStickyColumns();
-    updateMoreButton();
   }
 
   function scheduleEnhance() {
