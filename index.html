@@ -133,18 +133,18 @@
           <label>Estado
             <select id="mobile-status-filter"></select>
           </label>
-          <label class="mobile-search-label">Buscar
-            <input id="mobile-search" class="search-input" type="search" placeholder="Buscar plan, beneficio, fuente…" autocomplete="off" />
-          </label>
         </div>
       </article>
 
       <div id="mobile-kpis" class="mobile-kpi-grid"></div>
 
       <article class="panel mobile-table-panel">
-        <div class="panel-head">
+        <div class="panel-head mobile-table-head">
           <h3>Oferta móvil consolidada</h3>
-          <span id="mobile-result-count">—</span>
+          <div class="mobile-table-head-actions">
+            <input id="mobile-search" class="search-input mobile-table-search" type="search" placeholder="Buscar en la tabla…" autocomplete="off" />
+            <span id="mobile-result-count">—</span>
+          </div>
         </div>
         <div class="mobile-table-wrap">
           <table class="mobile-table">
