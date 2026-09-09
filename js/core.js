@@ -186,7 +186,7 @@
     ).values()].sort(compareOperatorsTraditionalFirst);
     const count=total==null?names.length:total;
     const badge=name=>
-      '<div class="trunk-market-signal present"><span>'+escapeHtml(name)+'</span></div>';
+      '<div class="trunk-market-signal present '+(operatorPriorityRank(name)<3?"traditional":"")+'"><span>'+escapeHtml(name)+'</span></div>';
     return '<div class="trunk-market-summary">'+
       '<div class="trunk-market-total"><span>Competidores</span><b>'+formatNum(count)+'</b></div>'+
       '<div class="trunk-market-traditional trunk-market-all-operators"><span>Operadores presentes</span><div>'+
