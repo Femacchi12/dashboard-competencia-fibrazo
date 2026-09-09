@@ -39,7 +39,7 @@
     openTrunkKey:"",
     networkSearch:"",
     networkSort:{key:"Troncal_FIBRAZO",dir:1},
-    mobileView:{period:"2026-09",operator:"all",modality:"all",status:"all",search:"",sort:{key:"Operador",dir:1},openKey:""},
+    mobileView:{period:"2026-09",operator:"all",modality:"all",search:"",sort:{key:"Operador",dir:1},openKey:""},
     indexes:{}
   };
 
