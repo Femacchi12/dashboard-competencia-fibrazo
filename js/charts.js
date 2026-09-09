@@ -3,8 +3,9 @@
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
   const state=FZ.state;
-  const {clean,toNum,formatCOP,formatNum,formatPeriod,rowOperator}=FZ.u;
+  const {clean,toNum,formatCOP,formatNum,formatPeriod,rowOperator,escapeHtml}=FZ.u;
   const $=FZ.u.$;
+  let scatterHideTimer=null;
 
   function renderKPIs(){
     const d=state.filtered;
@@ -14,7 +15,6 @@
     const speeds=d.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
     if($("kpi-operators")) $("kpi-operators").textContent=formatNum(operators.size);
     if($("kpi-cities-note")) $("kpi-cities-note").textContent=formatNum(cities.size)+" ciudades con datos";
-    if($("kpi-plans")) $("kpi-plans").textContent=formatNum(d.length);
     if($("kpi-min-price")) $("kpi-min-price").textContent=prices.length?formatCOP(Math.min(...prices)):"—";
     if($("kpi-max-price")) $("kpi-max-price").textContent=prices.length?formatCOP(Math.max(...prices)):"—";
     if($("kpi-min-speed")) $("kpi-min-speed").textContent=speeds.length?formatNum(Math.min(...speeds)):"—";
@@ -146,6 +146,120 @@
     return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+alpha+")";
   }
 
+  function scatterCandidates(points,raw){
+    const unique=new Map();
+    points.filter(p=>p.x===raw.x&&p.y===raw.y).forEach(p=>unique.set(p.operator+"|"+p.city,p));
+    return [...unique.values()];
+  }
+
+  function scatterTooltipElement(chart){
+    const panel=chart.canvas.closest(".chart-panel");
+    if(!panel) return null;
+    let el=panel.querySelector(".scatter-interactive-tooltip");
+    if(el) return el;
+    el=document.createElement("div");
+    el.className="scatter-interactive-tooltip hidden";
+    el.dataset.locked="0";
+    panel.appendChild(el);
+    el.addEventListener("mouseenter",()=>{if(scatterHideTimer)clearTimeout(scatterHideTimer);});
+    el.addEventListener("mouseleave",()=>{
+      if(el.dataset.locked==="1") return;
+      scatterHideTimer=setTimeout(()=>el.classList.add("hidden"),160);
+    });
+    return el;
+  }
+
+  function hideScatterTooltip(chart,{force=false}={}){
+    const el=chart?.canvas?.closest(".chart-panel")?.querySelector(".scatter-interactive-tooltip");
+    if(!el) return;
+    if(!force&&el.dataset.locked==="1") return;
+    el.dataset.locked="0";
+    el.classList.add("hidden");
+  }
+
+  function renderScatterTooltip(chart,points,raw,caretX,caretY,{locked=false}={}){
+    const el=scatterTooltipElement(chart);
+    if(!el||!raw) return;
+    if(scatterHideTimer) clearTimeout(scatterHideTimer);
+    const candidates=scatterCandidates(points,raw);
+    el.dataset.locked=locked?"1":"0";
+
+    let html='<div class="scatter-tooltip-head"><div><b>'+escapeHtml(formatNum(raw.x))+' Mbps</b><span>'+escapeHtml(formatCOP(raw.y))+'</span></div><button type="button" class="scatter-tooltip-close" aria-label="Cerrar">×</button></div>';
+    html+='<div class="scatter-tooltip-list">';
+    candidates.forEach((p,i)=>{
+      html+='<button type="button" class="scatter-tooltip-choice" data-scatter-choice="'+i+'"><b>'+escapeHtml(p.operator)+'</b><span>'+escapeHtml(p.city)+'</span></button>';
+    });
+    html+='</div>';
+    el.innerHTML=html;
+    el.classList.remove("hidden");
+
+    const panel=chart.canvas.closest(".chart-panel");
+    const canvasRect=chart.canvas.getBoundingClientRect();
+    const panelRect=panel.getBoundingClientRect();
+    const popupWidth=Math.min(380,Math.max(250,panel.clientWidth-24));
+    el.style.width=popupWidth+"px";
+    let left=(canvasRect.left-panelRect.left)+caretX+12;
+    let top=(canvasRect.top-panelRect.top)+caretY+10;
+    left=Math.max(12,Math.min(left,panel.clientWidth-popupWidth-12));
+    const estimatedHeight=Math.min(300,88+candidates.length*45);
+    if(top+estimatedHeight>panel.clientHeight-8) top=Math.max(58,(canvasRect.top-panelRect.top)+caretY-estimatedHeight-12);
+    el.style.left=left+"px";
+    el.style.top=top+"px";
+
+    el.querySelector(".scatter-tooltip-close")?.addEventListener("click",event=>{
+      event.stopPropagation();
+      hideScatterTooltip(chart,{force:true});
+    });
+    el.querySelectorAll("[data-scatter-choice]").forEach(btn=>btn.addEventListener("click",event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      const p=candidates[Number(btn.dataset.scatterChoice)];
+      hideScatterTooltip(chart,{force:true});
+      window.dispatchEvent(new CustomEvent("fibrazo:operator-chart-select",{detail:{operator:p.operator,city:p.city}}));
+    }));
+  }
+
+  function externalScatterTooltip(points){
+    return context=>{
+      const {chart,tooltip}=context;
+      const el=scatterTooltipElement(chart);
+      if(!el) return;
+      if(tooltip.opacity===0){
+        if(el.dataset.locked==="1"||el.matches(":hover")) return;
+        if(scatterHideTimer) clearTimeout(scatterHideTimer);
+        scatterHideTimer=setTimeout(()=>hideScatterTooltip(chart),220);
+        return;
+      }
+      const raw=tooltip.dataPoints?.[0]?.raw;
+      if(!raw) return;
+      renderScatterTooltip(chart,points,raw,tooltip.caretX,tooltip.caretY,{locked:false});
+    };
+  }
+
+  function operatorFromBarEvent(event,elements,chart){
+    let index=elements?.[0]?.index;
+    const scale=chart.scales?.y;
+    if(index==null&&scale&&event.x<=chart.chartArea.left&&event.y>=scale.top&&event.y<=scale.bottom){
+      const raw=scale.getValueForPixel(event.y);
+      const numeric=Number(raw);
+      if(Number.isFinite(numeric)) index=Math.round(numeric);
+      else index=chart.data.labels.indexOf(raw);
+    }
+    if(index==null||index<0||index>=chart.data.labels.length) return "";
+    return clean(chart.data.labels[index]);
+  }
+
+  function openBarOperator(operator){
+    if(!operator) return;
+    const city=FZ.filters.selectedSingleCity?.()||"";
+    window.dispatchEvent(new CustomEvent("fibrazo:operator-chart-select",{detail:{operator,city}}));
+  }
+
+  function barHoverCursor(event,elements,chart){
+    const operator=operatorFromBarEvent(event,elements,chart);
+    chart.canvas.style.cursor=operator?"pointer":"default";
+  }
+
   function renderCharts(){
     const rows=state.filtered;
 
@@ -165,14 +279,19 @@
         data:{datasets:[{label:"Planes",data:points,pointRadius:4,pointHoverRadius:6,backgroundColor:"rgba(0,242,154,.72)"}]},
         options:{
           ...opt,
+          interaction:{mode:"nearest",intersect:true},
           onClick:(event,elements,chart)=>{
-            if(!elements?.length) return;
+            if(!elements?.length){
+              hideScatterTooltip(chart,{force:true});
+              return;
+            }
             const hit=chart.data.datasets[elements[0].datasetIndex].data[elements[0].index];
-            const unique=new Map();
-            points.filter(p=>p.x===hit.x&&p.y===hit.y).forEach(p=>unique.set(p.operator+"|"+p.city,p));
-            window.dispatchEvent(new CustomEvent("fibrazo:scatter-select",{detail:{candidates:[...unique.values()]}}));
+            renderScatterTooltip(chart,points,hit,event.x,event.y,{locked:true});
           },
-          plugins:{...opt.plugins,tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>c.raw.operator+" · "+c.raw.city+": "+formatNum(c.raw.x)+" Mbps · "+formatCOP(c.raw.y)}}},
+          plugins:{
+            ...opt.plugins,
+            tooltip:{enabled:false,external:externalScatterTooltip(points)}
+          },
           scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,title:{display:true,text:"COP"},ticks:{callback:v=>"$"+Math.round(v/1000)+"k"}}}
         }
       });
@@ -196,7 +315,13 @@
           {label:"Mínimo",data:priceRanges.map(x=>x[1].min),backgroundColor:colors.map(c=>hexToRgba(c,.52)),borderColor:colors,borderWidth:1,borderRadius:5},
           {label:"Máximo",data:priceRanges.map(x=>x[1].max),backgroundColor:colors.map(c=>hexToRgba(c,.92)),borderColor:colors,borderWidth:1,borderRadius:5}
         ]},
-        options:{...opt,indexAxis:"y",layout:{padding:{left:8,right:10}},plugins:{...opt.plugins,legend:{position:"bottom"},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>c.dataset.label+": "+formatCOP(c.raw)}}},scales:{x:{...opt.scales.x,ticks:{callback:v=>"$"+Math.round(v/1000)+"k"}},y:{...opt.scales.y,ticks:{autoSkip:false,padding:8,font:{size:10}}}}}
+        options:{
+          ...opt,indexAxis:"y",layout:{padding:{left:8,right:10}},
+          onClick:(event,elements,chart)=>openBarOperator(operatorFromBarEvent(event,elements,chart)),
+          onHover:barHoverCursor,
+          plugins:{...opt.plugins,legend:{position:"bottom"},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>c.dataset.label+": "+formatCOP(c.raw)}}},
+          scales:{x:{...opt.scales.x,ticks:{callback:v=>"$"+Math.round(v/1000)+"k"}},y:{...opt.scales.y,ticks:{autoSkip:false,padding:8,font:{size:10}}}}
+        }
       });
     }
 
@@ -212,7 +337,13 @@
           {label:"Mínimo",data:speedRanges.map(x=>x[1].min),backgroundColor:colors.map(c=>hexToRgba(c,.52)),borderColor:colors,borderWidth:1,borderRadius:5},
           {label:"Máximo",data:speedRanges.map(x=>x[1].max),backgroundColor:colors.map(c=>hexToRgba(c,.92)),borderColor:colors,borderWidth:1,borderRadius:5}
         ]},
-        options:{...opt,indexAxis:"y",layout:{padding:{left:8,right:10}},plugins:{...opt.plugins,legend:{position:"bottom"},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>c.dataset.label+": "+formatNum(c.raw)+" Mbps"}}},scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,ticks:{autoSkip:false,padding:8,font:{size:10}}}}}
+        options:{
+          ...opt,indexAxis:"y",layout:{padding:{left:8,right:10}},
+          onClick:(event,elements,chart)=>openBarOperator(operatorFromBarEvent(event,elements,chart)),
+          onHover:barHoverCursor,
+          plugins:{...opt.plugins,legend:{position:"bottom"},tooltip:{...opt.plugins.tooltip,callbacks:{label:c=>c.dataset.label+": "+formatNum(c.raw)+" Mbps"}}},
+          scales:{x:{...opt.scales.x,title:{display:true,text:"Mbps"}},y:{...opt.scales.y,ticks:{autoSkip:false,padding:8,font:{size:10}}}}
+        }
       });
     }
   }
