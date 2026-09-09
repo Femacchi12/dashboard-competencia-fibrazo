@@ -131,6 +131,74 @@
     };
   }
 
+  const strataDefs=[
+    ["Estrato 0","HHPP_Estrato_0","s0"],
+    ["Estrato 1","HHPP_Estrato_1","s1"],
+    ["Estrato 2","HHPP_Estrato_2","s2"],
+    ["Estrato 3","HHPP_Estrato_3","s3"],
+    ["Estrato 4","HHPP_Estrato_4","s4"],
+    ["Estrato 5","HHPP_Estrato_5","s5"],
+    ["Estrato 6","HHPP_Estrato_6","s6"],
+    ["Sin estrato","HHPP_Sin_Estrato","sn"]
+  ];
+
+  function estratoBreakdown(metric){
+    if(!metric) return [];
+    const values=strataDefs.map(([label,key,className])=>({
+      label,key,className,value:toNum(metric[key])??0
+    }));
+    const reported=toNum(metric.Total_HHPP_Estratos);
+    const sum=values.reduce((s,x)=>s+x.value,0);
+    const total=reported!=null&&reported>0?reported:sum;
+    return values.map(x=>({...x,pct:total>0?x.value/total:null,total}));
+  }
+
+  function miniStrataHtml(metric){
+    const data=estratoBreakdown(metric);
+    const total=data[0]?.total||0;
+    if(!total) return '<span class="trunk-strata-cell empty"><span>Sin dato</span></span>';
+    const segments=data.filter(x=>x.value>0).map(x=>
+      '<i class="strata-segment '+x.className+'" style="width:'+Math.max(.5,x.pct*100)+'%" title="'+escapeHtml(x.label)+': '+formatNum(x.value)+' · '+(x.pct*100).toFixed(1).replace(".",",")+'%"></i>'
+    ).join("");
+    const dominant=[...data].sort((a,b)=>b.value-a.value)[0];
+    return '<span class="trunk-strata-cell">'+
+      '<span class="trunk-strata-mini">'+segments+'</span>'+
+      '<small>'+escapeHtml(dominant.label)+' · '+(dominant.pct*100).toFixed(1).replace(".",",")+'%</small>'+
+    '</span>';
+  }
+
+  function strataDetailHtml(metric){
+    const data=estratoBreakdown(metric);
+    const total=data[0]?.total||0;
+    if(!total){
+      return '<section class="trunk-strata-section"><div class="trunk-subhead"><div><span>DISTRIBUCIÓN HHPP</span><h4>HHPP por estrato</h4></div></div><div class="detail-empty">Sin distribución de estratos disponible para esta troncal.</div></section>';
+    }
+
+    const operational=toNum(metric?.HHPP);
+    const criterion=clean(metric?.Criterio_Total_HHPP);
+    const different=operational!=null&&Math.abs(operational-total)>=1;
+    const note=different
+      ?'<div class="trunk-strata-note '+(criterion.includes("MANTIENE")?"warn":"")+'">HHPP operativo: <b>'+formatNum(operational)+'</b> · Total usado para distribución por estrato: <b>'+formatNum(total)+'</b> · '+escapeHtml(criterion||"Criterio de conciliación aplicado")+'</div>'
+      :"";
+
+    return '<section class="trunk-strata-section">'+
+      '<div class="trunk-subhead"><div><span>DISTRIBUCIÓN HHPP</span><h4>HHPP por estrato</h4></div><small>'+formatNum(total)+' HHPP clasificados</small></div>'+
+      '<div class="trunk-strata-overview">'+
+        '<div class="trunk-strata-stack">'+data.filter(x=>x.value>0).map(x=>
+          '<i class="strata-segment '+x.className+'" style="width:'+Math.max(.5,x.pct*100)+'%" title="'+escapeHtml(x.label)+': '+formatNum(x.value)+'"></i>'
+        ).join("")+'</div>'+
+      '</div>'+
+      '<div class="trunk-strata-grid">'+data.map(x=>
+        '<article class="trunk-strata-card '+x.className+'">'+
+          '<div><span>'+escapeHtml(x.label)+'</span><strong>'+formatNum(x.value)+'</strong></div>'+
+          '<b>'+(x.pct==null?"—":(x.pct*100).toFixed(1).replace(".",",")+'%')+'</b>'+
+          '<div class="trunk-strata-track"><i style="width:'+(x.pct==null?0:Math.max(x.value>0?2:0,x.pct*100))+'%"></i></div>'+
+        '</article>'
+      ).join("")+'</div>'+
+      note+
+    '</section>';
+  }
+
   function renderTrunkDetail(city,trunk){
     const slot=$("fibrazo-trunk-detail");
     if(!slot) return;
@@ -156,6 +224,7 @@
           '<div><span>Competidores relevados</span><b>'+formatNum(competitors.length)+'</b></div>'+
         '</div>'+
         '<div class="trunk-detail-status"><span>'+escapeHtml(status||"—")+'</span></div>'+
+        strataDetailHtml(metric)+
         '<div class="trunk-competitors-wrap">'+
           '<table class="trunk-competitors-table"><thead><tr><th>Operador</th><th>Tecnología</th><th>Zonas</th><th>Barrios</th><th>Precio mín.</th><th>Velocidad máx.</th></tr></thead>'+
           '<tbody>'+(
@@ -215,13 +284,14 @@
             '<strong>'+(m.penetration==null?"—":formatPct(m.penetration*100).replace("+",""))+'</strong>'+
           '</div>'+
         '</div>'+
-        '<div class="network-trunk-table"><div class="network-trunk-header"><span>Troncal</span><span>HHPP</span><span>Activos</span><span>Penetración</span><span>Estado</span></div>'+
+        '<div class="network-trunk-table"><div class="network-trunk-header"><span>Troncal</span><span>HHPP</span><span>Activos</span><span>Penetración</span><span>Estratos</span><span>Estado</span></div>'+
         cityRows.map(r=>
           '<button type="button" class="network-trunk-row" data-city="'+escapeHtml(city)+'" data-trunk="'+escapeHtml(clean(r.Troncal_FIBRAZO))+'">'+
             '<b>'+escapeHtml(clean(r.Troncal_FIBRAZO)||"—")+'</b>'+
             '<span>'+(r.HHPP==null?"—":formatNum(r.HHPP))+'</span>'+
             '<span>'+(r.Clientes_Activos==null?"—":formatNum(r.Clientes_Activos))+'</span>'+
             '<strong>'+(r.Penetracion==null?"—":formatPct(r.Penetracion*100).replace("+",""))+'</strong>'+
+            miniStrataHtml(r)+
             '<em class="'+(clean(r.Estado_Dato)==="OK"||clean(r.Estado_Dato)==="Consolidado duplicados"?"ok":"warn")+'">'+escapeHtml(clean(r.Estado_Dato)||"—")+'</em>'+
           '</button>'
         ).join("")+'</div>';
