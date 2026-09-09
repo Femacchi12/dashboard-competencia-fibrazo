@@ -3,7 +3,7 @@
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
   const state=FZ.state;
-  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,linkCell,phoneCell,rowOperator}=FZ.u;
+  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,rowOperator,normalizeTV}=FZ.u;
   const $=FZ.u.$;
 
   function matchingCoverageForPlan(r){
@@ -24,14 +24,64 @@
       .join(" · ");
   }
 
+  function uniq(values){
+    return [...new Set(values.map(clean).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es",{numeric:true}));
+  }
+
+  function buildSummaryRows(){
+    const groups=new Map();
+    state.filtered.forEach(r=>{
+      const operator=rowOperator(r);
+      const city=clean(r.Ciudad);
+      const technology=clean(r.Tecnologia)||"No informado";
+      const period=clean(r.Periodo_Label)||"Sin corte";
+      if(!operator||!city) return;
+      const key=[period,operator,city,technology].join("||");
+      if(!groups.has(key)) groups.set(key,{key,plans:[]});
+      groups.get(key).plans.push(r);
+    });
+
+    return [...groups.values()].map(group=>{
+      const plans=group.plans;
+      const first=plans[0]||{};
+      const prices=plans.map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0);
+      const speeds=plans.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
+      const coverage=plans.flatMap(matchingCoverageForPlan);
+      const services=uniq(plans.map(r=>r.Tipo_Servicio));
+      const tv=uniq(plans.map(r=>normalizeTV(r.TV_Incluida)));
+      return {
+        _groupKey:group.key,
+        _plans:plans,
+        ID_Plan_Registro:clean(first.ID_Plan_Registro),
+        Periodo_Label:clean(first.Periodo_Label)||"Sin corte",
+        Periodo_Corte:clean(first.Periodo_Corte),
+        Grupo_Operador:rowOperator(first),
+        Ciudad:clean(first.Ciudad),
+        Departamento:uniq(plans.map(r=>r.Departamento)).join(" · ")||"—",
+        Tecnologia:clean(first.Tecnologia)||"No informado",
+        Precio_Min_COP:prices.length?Math.min(...prices):null,
+        Precio_Max_COP:prices.length?Math.max(...prices):null,
+        Velocidad_Min_Mbps:speeds.length?Math.min(...speeds):null,
+        Velocidad_Max_Mbps:speeds.length?Math.max(...speeds):null,
+        Tipo_Servicio:services.join(" · ")||"—",
+        TV_Incluida:tv.join(" · ")||"—",
+        Troncales_Ciudad:uniq(coverage.map(r=>r.Troncal_FIBRAZO)).join(" · ")||"—"
+      };
+    });
+  }
+
+  function summaryMatchesSearch(r,q){
+    if(!q) return true;
+    if(FZ.columns.some(([k])=>fold(r[k]).includes(q))) return true;
+    return r._plans.some(plan=>Object.values(plan).some(value=>fold(value).includes(q)));
+  }
+
   function tableRows(){
     const q=fold(state.tableSearch);
-    const valueFor=(r,k)=>k==="Troncales_Ciudad"?trunksForPlan(r):r[k];
-    const rows=state.filtered.filter(r=>!q||FZ.columns.some(([k])=>fold(valueFor(r,k)).includes(q)));
+    const rows=buildSummaryRows().filter(r=>summaryMatchesSearch(r,q));
     const {key,dir}=state.sort;
     return [...rows].sort((a,b)=>{
       if(key==="Periodo_Label") return (FZ.u.periodSortValue(a.Periodo_Corte)-FZ.u.periodSortValue(b.Periodo_Corte))*dir;
-      if(key==="Troncales_Ciudad") return trunksForPlan(a).localeCompare(trunksForPlan(b),"es",{numeric:true})*dir;
       const an=toNum(a[key]),bn=toNum(b[key]);
       if(an!=null&&bn!=null) return (an-bn)*dir;
       return clean(a[key]).localeCompare(clean(b[key]),"es",{numeric:true})*dir;
@@ -39,19 +89,17 @@
   }
 
   function diverseInitialRows(rows,limit=10){
-    const picked=[],seenCities=new Set(),used=new Set();
+    const picked=[],seen=new Set(),used=new Set();
     for(const r of rows){
-      const city=clean(r.Ciudad)||"Sin ciudad";
-      const id=clean(r.ID_Plan_Registro)||city+"|"+rowOperator(r)+"|"+picked.length;
-      if(!seenCities.has(city)){
-        picked.push(r);seenCities.add(city);used.add(id);
+      const key=clean(r.Ciudad)+"|"+clean(r.Grupo_Operador);
+      if(!seen.has(key)){
+        picked.push(r);seen.add(key);used.add(r._groupKey);
         if(picked.length>=limit) return picked;
       }
     }
     for(const r of rows){
-      const id=clean(r.ID_Plan_Registro)||clean(r.Ciudad)+"|"+rowOperator(r)+"|"+picked.length;
-      if(!used.has(id)){
-        picked.push(r);used.add(id);
+      if(!used.has(r._groupKey)){
+        picked.push(r);used.add(r._groupKey);
         if(picked.length>=limit) break;
       }
     }
@@ -59,27 +107,22 @@
   }
 
   function formatCell(key,value,row){
-    if(key==="Troncales_Ciudad"){
-      const trunks=trunksForPlan(row);
-      return trunks?escapeHtml(trunks):'<span class="link-empty">—</span>';
-    }
     if(key==="Grupo_Operador"){
-      const op=rowOperator(row)||"—";
-      return '<button type="button" class="operator-detail-trigger" data-plan-id="'+escapeHtml(clean(row?.ID_Plan_Registro))+'">'+escapeHtml(op)+'</button>';
+      const op=clean(row.Grupo_Operador)||"—";
+      return '<button type="button" class="operator-detail-trigger" data-operator="'+escapeHtml(op)+'" data-city="'+escapeHtml(clean(row.Ciudad))+'" data-plan-id="'+escapeHtml(clean(row.ID_Plan_Registro))+'" aria-expanded="false"><span class="operator-toggle-arrow" aria-hidden="true">▸</span><span>'+escapeHtml(op)+'</span></button>';
     }
-    if(FZ.linkFields.has(key)) return linkCell(value,key);
-    if(FZ.phoneFields.has(key)) return phoneCell(value);
-    const n=toNum(value);
-    if(key==="Precio_Usado_COP") return escapeHtml(formatCOP(n));
-    if(["Velocidad_Bajada_Mbps","Permanencia_Meses"].includes(key)) return n==null?escapeHtml(clean(value)||"—"):escapeHtml(formatNum(n));
-    if(key==="Periodo_Label") return escapeHtml(clean(value)||"Sin corte");
-    if(key==="Fecha_Mes") return escapeHtml(clean(value)||"Sin info");
+    if(["Precio_Min_COP","Precio_Max_COP"].includes(key)) return escapeHtml(formatCOP(toNum(value)));
+    if(["Velocidad_Min_Mbps","Velocidad_Max_Mbps"].includes(key)){
+      const n=toNum(value);
+      return n==null?"—":escapeHtml(formatNum(n)+" Mbps");
+    }
     return escapeHtml(clean(value)||"—");
   }
 
   function render(){
     const head=$("table-head"),body=$("table-body");
     if(!head||!body) return;
+    FZ.details?.pruneTableEntries?.();
     const rows=tableRows(),cols=FZ.columns.filter(([k])=>!state.hiddenColumns.has(k));
 
     head.innerHTML="<tr>"+cols.map(([k,l])=>'<th data-key="'+escapeHtml(k)+'">'+escapeHtml(l)+(state.sort.key===k?'<span class="sort-mark">'+(state.sort.dir===1?"▲":"▼")+"</span>":"")+"</th>").join("")+"</tr>";
@@ -90,12 +133,12 @@
     }));
 
     const shown=state.expanded?rows:diverseInitialRows(rows,10);
-    body.innerHTML=shown.map(r=>'<tr data-plan-row="'+escapeHtml(clean(r.ID_Plan_Registro))+'">'+cols.map(([k])=>"<td>"+formatCell(k,r[k],r)+"</td>").join("")+"</tr>").join("");
+    body.innerHTML=shown.map(r=>'<tr data-summary-key="'+escapeHtml(r._groupKey)+'">'+cols.map(([k])=>"<td>"+formatCell(k,r[k],r)+"</td>").join("")+"</tr>").join("");
 
     if($("table-count")){
       $("table-count").textContent=state.expanded
-        ?formatNum(rows.length)+" de "+formatNum(rows.length)+" registros"
-        :formatNum(shown.length)+" de "+formatNum(rows.length)+" registros · muestra inicial por ciudades";
+        ?formatNum(rows.length)+" de "+formatNum(rows.length)+" combinaciones operador × tecnología"
+        :formatNum(shown.length)+" de "+formatNum(rows.length)+" combinaciones · muestra inicial por ciudades";
     }
     if($("more-btn")){
       $("more-btn").textContent=state.expanded?"Ver menos":"Ver más";
@@ -117,5 +160,5 @@
     window.dispatchEvent(new CustomEvent("fibrazo:columns-rendered"));
   }
 
-  FZ.table={matchingCoverageForPlan,trunksForPlan,tableRows,render,renderColumns};
+  FZ.table={matchingCoverageForPlan,trunksForPlan,buildSummaryRows,tableRows,render,renderColumns};
 })();
