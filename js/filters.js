@@ -439,9 +439,9 @@
     state.filtered=state.plans.filter(planPasses);
     if(hasPlanSpecificFilters()){
       const allowed=new Set(state.filtered.map(r=>[r.Periodo_Label,clean(r.Ciudad),clean(r.Grupo_Operador)].join("|")));
-      state.filteredCoverage=state.coverage.filter(r=>allowed.has([r.Periodo_Label,clean(r.Ciudad),clean(r.Grupo_Operador)].join("|"))&&coveragePassesFilters(r));
+      state.filteredCoverage=state.coverage.filter(r=>FZ.u.competitiveCoverageAllowed(r)&&allowed.has([r.Periodo_Label,clean(r.Ciudad),clean(r.Grupo_Operador)].join("|"))&&coveragePassesFilters(r));
     }else{
-      state.filteredCoverage=state.coverage.filter(r=>coveragePassesFilters(r));
+      state.filteredCoverage=state.coverage.filter(r=>FZ.u.competitiveCoverageAllowed(r)&&coveragePassesFilters(r));
     }
     FZ.app?.renderAll?.();
   }
