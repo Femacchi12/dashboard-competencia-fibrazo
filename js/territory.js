@@ -72,6 +72,7 @@
   function trunkCompetitionRows(city,trunk){
     const periods=selectedCoveragePeriodLabels();
     return (state.indexes?.coverageByCityTrunk?.get(clean(city)+"|"+clean(trunk))||[]).filter(r=>{
+      if(!FZ.u.competitiveCoverageAllowed(r)) return false;
       if(periods.size&&!periods.has(clean(r.Periodo_Label))) return false;
       if(state.filters.technology.size&&!state.filters.technology.has(clean(r.Tecnologia)||"No informado")) return false;
       return true;
