@@ -21,8 +21,7 @@
     plans: [], operators: [], coverage: [], markets: [], territories: [], offers: [], metrics: [], mobile: [],
     filtered: [], filteredCoverage: [],
     filters: {
-      period:new Set(), city:new Set(), operator:new Set(), technology:new Set(),
-      modality:new Set(), price:new Set(), zone:new Set(), trunk:new Set()
+      period:new Set(), city:new Set(), operator:new Set(), technology:new Set(), trunk:new Set()
     },
     cityScopeMode:"fibrazo",
     analysisView:"general",
@@ -40,6 +39,7 @@
     networkSearch:"",
     networkSort:{key:"Troncal_FIBRAZO",dir:1},
     mobileView:{period:"2026-09",operator:"all",modality:"all",search:"",sort:{key:"Operador",dir:1},openKey:""},
+    sourceHealth:{},
     indexes:{}
   };
 
