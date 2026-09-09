@@ -23,6 +23,8 @@
     const hideRankings=FZ.filters.isSingleOperatorSingleCity();
     ["operator-price-panel","operator-speed-panel"].forEach(id=>$(id)?.classList.toggle("hidden",!inGeneral||hideRankings));
 
+    document.querySelector(".filters")?.classList.toggle("hidden",state.analysisView==="compare");
+
     if(state.analysisView==="territory"){
       $("coverage-ranking-panel")?.classList.toggle("hidden",FZ.filters.effectiveCityCount()<=1);
     }
@@ -123,8 +125,7 @@
     if($("table-search")) $("table-search").value="";
     state.expanded=false;
     state.sort={key:"Grupo_Operador",dir:1};
-    state.comparison={level:"city",items:new Set(),initialized:false};
-    if($("compare-level")) $("compare-level").value="city";
+    state.comparison={level:"city",items:new Set(),cityFilter:"all",search:""};
     FZ.filters.renderCityQuickbar();
     FZ.filters.renderFilters();
     FZ.filters.apply();
@@ -146,13 +147,6 @@
     $("fibrazo-offer-select")?.addEventListener("change",e=>{
       state.selectedOfferKey=e.target.value;
       FZ.comparison.renderFibrazoComparison();
-      FZ.comparison.renderComparator();
-    });
-
-    $("compare-level")?.addEventListener("change",e=>{
-      state.comparison.level=e.target.value;
-      state.comparison.items.clear();
-      state.comparison.initialized=false;
       FZ.comparison.renderComparator();
     });
 
