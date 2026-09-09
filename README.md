@@ -29,7 +29,7 @@ Tablas activas:
 - `01_OPERADORES`: maestro, contactos y canales.
 - `02_PLANES_HISTORICO`: planes hogar por corte.
 - `03_PRESENCIA`: presencia competitiva y troncales.
-- `07_CONFIG`: mercados, catálogo territorial y oferta FIBRAZO.
+- `07_CONFIG`: mercados y oferta FIBRAZO. El catálogo territorial queda en la base para trazabilidad, pero no se carga en runtime.
 - `10_FIBRAZO_METRICAS`: HHPP, activos, penetración y estratos.
 - `12_COMPETENCIA_MOVIL`: histórico y corte actual de competencia móvil.
 
@@ -54,7 +54,7 @@ Las hojas de investigación web de hogar y móvil funcionan como staging; la inf
 
 ## Actualización
 
-La aplicación reconsulta las ocho fuentes activas cada 120 segundos mientras la pestaña está visible. La cabecera muestra la salud de carga como `Fuentes X/8`.
+La aplicación reconsulta las siete fuentes activas cada 120 segundos mientras la pestaña está visible. La cabecera muestra la salud de carga como `Fuentes X/7`.
 
 ## Publicación
 
