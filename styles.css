@@ -329,7 +329,7 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
 .network-trunk-header,
 .network-trunk-row{
   display:grid;
-  grid-template-columns:minmax(110px,1.1fr) .8fr .8fr .8fr minmax(135px,1.1fr);
+  grid-template-columns:minmax(105px,1fr) .65fr .65fr .7fr minmax(180px,1.45fr) minmax(125px,1fr);
   gap:10px;
   align-items:center;
 }
@@ -649,4 +649,154 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
 }
 @media(max-width:700px){
   .scatter-interactive-tooltip{max-width:calc(100% - 20px)}
+}
+
+
+/* 2026-09-09 · HHPP strata visualization */
+.trunk-strata-cell{
+  display:grid;
+  gap:4px;
+  min-width:150px;
+}
+.trunk-strata-cell.empty{
+  color:#657A71;
+  font-size:9px;
+}
+.trunk-strata-cell small{
+  color:#7E938A;
+  font-size:8px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.trunk-strata-mini,
+.trunk-strata-stack{
+  display:flex;
+  width:100%;
+  height:8px;
+  overflow:hidden;
+  border:1px solid #263D34;
+  border-radius:999px;
+  background:#0A100E;
+}
+.trunk-strata-stack{
+  height:12px;
+  border-radius:7px;
+}
+.strata-segment{
+  display:block;
+  height:100%;
+  min-width:0;
+}
+.strata-segment.s0,.trunk-strata-card.s0 .trunk-strata-track i{background:#5C6F68}
+.strata-segment.s1,.trunk-strata-card.s1 .trunk-strata-track i{background:#00F29A}
+.strata-segment.s2,.trunk-strata-card.s2 .trunk-strata-track i{background:#45D7E8}
+.strata-segment.s3,.trunk-strata-card.s3 .trunk-strata-track i{background:#73B9FF}
+.strata-segment.s4,.trunk-strata-card.s4 .trunk-strata-track i{background:#A56EFF}
+.strata-segment.s5,.trunk-strata-card.s5 .trunk-strata-track i{background:#F5D547}
+.strata-segment.s6,.trunk-strata-card.s6 .trunk-strata-track i{background:#FF9F43}
+.strata-segment.sn,.trunk-strata-card.sn .trunk-strata-track i{background:#AFC2BA}
+.trunk-strata-section{
+  margin:12px 0 14px;
+  padding:12px;
+  border:1px solid #263B32;
+  border-radius:12px;
+  background:#09110E;
+}
+.trunk-subhead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:10px;
+}
+.trunk-subhead span{
+  display:block;
+  color:#00F29A;
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:.1em;
+}
+.trunk-subhead h4{
+  margin:4px 0 0;
+  color:#F4FFF9;
+  font-size:13px;
+}
+.trunk-subhead small{
+  color:#789086;
+  font-size:9px;
+  white-space:nowrap;
+}
+.trunk-strata-overview{
+  margin-bottom:10px;
+}
+.trunk-strata-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.trunk-strata-card{
+  padding:9px 10px;
+  border:1px solid #24372F;
+  border-radius:9px;
+  background:#0D1512;
+}
+.trunk-strata-card>div:first-child{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:8px;
+}
+.trunk-strata-card span{
+  color:#82978E;
+  font-size:8px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.trunk-strata-card strong{
+  color:#F4FFF9;
+  font-size:11px;
+}
+.trunk-strata-card>b{
+  display:block;
+  margin-top:4px;
+  color:#DDEAE5;
+  font-size:10px;
+}
+.trunk-strata-track{
+  height:4px;
+  margin-top:7px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#16221D;
+}
+.trunk-strata-track i{
+  display:block;
+  height:100%;
+  border-radius:999px;
+}
+.trunk-strata-note{
+  margin-top:10px;
+  padding:8px 10px;
+  border:1px solid #2B4037;
+  border-radius:9px;
+  color:#92A89F;
+  background:#0C1512;
+  font-size:9px;
+  line-height:1.45;
+}
+.trunk-strata-note.warn{
+  border-color:#6A4B1E;
+  background:#171208;
+  color:#E7C67C;
+}
+@media(max-width:980px){
+  .trunk-strata-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+  .trunk-strata-cell{grid-column:1/-1;min-width:0}
+  .trunk-subhead{flex-direction:column;gap:5px}
+}
+@media(max-width:520px){
+  .trunk-strata-grid{grid-template-columns:1fr}
 }
