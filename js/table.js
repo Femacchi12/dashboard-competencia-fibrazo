@@ -101,6 +101,7 @@
       $("more-btn").textContent=state.expanded?"Ver menos":"Ver más";
       $("more-btn").style.display=rows.length>10?"inline-flex":"none";
     }
+    window.dispatchEvent(new CustomEvent("fibrazo:table-rendered"));
   }
 
   function renderColumns(){
@@ -113,6 +114,7 @@
       if(i.checked) state.hiddenColumns.delete(i.dataset.key); else state.hiddenColumns.add(i.dataset.key);
       render();
     }));
+    window.dispatchEvent(new CustomEvent("fibrazo:columns-rendered"));
   }
 
   FZ.table={matchingCoverageForPlan,trunksForPlan,tableRows,render,renderColumns};
