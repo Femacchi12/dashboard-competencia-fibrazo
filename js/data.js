@@ -128,35 +128,73 @@
     });
   }
 
-  async function load(){
-    const S=FZ.SOURCES;
-    const results=await Promise.allSettled([
-      fetchCsv(S.plans),
-      fetchCsv(S.operators),
-      fetchCsv(S.coverage),
-      fetchCsv(S.markets),
-      fetchCsv(S.territories),
-      fetchCsv(S.offers),
-      fetchCsv(S.fibrazoMetrics)
-    ]);
-    if(results[0].status!=="fulfilled") throw results[0].reason;
-    if(results[1].status!=="fulfilled") throw results[1].reason;
-    if(results[3].status!=="fulfilled") throw results[3].reason;
+  function indexRows(rows,keyFn){
+    const map=new Map();
+    rows.forEach(r=>{
+      const key=keyFn(r);
+      if(!key) return;
+      if(!map.has(key)) map.set(key,[]);
+      map.get(key).push(r);
+    });
+    return map;
+  }
 
-    state.operators=results[1].value;
-    state.plans=buildPlans(results[0].value,state.operators);
-    state.coverage=results[2].status==="fulfilled"?buildCoverage(results[2].value,state.operators):[];
-    state.markets=buildMarkets(results[3].value);
-    state.territories=results[4].status==="fulfilled"?results[4].value.filter(r=>clean(r.ID_Territorio)):[];
-    state.offers=results[5].status==="fulfilled"?buildOffers(results[5].value):[];
-    state.metrics=results[6].status==="fulfilled"?buildMetrics(results[6].value):[];
+  function buildIndexes(){
+    state.indexes={
+      coverageByCityOperator:indexRows(state.coverage,r=>clean(r.Ciudad)+"|"+(clean(r.ID_Operador)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado))),
+      coverageByCityTrunk:indexRows(state.coverage,r=>clean(r.Ciudad)+"|"+clean(r.Troncal_FIBRAZO)),
+      plansByCityOperator:indexRows(state.plans,r=>clean(r.Ciudad)+"|"+(clean(r.Grupo_Operador)||clean(r.Operador_Normalizado))),
+      metricByCityTrunk:new Map(state.metrics.map(r=>[clean(r.Ciudad)+"|"+clean(r.Troncal_FIBRAZO),r]))
+    };
+  }
+
+  async function load({mode="full"}={}){
+    const S=FZ.SOURCES;
+    const full=mode!=="dynamic"||!state.operators.length||!state.markets.length;
+    if(full){
+      const results=await Promise.allSettled([
+        fetchCsv(S.plans),
+        fetchCsv(S.operators),
+        fetchCsv(S.coverage),
+        fetchCsv(S.markets),
+        fetchCsv(S.territories),
+        fetchCsv(S.offers),
+        fetchCsv(S.fibrazoMetrics)
+      ]);
+      if(results[0].status!=="fulfilled") throw results[0].reason;
+      if(results[1].status!=="fulfilled") throw results[1].reason;
+      if(results[3].status!=="fulfilled") throw results[3].reason;
+
+      state.operators=results[1].value;
+      state.plans=buildPlans(results[0].value,state.operators);
+      state.coverage=results[2].status==="fulfilled"?buildCoverage(results[2].value,state.operators):[];
+      state.markets=buildMarkets(results[3].value);
+      state.territories=results[4].status==="fulfilled"?results[4].value.filter(r=>clean(r.ID_Territorio)):[];
+      state.offers=results[5].status==="fulfilled"?buildOffers(results[5].value):[];
+      state.metrics=results[6].status==="fulfilled"?buildMetrics(results[6].value):[];
+    }else{
+      const results=await Promise.allSettled([
+        fetchCsv(S.plans),
+        fetchCsv(S.coverage),
+        fetchCsv(S.offers),
+        fetchCsv(S.fibrazoMetrics)
+      ]);
+      if(results[0].status!=="fulfilled") throw results[0].reason;
+      state.plans=buildPlans(results[0].value,state.operators);
+      if(results[1].status==="fulfilled") state.coverage=buildCoverage(results[1].value,state.operators);
+      if(results[2].status==="fulfilled") state.offers=buildOffers(results[2].value);
+      if(results[3].status==="fulfilled") state.metrics=buildMetrics(results[3].value);
+    }
+
+    buildIndexes();
 
     return {
+      mode:full?"full":"dynamic",
       plans:state.plans.length,
       coverage:state.coverage.length,
       metrics:state.metrics.length
     };
   }
 
-  FZ.data={csvUrl,parseCSV,fetchCsv,buildPlans,buildCoverage,buildOffers,buildMarkets,buildMetrics,load};
+  FZ.data={csvUrl,parseCSV,fetchCsv,buildPlans,buildCoverage,buildOffers,buildMarkets,buildMetrics,buildIndexes,load};
 })();
