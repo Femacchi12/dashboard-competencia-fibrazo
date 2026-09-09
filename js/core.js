@@ -28,6 +28,7 @@
     selectedOfferKey:"",
     comparison:{level:"city",items:new Set(),initialized:false},
     tableSearch:"",
+    tableMode:"offer",
     expanded:false,
     sort:{key:"Grupo_Operador",dir:1},
     hiddenColumns:new Set(),
@@ -161,5 +162,20 @@
     ["Tipo_Servicio","Servicio"],
     ["TV_Incluida","TV"],
     ["Troncales_Ciudad","Troncales"]
+  ];
+
+  FZ.contactColumns = [
+    ["Grupo_Operador","Operador"],
+    ["Ciudades","Ciudades"],
+    ["Telefono_1","Teléfono 1"],
+    ["Telefono_2","Teléfono 2"],
+    ["Telefono_3","Teléfono 3"],
+    ["Telefono_4","Teléfono 4"],
+    ["Telefono_5","Teléfono 5"],
+    ["Sitio_Web","Web"],
+    ["Instagram","Instagram"],
+    ["Facebook","Facebook"],
+    ["TikTok","TikTok"],
+    ["Imagenes_Folletos","Material comercial"]
   ];
 })();
