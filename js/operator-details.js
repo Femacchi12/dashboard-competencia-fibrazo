@@ -47,17 +47,19 @@
       entry.trigger.classList.remove("expanded");
       entry.trigger.setAttribute("aria-expanded","false");
     }
+    const slot=entry.slot||entry.el?.parentElement||null;
     entry.el?.remove();
     const index=openEntries.indexOf(entry);
     if(index>=0) openEntries.splice(index,1);
-    const slot=document.getElementById("chart-operator-detail-slot");
     if(slot&&!slot.children.length) slot.classList.remove("open");
   }
 
   function clear(){
     [...openEntries].forEach(removeEntry);
-    const slot=document.getElementById("chart-operator-detail-slot");
-    if(slot){slot.innerHTML="";slot.classList.remove("open");}
+    document.querySelectorAll(".operator-detail-slot").forEach(slot=>{
+      slot.innerHTML="";
+      slot.classList.remove("open");
+    });
   }
 
   function pruneTableEntries(){
@@ -154,7 +156,7 @@
     while(openEntries.length>=2) removeEntry(openEntries[0]);
   }
 
-  function open({operator,city="",planId="",period="",mode="chart",row=null,trigger=null}){
+  function open({operator,city="",planId="",period="",mode="chart",row=null,trigger=null,slotId="chart-operator-detail-slot"}){
     if(!operator) return;
     const key=detailKey(operator,city,period);
     const existing=openEntries.find(entry=>entry.key===key);
@@ -195,7 +197,7 @@
       return entry;
     }
 
-    const slot=document.getElementById("chart-operator-detail-slot");
+    const slot=document.getElementById(slotId);
     if(!slot) return;
     const host=document.createElement("div");
     host.className="operator-detail-instance";
@@ -203,7 +205,7 @@
     host.innerHTML=html;
     slot.appendChild(host);
     slot.classList.add("open");
-    entry={id:++sequence,key,mode:"chart",operator,city,el:host,trigger:null};
+    entry={id:++sequence,key,mode:"chart",operator,city,el:host,trigger:null,slot};
     openEntries.push(entry);
     bindPanel(host,operator,city,entry);
     host.scrollIntoView({behavior:"smooth",block:"nearest"});
