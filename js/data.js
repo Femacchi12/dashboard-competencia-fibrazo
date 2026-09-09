@@ -76,7 +76,8 @@
           Instagram:clean(op.Instagram),Facebook:clean(op.Facebook),TikTok:clean(op.TikTok),
           Imagenes_Folletos:clean(op.Imagenes_Folletos)
         };
-      });
+      })
+      .filter(r=>!(clean(r.Periodo_Corte)==="2026-09"&&fold(r.Estado_Vigencia)==="vencido"));
   }
 
   function buildCoverage(rawCoverage,operators){
@@ -183,56 +184,63 @@
     };
   }
 
-  async function load({mode="full"}={}){
-    const S=FZ.SOURCES;
-    const full=mode!=="dynamic"||!state.operators.length||!state.markets.length;
-    if(full){
-      const results=await Promise.allSettled([
-        fetchCsv(S.plans),
-        fetchCsv(S.operators),
-        fetchCsv(S.coverage),
-        fetchCsv(S.markets),
-        fetchCsv(S.territories),
-        fetchCsv(S.offers),
-        fetchCsv(S.fibrazoMetrics),
-        fetchCsv(S.mobile)
-      ]);
-      if(results[0].status!=="fulfilled") throw results[0].reason;
-      if(results[1].status!=="fulfilled") throw results[1].reason;
-      if(results[3].status!=="fulfilled") throw results[3].reason;
+  function healthEntry(source,result){
+    return {
+      label:source.label,
+      ok:result.status==="fulfilled",
+      error:result.status==="rejected"?clean(result.reason?.message||result.reason||"Error de carga"):""
+    };
+  }
 
-      state.operators=results[1].value;
-      state.plans=buildPlans(results[0].value,state.operators);
-      state.coverage=results[2].status==="fulfilled"?buildCoverage(results[2].value,state.operators):[];
-      state.markets=buildMarkets(results[3].value);
-      state.territories=results[4].status==="fulfilled"?results[4].value.filter(r=>clean(r.ID_Territorio)):[];
-      state.offers=results[5].status==="fulfilled"?buildOffers(results[5].value):[];
-      state.metrics=results[6].status==="fulfilled"?buildMetrics(results[6].value):[];
-      state.mobile=results[7].status==="fulfilled"?buildMobile(results[7].value):[];
-    }else{
-      const results=await Promise.allSettled([
-        fetchCsv(S.plans),
-        fetchCsv(S.coverage),
-        fetchCsv(S.offers),
-        fetchCsv(S.fibrazoMetrics),
-        fetchCsv(S.mobile)
-      ]);
-      if(results[0].status!=="fulfilled") throw results[0].reason;
-      state.plans=buildPlans(results[0].value,state.operators);
-      if(results[1].status==="fulfilled") state.coverage=buildCoverage(results[1].value,state.operators);
-      if(results[2].status==="fulfilled") state.offers=buildOffers(results[2].value);
-      if(results[3].status==="fulfilled") state.metrics=buildMetrics(results[3].value);
-      if(results[4].status==="fulfilled") state.mobile=buildMobile(results[4].value);
+  async function load(){
+    const S=FZ.SOURCES;
+    const entries=[
+      ["plans",S.plans],
+      ["operators",S.operators],
+      ["coverage",S.coverage],
+      ["markets",S.markets],
+      ["territories",S.territories],
+      ["offers",S.offers],
+      ["fibrazoMetrics",S.fibrazoMetrics],
+      ["mobile",S.mobile]
+    ];
+    const results=await Promise.allSettled(entries.map(([,source])=>fetchCsv(source)));
+    const resultByKey=Object.fromEntries(entries.map(([key],i)=>[key,results[i]]));
+    state.sourceHealth=Object.fromEntries(entries.map(([key,source],i)=>[key,healthEntry(source,results[i])]));
+
+    const firstLoad=!state.plans.length&&!state.operators.length&&!state.markets.length;
+    const critical=["plans","operators","markets"];
+    const failedCritical=critical.filter(key=>resultByKey[key].status!=="fulfilled");
+    if(firstLoad&&failedCritical.length){
+      const key=failedCritical[0];
+      throw new Error(S[key].label+": "+state.sourceHealth[key].error);
     }
+
+    if(resultByKey.operators.status==="fulfilled") state.operators=resultByKey.operators.value;
+    const operators=state.operators;
+
+    if(resultByKey.plans.status==="fulfilled") state.plans=buildPlans(resultByKey.plans.value,operators);
+    if(resultByKey.coverage.status==="fulfilled") state.coverage=buildCoverage(resultByKey.coverage.value,operators);
+    if(resultByKey.markets.status==="fulfilled") state.markets=buildMarkets(resultByKey.markets.value);
+    if(resultByKey.territories.status==="fulfilled"){
+      state.territories=resultByKey.territories.value.filter(r=>/^TERR_[ZT]_/.test(clean(r.ID_Territorio)));
+    }
+    if(resultByKey.offers.status==="fulfilled") state.offers=buildOffers(resultByKey.offers.value);
+    if(resultByKey.fibrazoMetrics.status==="fulfilled") state.metrics=buildMetrics(resultByKey.fibrazoMetrics.value);
+    if(resultByKey.mobile.status==="fulfilled") state.mobile=buildMobile(resultByKey.mobile.value);
 
     buildIndexes();
 
+    const sourcesOk=Object.values(state.sourceHealth).filter(x=>x.ok).length;
     return {
-      mode:full?"full":"dynamic",
+      mode:firstLoad?"full":"refresh",
       plans:state.plans.length,
       coverage:state.coverage.length,
       metrics:state.metrics.length,
-      mobile:state.mobile.length
+      mobile:state.mobile.length,
+      sourcesOk,
+      sourcesTotal:entries.length,
+      health:state.sourceHealth
     };
   }
 
