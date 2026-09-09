@@ -8,13 +8,9 @@
 
   function matchingCoverageForPlan(r){
     const city=clean(r?.Ciudad),op=rowOperator(r),opId=clean(r?.ID_Operador),tech=clean(r?.Tecnologia),period=clean(r?.Periodo_Corte);
-    let rows=state.coverage.filter(c=>{
-      if(clean(c.Ciudad)!==city) return false;
-      const sameOperator=opId?clean(c.ID_Operador)===opId:rowOperator(c)===op;
-      if(!sameOperator) return false;
-      if(tech&&clean(c.Tecnologia)&&fold(c.Tecnologia)!==fold(tech)) return false;
-      return true;
-    });
+    const key=city+"|"+(opId||op);
+    let rows=state.indexes?.coverageByCityOperator?.get(key)||[];
+    if(tech) rows=rows.filter(c=>!clean(c.Tecnologia)||fold(c.Tecnologia)===fold(tech));
     if(period){
       const exact=rows.filter(c=>clean(c.Periodo_Corte)===period);
       if(exact.length) rows=exact;
