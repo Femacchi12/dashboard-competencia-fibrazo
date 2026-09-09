@@ -161,11 +161,25 @@
   }
 
   function buildIndexes(){
+    const confirmedOperatorCityPeriod=new Set();
+
+    state.plans.forEach(r=>{
+      const period=clean(r.Periodo_Corte),city=clean(r.Ciudad),op=rowOperator(r);
+      if(period&&city&&op) confirmedOperatorCityPeriod.add(period+"|"+city+"|"+op);
+    });
+
+    state.coverage.forEach(r=>{
+      if(FZ.u.isInheritedCoverageRow(r)) return;
+      const period=clean(r.Periodo_Corte),city=clean(r.Ciudad),op=rowOperator(r);
+      if(period&&city&&op) confirmedOperatorCityPeriod.add(period+"|"+city+"|"+op);
+    });
+
     state.indexes={
       coverageByCityOperator:indexRows(state.coverage,r=>clean(r.Ciudad)+"|"+(clean(r.ID_Operador)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado))),
       coverageByCityTrunk:indexRows(state.coverage,r=>clean(r.Ciudad)+"|"+clean(r.Troncal_FIBRAZO)),
       plansByCityOperator:indexRows(state.plans,r=>clean(r.Ciudad)+"|"+(clean(r.Grupo_Operador)||clean(r.Operador_Normalizado))),
-      metricByCityTrunk:new Map(state.metrics.map(r=>[clean(r.Ciudad)+"|"+clean(r.Troncal_FIBRAZO),r]))
+      metricByCityTrunk:new Map(state.metrics.map(r=>[clean(r.Ciudad)+"|"+clean(r.Troncal_FIBRAZO),r])),
+      confirmedOperatorCityPeriod
     };
   }
 
