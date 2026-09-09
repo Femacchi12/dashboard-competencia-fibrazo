@@ -1886,25 +1886,53 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
 .compare-period-control{
   display:grid;
   gap:5px;
-  min-width:190px;
+  min-width:250px;
   color:#8FA49B;
   font-size:9.5px;
   font-weight:800;
   text-transform:uppercase;
   letter-spacing:.05em;
 }
-.compare-period-control select{
-  min-height:44px;
-  padding:9px 11px;
+.compare-period-control>span{
+  display:block;
+}
+.compare-period-options{
+  display:inline-flex;
+  gap:5px;
+  padding:4px;
   border:1px solid #30433B;
   border-radius:10px;
   background:#101815;
-  color:#F4FFF9;
-  font:700 11px Inter,sans-serif;
-  outline:none;
 }
-.compare-period-control select:focus{
-  border-color:#00F29A;
+.compare-period-option{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:36px;
+  padding:7px 11px;
+  border:1px solid transparent;
+  border-radius:7px;
+  color:#A8B9B2;
+  background:transparent;
+  cursor:pointer;
+  font:700 10.5px Inter,sans-serif;
+  text-transform:none;
+  letter-spacing:0;
+}
+.compare-period-option input{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}
+.compare-period-option:hover{
+  color:#F4FFF9;
+  background:#142019;
+}
+.compare-period-option.active{
+  border-color:#00B875;
+  color:#04100B;
+  background:#00F29A;
 }
 .compare-selected-strip{
   display:flex;
