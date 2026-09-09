@@ -1842,3 +1842,28 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
     width:100%;
   }
 }
+
+
+/* 2026-09-09 · Search controls for all data tables */
+.detail-table-tools{
+  display:flex;
+  justify-content:flex-end;
+  margin:0 0 8px;
+}
+.detail-table-search{
+  width:280px;
+  min-height:36px;
+  padding:8px 10px;
+  border:1px solid #30433B;
+  border-radius:9px;
+  background:#101815;
+  color:#F4FFF9;
+  font:500 11px Inter,sans-serif;
+  outline:none;
+}
+.detail-table-search:focus{
+  border-color:#00F29A;
+}
+@media(max-width:700px){
+  .detail-table-search{width:100%}
+}
