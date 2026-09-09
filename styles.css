@@ -865,3 +865,193 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
     justify-content:flex-end;
   }
 }
+
+
+/* 2026-09-09 · FIBRAZO trunk table UX refinement */
+.network-section-heading{
+  align-items:flex-end;
+}
+.network-heading-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:12px;
+}
+.network-search{
+  width:280px;
+  min-height:38px;
+  padding:9px 12px;
+  border:1px solid #294137;
+  border-radius:10px;
+  background:#101915;
+  color:var(--text);
+  font-size:11px;
+  outline:none;
+}
+.network-search:focus{
+  border-color:var(--green);
+}
+.network-trunk-header,
+.network-trunk-row{
+  grid-template-columns:minmax(135px,1fr) .62fr .62fr .72fr minmax(260px,2fr);
+}
+.network-trunk-header{
+  align-items:stretch;
+  padding:0 10px;
+}
+.network-sort-btn{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  min-height:34px;
+  padding:7px 0;
+  border:0;
+  background:transparent;
+  color:#6F867C;
+  font:800 8px Inter,sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  cursor:pointer;
+  text-align:left;
+}
+.network-sort-btn:hover{
+  color:#00F29A;
+}
+.network-sort-mark{
+  color:#52675E;
+  font-size:8px;
+}
+.network-sort-mark.active{
+  color:#00F29A;
+}
+.network-trunk-item{
+  border-top:1px solid #1D2A25;
+}
+.network-trunk-item.open{
+  background:#08110D;
+}
+.network-trunk-row{
+  border-top:0;
+  min-height:50px;
+}
+.network-trunk-row:hover,
+.network-trunk-row.expanded{
+  background:#0E1915;
+}
+.network-trunk-name{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  width:max-content;
+  color:#00F29A!important;
+  font-weight:800!important;
+  text-decoration:underline;
+  text-decoration-color:rgba(0,242,154,.42);
+  text-underline-offset:3px;
+}
+.network-trunk-row:hover .network-trunk-name{
+  color:#6AFFC2!important;
+  text-decoration-color:#00F29A;
+}
+.network-trunk-arrow{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:13px;
+  height:13px;
+  color:#00F29A;
+  font-size:11px;
+  text-decoration:none;
+  transition:transform .16s ease;
+}
+.network-trunk-row.expanded .network-trunk-arrow{
+  transform:rotate(90deg);
+}
+.network-trunk-inline-detail{
+  padding:0 10px 12px;
+}
+.network-trunk-inline-detail .trunk-detail-card{
+  margin:0;
+  padding:15px;
+  border:1px solid #1D5A43;
+  border-radius:13px;
+  background:#07130E;
+  box-shadow:inset 0 1px 0 rgba(0,242,154,.04);
+}
+.trunk-strata-cell{
+  min-width:240px;
+  gap:6px;
+}
+.trunk-strata-mini{
+  height:11px;
+  border-color:#355449;
+  background:#07100C;
+}
+.trunk-strata-summary{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#849A91!important;
+  overflow:visible!important;
+  white-space:nowrap;
+}
+.trunk-strata-summary span{
+  display:inline-flex;
+  gap:3px;
+  align-items:center;
+}
+.trunk-strata-summary b{
+  color:#EAF7F2;
+  font-weight:800;
+}
+.trunk-strata-summary .e1{color:#00FF88}
+.trunk-strata-summary .e2{color:#00D7FF}
+.trunk-strata-summary .e3{color:#4B7BFF}
+.strata-segment.s0,.trunk-strata-card.s0 .trunk-strata-track i{background:#5B6C66}
+.strata-segment.s1,.trunk-strata-card.s1 .trunk-strata-track i{background:#00FF88}
+.strata-segment.s2,.trunk-strata-card.s2 .trunk-strata-track i{background:#00D7FF}
+.strata-segment.s3,.trunk-strata-card.s3 .trunk-strata-track i{background:#4B7BFF}
+.strata-segment.s4,.trunk-strata-card.s4 .trunk-strata-track i{background:#B44CFF}
+.strata-segment.s5,.trunk-strata-card.s5 .trunk-strata-track i{background:#FFD43B}
+.strata-segment.s6,.trunk-strata-card.s6 .trunk-strata-track i{background:#FF8A2A}
+.strata-segment.sn,.trunk-strata-card.sn .trunk-strata-track i{background:#D9E4DF}
+.trunk-strata-stack{
+  height:14px;
+  border-color:#355449;
+}
+@media(max-width:980px){
+  .network-section-heading{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .network-heading-actions{
+    width:100%;
+    justify-content:space-between;
+  }
+  .network-search{
+    flex:1;
+    width:auto;
+  }
+}
+@media(max-width:700px){
+  .network-heading-actions{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .network-search{
+    width:100%;
+  }
+  .network-trunk-row{
+    grid-template-columns:1fr 1fr;
+  }
+  .network-trunk-name{
+    grid-column:1/-1;
+  }
+  .trunk-strata-cell{
+    grid-column:1/-1;
+    min-width:0;
+  }
+  .network-trunk-inline-detail{
+    padding:0 0 10px;
+  }
+}
