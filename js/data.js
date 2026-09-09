@@ -76,8 +76,7 @@
           Instagram:clean(op.Instagram),Facebook:clean(op.Facebook),TikTok:clean(op.TikTok),
           Imagenes_Folletos:clean(op.Imagenes_Folletos)
         };
-      })
-      .filter(r=>!(clean(r.Periodo_Corte)==="2026-09"&&fold(r.Estado_Vigencia)==="vencido"));
+      });
   }
 
   function buildCoverage(rawCoverage,operators){
