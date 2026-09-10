@@ -604,12 +604,14 @@
     const contexts=new Map();
     items.forEach(item=>{
       item.m.operatorSummaries.forEach(operator=>{
-        const peers=items.filter(other=>
+        const comparableItems=items.filter(other=>
           other.key!==item.key&&
           clean(other.scope.city)===clean(item.scope.city)
-        ).flatMap(other=>other.m.operatorSummaries.filter(x=>fold(x.operator)===fold(operator.operator)));
-
-        if(!peers.length) return;
+        );
+        if(!comparableItems.length) return;
+        const peers=comparableItems.flatMap(other=>
+          other.m.operatorSummaries.filter(x=>fold(x.operator)===fold(operator.operator))
+        );
         const current=new Set(operator.trunks||[]);
         const other=new Set(peers.flatMap(x=>x.trunks||[]));
         const shared=[...current].filter(t=>other.has(t)).sort((a,b)=>a.localeCompare(b,"es",{numeric:true}));
