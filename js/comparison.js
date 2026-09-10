@@ -3,7 +3,7 @@
   const FZ=window.FZ;
   if(!FZ) throw new Error("FZ core not loaded");
   const state=FZ.state;
-  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,pctVs,normalizeTV,rowOperator,compareOperatorsTraditionalFirst,trunkCompetitiveSummaryHtml}=FZ.u;
+  const {clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,pctVs,normalizeTV,rowOperator,compareOperatorsTraditionalFirst}=FZ.u;
   const $=FZ.u.$;
 
   function offerLabel(o){
@@ -296,11 +296,20 @@
     const speeds=plans.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
     const byOp=new Map();
 
-    [...ops].forEach(op=>byOp.set(op,{prices:[],speeds:[],tech:new Set(),plans:[]}));
+    [...ops].forEach(op=>byOp.set(op,{prices:[],speeds:[],tech:new Set(),plans:[],trunks:new Set()}));
+    coverageRows.forEach(r=>{
+      const op=rowOperator(r);
+      if(!op) return;
+      if(!byOp.has(op)) byOp.set(op,{prices:[],speeds:[],tech:new Set(),plans:[],trunks:new Set()});
+      const item=byOp.get(op);
+      const trunk=clean(r.Troncal_FIBRAZO);
+      if(trunk) item.trunks.add(trunk);
+      if(clean(r.Tecnologia)) item.tech.add(clean(r.Tecnologia));
+    });
     plans.forEach(r=>{
       const op=rowOperator(r);
       if(!op) return;
-      if(!byOp.has(op)) byOp.set(op,{prices:[],speeds:[],tech:new Set(),plans:[]});
+      if(!byOp.has(op)) byOp.set(op,{prices:[],speeds:[],tech:new Set(),plans:[],trunks:new Set()});
       const item=byOp.get(op);
       const p=toNum(r.Precio_Usado_COP),s=toNum(r.Velocidad_Bajada_Mbps);
       if(p>0) item.prices.push(p);
@@ -316,6 +325,7 @@
       minSpeed:item.speeds.length?Math.min(...item.speeds):null,
       maxSpeed:item.speeds.length?Math.max(...item.speeds):null,
       technologies:[...item.tech].sort((a,b)=>a.localeCompare(b,"es",{numeric:true})),
+      trunks:[...item.trunks].sort((a,b)=>a.localeCompare(b,"es",{numeric:true,sensitivity:"base"})),
       planId:clean(item.plans[0]?.ID_Plan_Registro)
     })).sort(compareOperatorsTraditionalFirst);
 
@@ -489,10 +499,41 @@
     }
   }
 
-  function operatorListHtml(scope,m,period){
+  function comparisonItemKey(scope,period){
+    return scope.key+"|"+period;
+  }
+
+  function detailSlotId(scope,period){
+    const raw=(scope.key+"-"+period).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+    return "compare-detail-"+raw.replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,90);
+  }
+
+  function operatorComparisonContexts(items){
+    const contexts=new Map();
+    items.forEach(item=>{
+      item.m.operatorSummaries.forEach(operator=>{
+        const peers=items.filter(other=>
+          other.key!==item.key&&
+          clean(other.scope.city)===clean(item.scope.city)
+        ).flatMap(other=>other.m.operatorSummaries.filter(x=>fold(x.operator)===fold(operator.operator)));
+
+        if(!peers.length) return;
+        const current=new Set(operator.trunks||[]);
+        const other=new Set(peers.flatMap(x=>x.trunks||[]));
+        const shared=[...current].filter(t=>other.has(t)).sort((a,b)=>a.localeCompare(b,"es",{numeric:true}));
+        const only=[...current].filter(t=>!other.has(t)).sort((a,b)=>a.localeCompare(b,"es",{numeric:true}));
+        const missing=[...other].filter(t=>!current.has(t)).sort((a,b)=>a.localeCompare(b,"es",{numeric:true}));
+        contexts.set(item.key+"|"+fold(operator.operator),{shared,only,missing});
+      });
+    });
+    return contexts;
+  }
+
+  function operatorListHtml(scope,m,period,itemKey,contexts){
     if(!m.operatorSummaries.length){
       return '<div class="compare-operators-block"><div class="compare-operators-head"><span>OPERADORES PRESENTES</span><b>0</b></div><div class="compare-operators-empty">Sin operadores identificados para este ámbito y corte.</div></div>';
     }
+    const slotId=detailSlotId(scope,period);
     return '<div class="compare-operators-block">'+
       '<div class="compare-operators-head"><span>OPERADORES PRESENTES</span><b>'+formatNum(m.operatorSummaries.length)+'</b></div>'+
       '<div class="compare-operator-list">'+m.operatorSummaries.map(o=>{
@@ -501,23 +542,35 @@
           o.maxSpeed!=null?formatNum(o.maxSpeed)+" Mbps":"",
           o.technologies.length?o.technologies.join(" · "):""
         ].filter(Boolean).join(" · ")||"Sin plan estructurado";
-        return '<button type="button" class="compare-operator-btn" data-compare-operator="'+escapeHtml(o.operator)+'" data-compare-city="'+escapeHtml(scope.city)+'" data-compare-plan="'+escapeHtml(o.planId||"")+'" data-compare-period="'+escapeHtml(period)+'">'+
-          '<b>'+escapeHtml(o.operator)+'</b><small>'+escapeHtml(detail)+'</small><span>Ver detalle →</span>'+
+        const ctx=contexts.get(itemKey+"|"+fold(o.operator));
+        const trunkCount=o.trunks?.length||0;
+        const territory=[
+          trunkCount?("Presencia en "+formatNum(trunkCount)+" troncal"+(trunkCount===1?"":"es")):"Sin troncal identificada",
+          ctx&&ctx.shared.length?formatNum(ctx.shared.length)+" compartida"+(ctx.shared.length===1?"":"s"):"",
+          ctx&&ctx.only.length?formatNum(ctx.only.length)+" exclusiva"+(ctx.only.length===1?"":"s"):"",
+          ctx&&ctx.missing.length?formatNum(ctx.missing.length)+" en otra comparación":""
+        ].filter(Boolean).join(" · ");
+        const shared=escapeHtml(JSON.stringify(ctx?.shared||[]));
+        const only=escapeHtml(JSON.stringify(ctx?.only||[]));
+        const missing=escapeHtml(JSON.stringify(ctx?.missing||[]));
+        return '<button type="button" class="compare-operator-btn" data-compare-operator="'+escapeHtml(o.operator)+'" data-compare-city="'+escapeHtml(scope.city)+'" data-compare-plan="'+escapeHtml(o.planId||"")+'" data-compare-period="'+escapeHtml(period)+'" data-compare-slot="'+escapeHtml(slotId)+'" data-compare-trunk="'+escapeHtml(scope.level==="trunk"?scope.value:"")+'" data-compare-shared="'+shared+'" data-compare-only="'+only+'" data-compare-missing="'+missing+'">'+
+          '<b>'+escapeHtml(o.operator)+'</b><small class="compare-operator-commercial">'+escapeHtml(detail)+'</small><small class="compare-operator-territory">'+escapeHtml(territory)+'</small><span>Ver detalle →</span>'+
         '</button>';
       }).join("")+'</div>'+
     '</div>';
   }
 
-  function resultCard(scope,period){
-    const m=comparisonMetrics(scope,period),op=m.operational,fz=m.fz;
+  function resultCard(scope,period,m,contexts){
+    const op=m.operational,fz=m.fz;
     const cheaperPct=percentPart(m.cheaper,m.pricedOperators);
     const fasterPct=percentPart(m.faster,m.speedOperators);
     const scopeType=scope.level==="trunk"?"TRONCAL":"CIUDAD";
+    const itemKey=comparisonItemKey(scope,period);
+    const slotId=detailSlotId(scope,period);
 
     return '<article class="panel compare-scope-card compare-scope-card-managerial">'+
       '<div class="compare-scope-head">'+
         '<div><span>'+scopeType+' · '+escapeHtml(comparisonPeriodLabel(period))+'</span><h3>'+escapeHtml(scope.label)+'</h3></div>'+
-        (scope.level==="city"?'<strong>'+formatNum(m.ops.size)+' competidores</strong>':"")+
       '</div>'+
       '<div class="compare-managerial-block">'+
         '<span class="compare-block-title">OPERACIÓN FIBRAZO ACTUAL</span>'+
@@ -527,7 +580,6 @@
           '<div><span>Penetración</span><b>'+(op.penetration==null?"—":formatPct(op.penetration*100).replace("+",""))+'</b></div>'+
         '</div>'+
       '</div>'+
-      (scope.level==="trunk"?trunkCompetitiveSummaryHtml(m.operatorSummaries.map(o=>o.operator),m.ops.size):"")+
       '<div class="compare-managerial-block">'+
         '<span class="compare-block-title">MERCADO · '+escapeHtml(comparisonPeriodLabel(period))+'</span>'+
         '<div class="compare-market-grid">'+
@@ -537,7 +589,8 @@
           '<div class="metric-speed"><span>Velocidad máx.</span><b>'+(m.maxSpeed==null?"—":formatNum(m.maxSpeed)+" Mbps")+'</b></div>'+
         '</div>'+
       '</div>'+
-      operatorListHtml(scope,m,period)+
+      operatorListHtml(scope,m,period,itemKey,contexts)+
+      '<div id="'+escapeHtml(slotId)+'" class="operator-detail-slot compare-inline-operator-detail"></div>'+
       '<div class="fibrazo-benchmark-row managerial">'+
         '<div><span>BENCHMARK FIBRAZO ACTUAL</span><b>'+(fz?formatCOP(fz.Precio_COP)+' · '+formatNum(fz.Velocidad_Mbps)+' Mbps':"Sin oferta normalizada")+'</b></div>'+
       '</div>'+
@@ -548,18 +601,36 @@
     '</article>';
   }
 
+  function parseContextList(value){
+    if(!value) return [];
+    try{
+      const parsed=JSON.parse(value);
+      return Array.isArray(parsed)?parsed.map(clean).filter(Boolean):[];
+    }catch(_error){
+      return [];
+    }
+  }
+
   function bindComparatorOperators(){
     document.querySelectorAll(".compare-operator-btn").forEach(btn=>btn.addEventListener("click",()=>{
       const operator=clean(btn.dataset.compareOperator);
       const city=clean(btn.dataset.compareCity);
       const planId=clean(btn.dataset.comparePlan);
       const period=clean(btn.dataset.comparePeriod);
-      if(!operator) return;
-      FZ.details?.clear?.();
+      const slotId=clean(btn.dataset.compareSlot);
+      const trunk=clean(btn.dataset.compareTrunk);
+      if(!operator||!slotId) return;
+      FZ.details?.clearSlot?.(slotId);
       FZ.details?.open?.({
-        operator,city,planId,period,
+        operator,city,planId,period,trunk,
         mode:"chart",
-        slotId:"compare-operator-detail-slot"
+        slotId,
+        instanceKey:slotId,
+        trunkCompare:{
+          shared:parseContextList(btn.dataset.compareShared),
+          only:parseContextList(btn.dataset.compareOnly),
+          missing:parseContextList(btn.dataset.compareMissing)
+        }
       });
     }));
   }
@@ -601,8 +672,11 @@
     }
 
     const resultItems=[];
-    uniqueSelected.forEach(scope=>selectedPeriods.forEach(period=>resultItems.push({scope,period})));
-    cards.innerHTML=resultItems.map(x=>resultCard(x.scope,x.period)).join("");
+    uniqueSelected.forEach(scope=>selectedPeriods.forEach(period=>{
+      resultItems.push({scope,period,key:comparisonItemKey(scope,period),m:comparisonMetrics(scope,period)});
+    }));
+    const contexts=operatorComparisonContexts(resultItems);
+    cards.innerHTML=resultItems.map(x=>resultCard(x.scope,x.period,x.m,contexts)).join("");
     bindComparatorOperators();
   }
 
