@@ -149,23 +149,53 @@
     </section>
 
     <section id="fibrazo-section" class="section view-block hidden" data-view="fibrazo">
-      <div class="section-title section-heading"><div><span>VS. FIBRAZO</span><h2>Comparación de propuesta comercial</h2></div></div>
+      <div class="section-title section-heading">
+        <div>
+          <span>VS. FIBRAZO</span>
+          <h2>Posición competitiva de FIBRAZO</h2>
+        </div>
+      </div>
       <div class="comparison-toolbar panel">
         <label>Oferta FIBRAZO de referencia<select id="fibrazo-offer-select"></select></label>
         <div class="comparison-source"><span id="fibrazo-benchmark-note">Oferta normalizada desde <b>Precios y Propuesta Comercial Fibrazo</b></span></div>
       </div>
-      <div class="comparison-kpis">
-        <article class="panel compare-card metric-price"><span>FIBRAZO · Precio</span><strong id="fz-price">—</strong><small id="fz-offer-name">—</small></article>
-        <article class="panel compare-card metric-speed"><span>FIBRAZO · Velocidad</span><strong id="fz-speed">—</strong><small>Mbps</small></article>
-        <article class="panel compare-card metric-price"><span>Precio competitivo</span><strong id="fz-better-price">—</strong><small>competidores por debajo</small></article>
-        <article class="panel compare-card metric-speed"><span>Velocidad competitiva</span><strong id="fz-better-speed">—</strong><small>competidores por encima</small></article>
-      </div>
+
+      <article class="panel fz-executive-panel">
+        <div class="fz-executive-head">
+          <div><span>LECTURA EJECUTIVA</span><h3 id="fz-executive-title">Posición frente al mercado</h3></div>
+          <small id="fz-executive-scope">—</small>
+        </div>
+        <div class="fz-executive-grid">
+          <article id="fz-price-position-card" class="fz-executive-card">
+            <span>Precio vs. mediana</span>
+            <strong id="fz-price-position">—</strong>
+            <small id="fz-price-context">—</small>
+          </article>
+          <article id="fz-speed-position-card" class="fz-executive-card">
+            <span>Velocidad vs. mediana</span>
+            <strong id="fz-speed-position">—</strong>
+            <small id="fz-speed-context">—</small>
+          </article>
+          <article id="fz-threat-card" class="fz-executive-card">
+            <span>Amenazas directas</span>
+            <strong id="fz-direct-threats">—</strong>
+            <small id="fz-threat-context">Más baratos y con velocidad igual o superior</small>
+          </article>
+          <article id="fz-tv-card" class="fz-executive-card">
+            <span>TV incluida en mercado</span>
+            <strong id="fz-tv-market">—</strong>
+            <small id="fz-tv-context">—</small>
+          </article>
+        </div>
+        <div id="fz-executive-insight" class="fz-executive-insight">Selecciona una oferta para generar la lectura ejecutiva.</div>
+      </article>
+
       <article class="panel compare-table-panel">
         <div class="panel-head fz-table-head">
-          <div><h3>Competidores vs. oferta seleccionada</h3><span>Se usa la oferta de menor precio registrada por operador y ciudad</span></div>
+          <div><h3>Detalle competitivo</h3><span>Una fila por operador y ciudad usando su oferta de menor precio registrada.</span></div>
           <input id="fz-table-search" class="search-input fz-table-search" type="search" placeholder="Buscar en la tabla…" autocomplete="off" />
         </div>
-        <div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Ciudad</th><th>Competidor</th><th>Precio</th><th>Velocidad</th><th>Dif. precio / %</th><th>Dif. Mbps / %</th><th>Tecnología</th><th>TV</th></tr></thead><tbody id="fibrazo-compare-body"></tbody></table></div>
+        <div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Ciudad</th><th>Competidor</th><th>Precio</th><th>Velocidad</th><th>Dif. precio / %</th><th>Dif. Mbps / %</th><th>Troncales</th><th>Tecnología</th><th>TV</th></tr></thead><tbody id="fibrazo-compare-body"></tbody></table></div>
       </article>
     </section>
     <section id="compare-section" class="section view-block hidden" data-view="compare">
