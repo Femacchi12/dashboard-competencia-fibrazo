@@ -45,10 +45,9 @@
     const map=new Map();
     coverage.forEach(r=>{
       const op=rowOperator(r)||"No informado";
-      if(!map.has(op)) map.set(op,{operator:op,tech:new Set(),zones:new Set(),barrios:new Set(),observations:0});
+      if(!map.has(op)) map.set(op,{operator:op,tech:new Set(),barrios:new Set(),observations:0});
       const g=map.get(op);
       if(clean(r.Tecnologia)) g.tech.add(clean(r.Tecnologia));
-      if(clean(r.Zona_FIBRAZO)) g.zones.add(clean(r.Zona_FIBRAZO));
       const barrio=clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ);
       if(barrio) g.barrios.add(barrio);
       g.observations++;
@@ -177,16 +176,15 @@
         strataDetailHtml(metric)+
         '<div class="detail-table-tools"><input type="search" class="detail-table-search trunk-detail-search" placeholder="Buscar en la tabla…" autocomplete="off"></div>'+
         '<div class="trunk-competitors-wrap">'+
-          '<table class="trunk-competitors-table"><thead><tr><th>Operador</th><th>Tecnología</th><th>Zonas</th><th>Barrios</th><th>Precio mín.</th><th>Velocidad máx.</th></tr></thead>'+
+          '<table class="trunk-competitors-table"><thead><tr><th>Operador</th><th>Tecnología</th><th>Barrios</th><th>Precio mín.</th><th>Velocidad máx.</th></tr></thead>'+
           '<tbody>'+(
             competitors.length?competitors.map(c=>
               '<tr><td><strong>'+escapeHtml(c.operator)+'</strong></td>'+
               '<td>'+escapeHtml([...c.tech].join(" · ")||"—")+'</td>'+
-              '<td>'+escapeHtml([...c.zones].join(" · ")||"—")+'</td>'+
               '<td>'+escapeHtml([...c.barrios].join(" · ")||"—")+'</td>'+
               '<td>'+formatCOP(c.minPrice)+'</td>'+
               '<td>'+(c.maxSpeed==null?"—":formatNum(c.maxSpeed)+" Mbps")+'</td></tr>'
-            ).join(""):'<tr><td colspan="6" class="detail-empty">Sin competidores relevados para esta troncal con los filtros actuales.</td></tr>'
+            ).join(""):'<tr><td colspan="5" class="detail-empty">Sin competidores relevados para esta troncal con los filtros actuales.</td></tr>'
           )+'</tbody></table>'+
         '</div>'+
       '</article>'+
