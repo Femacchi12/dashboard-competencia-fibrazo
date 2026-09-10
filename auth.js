@@ -26,10 +26,12 @@
     return normalized === allowedException || normalized.endsWith(allowedDomain);
   };
 
+  const currentScriptVersion = new URL(document.currentScript?.src || window.location.href, window.location.href).searchParams.get("v") || "20260909-23";
+
   const loadDashboard = () => {
     if (document.querySelector('script[data-dashboard-app]')) return;
     const script = document.createElement("script");
-    script.src = "js/app.js?v=20260909-22";
+    script.src = "js/app.js?v="+encodeURIComponent(currentScriptVersion);
     script.dataset.dashboardApp = "true";
     document.body.appendChild(script);
   };
