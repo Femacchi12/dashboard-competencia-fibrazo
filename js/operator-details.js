@@ -17,7 +17,7 @@
     return [...new Set(values.map(clean).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es",{numeric:true}));
   }
 
-  function detailData(operator,city,planId,periodOverride=""){
+  function detailData(operator,city,planId,periodOverride="",trunkOverride=""){
     const reference=state.plans.find(r=>clean(r.ID_Plan_Registro)===clean(planId))||null;
     const selectedPeriod=FZ.filters.selectedPeriodValue();
     const period=clean(periodOverride)||clean(reference?.Periodo_Corte)||selectedPeriod;
@@ -31,7 +31,10 @@
     const coverageSource=periodOverride?state.coverage:state.filteredCoverage;
     let coverage=coverageSource.filter(r=>{
       const op=clean(r.Grupo_Operador)||clean(r.Operador_Normalizado);
-      return fold(op)===fold(operator)&&(!city||fold(r.Ciudad)===fold(city));
+      if(fold(op)!==fold(operator)) return false;
+      if(city&&fold(r.Ciudad)!==fold(city)) return false;
+      if(trunkOverride&&clean(r.Troncal_FIBRAZO)!==clean(trunkOverride)) return false;
+      return true;
     });
     if(periodOverride||reference||state.filters.period.size<=1) coverage=exactPeriodRows(coverage,period);
 
@@ -66,12 +69,21 @@
     [...openEntries].filter(entry=>entry.mode==="table").forEach(removeEntry);
   }
 
-  function detailKey(operator,city,period=""){
-    return fold(operator)+"|"+fold(city||"*")+"|"+fold(period||"*");
+  function clearSlot(slotId){
+    const slot=document.getElementById(slotId);
+    [...openEntries].filter(entry=>entry.slot===slot||entry.slot?.id===slotId).forEach(removeEntry);
+    if(slot){
+      slot.innerHTML="";
+      slot.classList.remove("open");
+    }
   }
 
-  function isOpen({operator,city="",period=""}={}){
-    const key=detailKey(operator,city,period);
+  function detailKey(operator,city,period="",instanceKey=""){
+    return fold(operator)+"|"+fold(city||"*")+"|"+fold(period||"*")+"|"+fold(instanceKey||"*");
+  }
+
+  function isOpen({operator,city="",period="",instanceKey=""}={}){
+    const key=detailKey(operator,city,period,instanceKey);
     return openEntries.some(entry=>entry.key===key);
   }
 
@@ -94,17 +106,44 @@
     }).join("");
   }
 
-  function panelHtml(operator,city,planId,periodOverride=""){
-    const d=detailData(operator,city,planId,periodOverride);
+  function trunkChipsHtml(values){
+    if(!values?.length) return '<span class="operator-trunk-empty">Sin troncales</span>';
+    return '<div class="operator-trunk-chips">'+values.map(value=>'<span>'+escapeHtml(value)+'</span>').join("")+'</div>';
+  }
+
+  function trunkPresenceHtml(trunks,trunkCompare){
+    if(!trunks.length){
+      return '<div class="operator-trunk-disclosure empty"><span>TRONCALES</span><b>Sin troncal identificada</b></div>';
+    }
+
+    let html='<details class="operator-trunk-disclosure">'+
+      '<summary><span>TRONCALES</span><b>Presencia en '+formatNum(trunks.length)+' troncal'+(trunks.length===1?"":"es")+'</b><i>Ver nombres</i></summary>'+
+      '<div class="operator-trunk-list">'+trunkChipsHtml(trunks)+'</div>'+
+    '</details>';
+
+    const shared=uniq(trunkCompare?.shared||[]);
+    const only=uniq(trunkCompare?.only||[]);
+    const missing=uniq(trunkCompare?.missing||[]);
+    if(shared.length||only.length||missing.length){
+      html+='<div class="operator-trunk-compare">'+
+        '<div class="operator-trunk-compare-head"><span>COMPARACIÓN TERRITORIAL</span><small>Troncales compartidas y diferenciales frente al otro ámbito/corte visible.</small></div>'+
+        '<div class="operator-trunk-compare-grid">';
+      if(shared.length) html+='<div class="shared"><span>Compartidas</span><b>'+formatNum(shared.length)+'</b>'+trunkChipsHtml(shared)+'</div>';
+      if(only.length) html+='<div class="only"><span>Solo aquí</span><b>'+formatNum(only.length)+'</b>'+trunkChipsHtml(only)+'</div>';
+      if(missing.length) html+='<div class="missing"><span>En la otra comparación</span><b>'+formatNum(missing.length)+'</b>'+trunkChipsHtml(missing)+'</div>';
+      html+='</div></div>';
+    }
+    return html;
+  }
+
+  function panelHtml(operator,city,planId,periodOverride="",trunkOverride="",trunkCompare=null){
+    const d=detailData(operator,city,planId,periodOverride,trunkOverride);
     const prices=d.plans.map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0);
     const speeds=d.plans.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
     const trunks=uniq(d.coverage.map(r=>r.Troncal_FIBRAZO));
-    const zones=uniq(d.coverage.map(r=>r.Zona_FIBRAZO));
-    const barrios=uniq(d.coverage.map(r=>clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ)));
     const services=uniq(d.plans.map(r=>r.Tipo_Servicio));
     const technologies=uniq(d.plans.map(r=>r.Tecnologia));
     const cities=uniq(d.plans.map(r=>r.Ciudad));
-    const outside=d.coverage.filter(r=>!clean(r.Troncal_FIBRAZO)).length;
     const periodLabel=clean(d.reference?.Periodo_Label)||(state.filters.period.size===2?"Cortes seleccionados":clean(d.period)||"Corte actual");
     const locationLabel=city||(
       cities.length<=3?cities.join(" · "):
@@ -119,15 +158,13 @@
     html+='<div><span>Planes</span><b>'+formatNum(d.plans.length)+'</b></div>';
     html+='<div><span>Precio mín. – máx.</span><b>'+(prices.length?escapeHtml(formatCOP(Math.min(...prices))+" – "+formatCOP(Math.max(...prices))):"—")+'</b></div>';
     html+='<div><span>Velocidad mín. – máx.</span><b>'+(speeds.length?escapeHtml(formatNum(Math.min(...speeds))+" – "+formatNum(Math.max(...speeds))+" Mbps"):"—")+'</b></div>';
-    html+='<div><span>Troncales</span><b>'+(trunks.length?escapeHtml(trunks.join(" · ")):"Fuera de troncal / sin dato")+'</b></div>';
+    html+='<div><span>Presencia</span><b>'+(trunks.length?formatNum(trunks.length)+' troncal'+(trunks.length===1?"":"es"):"Sin dato")+'</b></div>';
     html+='</div>';
     html+='<div class="operator-detail-tags">';
     html+='<span><b>Servicio:</b> '+escapeHtml(services.join(" · ")||"—")+'</span>';
     html+='<span><b>Tecnología:</b> '+escapeHtml(technologies.join(" · ")||"No informado")+'</span>';
-    html+='<span><b>Barrios:</b> '+escapeHtml(barrios.join(" · ")||"—")+'</span>';
-    html+='<span><b>Zonas:</b> '+escapeHtml(zones.join(" · ")||"—")+'</span>';
-    if(outside) html+='<span class="detail-warning"><b>Fuera de troncal:</b> '+formatNum(outside)+' registros territoriales</span>';
     html+='</div>';
+    html+=trunkPresenceHtml(trunks,trunkCompare);
     html+='<div class="detail-table-tools"><input type="search" class="detail-table-search" placeholder="Buscar en la tabla…" autocomplete="off"></div>';
     html+='<div class="operator-detail-table-wrap"><table class="operator-detail-table"><thead><tr><th>Plan</th><th>Servicio</th><th>Tecnología</th><th>Velocidad</th><th>Precio usado</th><th>Regular</th><th>Promo</th><th>Modalidad</th><th>TV</th><th>Permanencia</th></tr></thead><tbody>'+planRowsHtml(d.plans)+'</tbody></table></div>';
     html+='<div class="operator-detail-footer"><div class="operator-detail-contact">';
@@ -156,9 +193,9 @@
     while(openEntries.length>=2) removeEntry(openEntries[0]);
   }
 
-  function open({operator,city="",planId="",period="",mode="chart",row=null,trigger=null,slotId="chart-operator-detail-slot"}){
+  function open({operator,city="",planId="",period="",trunk="",mode="chart",row=null,trigger=null,slotId="chart-operator-detail-slot",instanceKey="",trunkCompare=null}){
     if(!operator) return;
-    const key=detailKey(operator,city,period);
+    const key=detailKey(operator,city,period,instanceKey);
     const existing=openEntries.find(entry=>entry.key===key);
     if(existing){
       if(mode==="table"&&existing.mode==="table"){
@@ -173,7 +210,7 @@
     }
 
     enforceLimit();
-    const html=panelHtml(operator,city,planId,period);
+    const html=panelHtml(operator,city,planId,period,trunk,trunkCompare);
     let entry;
 
     if(mode==="table"&&row){
@@ -271,5 +308,5 @@
     });
   }
 
-  FZ.details={init,open,clear,chooser,isOpen,pruneTableEntries};
+  FZ.details={init,open,clear,clearSlot,chooser,isOpen,pruneTableEntries};
 })();
