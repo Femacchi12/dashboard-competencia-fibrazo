@@ -38,7 +38,6 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
 .kpi-card.warn strong{color:#F5D547}
 .kpi-card.info strong{color:#73B9FF}
 .kpi-card:hover,.chart-panel:hover{border-color:#3A4942}
-.evo-card{background:#121413;border-color:#2C302E}
 .chart-panel,.coverage-list-panel,.records{background:#101312;border-color:#29342F}
 .records-head{background:#0D100F}
 .table-scroll th{background:#121615}
@@ -2433,3 +2432,48 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:12px;p
 
 .compare-market-grid .metric-price b{color:var(--price)}
 .compare-market-grid .metric-speed b{color:var(--speed)}
+
+
+/* 2026-09-09 · Final readability normalization */
+.compare-scope-head span,
+.operator-detail-head span,
+.network-city-head>div:first-child span,
+.network-trunk-header,
+.network-trunk-row em,
+.trunk-detail-head span,
+.trunk-detail-status span,
+.compare-operational-grid span,
+.compare-competitor-strip span,
+.compare-competitor-strip b,
+.trunk-strata-cell small,
+.trunk-subhead span,
+.trunk-subhead small,
+.trunk-strata-card span,
+.network-sort-mark,
+.mobile-filter-grid label,
+.mobile-sort-btn span,
+.mobile-detail-head span,
+.mobile-detail-grid span,
+.compare-selected-strip>span,
+.compare-trunk-city,
+.operator-choice-list span,
+.compare-table td small{
+  font-size:10px;
+  line-height:1.35;
+}
+
+.compare-scope-kpis strong,
+.operator-detail-kpis strong,
+.trunk-detail-kpis strong,
+.network-kpi strong,
+.mobile-kpi strong{
+  line-height:1.08;
+}
+
+.table-scroll td,
+.compare-table td,
+.mobile-table td,
+.operator-detail-table td,
+.trunk-competitors-table td{
+  line-height:1.35;
+}
