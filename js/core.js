@@ -77,7 +77,6 @@
   const formatNum = n => n==null?"—":new Intl.NumberFormat("es-CO",{maximumFractionDigits:1}).format(n);
   const formatPct = n => n==null||!Number.isFinite(n)?"—":(n>0?"+":"")+new Intl.NumberFormat("es-CO",{maximumFractionDigits:1,minimumFractionDigits:1}).format(n)+"%";
   const pctVs = (value,base) => Number.isFinite(value)&&Number.isFinite(base)&&base!==0?(value-base)/base*100:null;
-  const priceBand = n => n==null?"Sin precio":n<50000?"< $50k":n<=75000?"$50k–$75k":n<=100000?"$75k–$100k":"> $100k";
 
   function normalizeTV(v){
     const s=fold(v);
@@ -195,7 +194,7 @@
   }
 
   FZ.u = {
-    $,clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,pctVs,priceBand,normalizeTV,
+    $,clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,pctVs,normalizeTV,
     periodValue,formatPeriod,periodSortValue,formatYearMonth,safeUrl,linkCell,phoneCell,rowOperator,traditionalOperatorPresence,operatorPriorityRank,compareOperatorsTraditionalFirst,isInheritedCoverageRow,competitiveCoverageAllowed,trunkCompetitiveSummaryHtml
   };
 
