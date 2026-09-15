@@ -218,8 +218,13 @@
     body.innerHTML=shown.map(r=>'<tr data-summary-key="'+escapeHtml(r._groupKey)+'">'+cols.map(([k])=>"<td>"+formatCell(k,r[k],r)+"</td>").join("")+"</tr>").join("");
 
     if($("more-btn")){
-      $("more-btn").textContent=state.expanded?"Ver menos":"Ver más";
-      $("more-btn").style.display=rows.length>10?"inline-flex":"none";
+      const visibleCount=shown.length;
+      const hiddenCount=Math.max(0,rows.length-visibleCount);
+      const action=rows.length>10?(state.expanded?"Ver menos":"Ver más"):"Filas";
+      $("more-btn").textContent=action+" · "+formatNum(visibleCount)+" en vista · "+formatNum(hiddenCount)+" ocult"+(hiddenCount===1?"a":"as");
+      $("more-btn").style.display="inline-flex";
+      $("more-btn").disabled=rows.length<=10;
+      $("more-btn").setAttribute("aria-label",formatNum(visibleCount)+" filas en vista y "+formatNum(hiddenCount)+" ocult"+(hiddenCount===1?"a":"as"));
     }
     window.dispatchEvent(new CustomEvent("fibrazo:table-rendered"));
   }
