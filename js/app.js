@@ -173,6 +173,7 @@
       if(!candidates.length) return;
       const subsidizedRows=[...card.querySelectorAll(".operator-detail-table tbody tr")].filter(tr=>fold(tr.textContent).includes("subsid"));
       subsidizedRows.forEach((tr,index)=>{
+        if(tr.dataset.subsidyDecorated==="1") return;
         const plan=candidates[index]||candidates[0];
         const cells=tr.children;
         const speed=toNum(plan?._Original_Velocidad_Bajada_Mbps);
@@ -180,17 +181,19 @@
         if(cells[3]&&speed>0) cells[3].textContent=formatNum(speed)+" Mbps";
         if(cells[4]&&price>0) cells[4].innerHTML='<strong>'+escapeHtml(formatCOP(price))+'</strong><small class="subsidized-price-note">Tarifa subsidiada · fuera del benchmark</small>';
         tr.classList.add("subsidized-plan-row");
+        tr.dataset.subsidyDecorated="1";
       });
       if(subsidizedRows.length&&!card.querySelector(".fz-subsidy-badge")){
         card.querySelector(".operator-detail-head > div")?.insertAdjacentHTML("beforeend",'<span class="fz-subsidy-badge">Incluye oferta subsidiada</span>');
       }
       const commercialForOperator=state.plans.filter(r=>fold(rowOperator(r))===fold(operator)&&r._benchmarkExcluded!=="subsidy"&&!isSubsidizedPlan(r));
-      if(!commercialForOperator.length&&candidates.length){
+      if(!commercialForOperator.length&&candidates.length&&card.dataset.subsidyKpiDecorated!=="1"){
         const priceValues=candidates.map(r=>toNum(r._Original_Precio_Usado_COP??r.Precio_Regular_COP)).filter(n=>n>0);
         const speedValues=candidates.map(r=>toNum(r._Original_Velocidad_Bajada_Mbps)).filter(n=>n>0);
         const kpis=card.querySelectorAll(".operator-detail-kpis > div b");
         if(kpis[1]&&priceValues.length) kpis[1].textContent="Subsidio · "+formatCOP(Math.min(...priceValues));
         if(kpis[2]&&speedValues.length) kpis[2].textContent=formatNum(Math.max(...speedValues))+" Mbps · subsidio";
+        card.dataset.subsidyKpiDecorated="1";
       }
     });
   }
