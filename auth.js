@@ -28,6 +28,86 @@
 
   const dashboardAppVersion = "20260915-01";
 
+  const installCompactHeader = () => {
+    document.querySelector(".hero-copy > p")?.remove();
+    document.getElementById("source-health")?.remove();
+
+    if (!document.getElementById("compact-dashboard-header-styles")) {
+      const style = document.createElement("style");
+      style.id = "compact-dashboard-header-styles";
+      style.textContent = `
+        .hero-header{
+          min-height:0!important;
+          padding:12px 18px!important;
+          display:grid!important;
+          grid-template-columns:minmax(0,1fr) 330px!important;
+          grid-template-areas:"copy update" "copy session"!important;
+          align-items:center!important;
+          column-gap:20px!important;
+          row-gap:5px!important;
+          overflow:hidden!important;
+        }
+        .hero-copy{grid-area:copy!important;max-width:none!important;min-width:0!important;}
+        .hero-brand{height:26px!important;gap:11px!important;}
+        .hero-brand span{font-size:26px!important;}
+        .hero-brand i{height:19px!important;}
+        .hero-brand b{font-size:11px!important;}
+        .hero-copy h1{margin:9px 0 0!important;padding-left:12px!important;font-size:15px!important;line-height:1.25!important;}
+        .update-cards{grid-area:update!important;width:330px!important;justify-self:end!important;}
+        .update-cards article{min-height:54px!important;padding:9px 108px 9px 14px!important;border-radius:15px!important;}
+        .update-cards span{font-size:11px!important;}
+        .update-cards b{font-size:14px!important;margin-top:4px!important;}
+        .refresh-button{right:10px!important;top:50%!important;bottom:auto!important;min-width:94px!important;height:34px!important;transform:translateY(-50%)!important;border-radius:9px!important;}
+        .auth-session{
+          grid-area:session!important;
+          position:static!important;
+          justify-self:end!important;
+          align-self:start!important;
+          display:flex!important;
+          align-items:center!important;
+          gap:8px!important;
+          font-size:10.5px!important;
+          white-space:nowrap!important;
+        }
+        .auth-session button{padding:5px 9px!important;border-radius:8px!important;font-size:10.5px!important;}
+        .orbit{width:150px!important;height:150px!important;right:-88px!important;bottom:-112px!important;}
+        @media(max-width:900px){
+          .hero-header{
+            grid-template-columns:1fr!important;
+            grid-template-areas:"copy" "update" "session"!important;
+            padding:14px 16px!important;
+            row-gap:10px!important;
+          }
+          .update-cards{width:100%!important;justify-self:stretch!important;margin-top:0!important;}
+          .auth-session{justify-self:start!important;align-self:center!important;}
+        }
+        @media(max-width:560px){
+          .hero-header{padding:13px 14px!important;}
+          .hero-brand span{font-size:24px!important;}
+          .update-cards article{padding:10px!important;}
+          .refresh-button{position:static!important;width:100%!important;height:auto!important;min-height:34px!important;margin-top:8px!important;transform:none!important;}
+          .auth-session{flex-wrap:wrap!important;white-space:normal!important;}
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const lastLoad = document.getElementById("last-load");
+    if (lastLoad && lastLoad.dataset.dateOnlyObserver !== "1") {
+      lastLoad.dataset.dateOnlyObserver = "1";
+      const keepDateOnly = () => {
+        const current = String(lastLoad.textContent || "").trim();
+        if (!current || current === "—") return;
+        const dateOnly = current.split(",")[0].trim();
+        if (dateOnly && current !== dateOnly) lastLoad.textContent = dateOnly;
+      };
+      new MutationObserver(keepDateOnly).observe(lastLoad, { childList: true, characterData: true, subtree: true });
+      keepDateOnly();
+    }
+  };
+
+  installCompactHeader();
+
   const loadDashboard = () => {
     if (document.querySelector('script[data-dashboard-app]')) return;
     const script = document.createElement("script");
