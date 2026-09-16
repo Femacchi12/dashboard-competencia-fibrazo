@@ -1,13 +1,26 @@
-/* FIBRAZO · Uniform dark surface theme
-   Page background: pure black
-   Cards / panels: one consistent dark surface
-   Keeps green accents, borders and interactions intact. */
+/* FIBRAZO · Executive dark theme
+   Visual principles:
+   - Pure black canvas.
+   - One restrained dark surface for cards and panels.
+   - One solid neutral gray for controls across all sections.
+   - Green reserved for primary actions, focus and selected state.
+   - Borders provide hierarchy instead of gradients, glows or decorative shapes.
+*/
 
 :root{
   --fz-page-bg:#000000;
   --fz-surface-bg:#0b0f0d;
-  --fz-surface-border:#24332d;
-  --fz-surface-border-accent:rgba(0,242,154,.34);
+  --fz-surface-border:#28322e;
+  --fz-control-bg:#171b19;
+  --fz-control-hover:#1d221f;
+  --fz-control-active:#1b231f;
+  --fz-control-border:#343d39;
+  --fz-control-border-hover:#56615c;
+  --fz-control-text:#d8dfdc;
+  --fz-control-muted:#8f9b96;
+  --fz-green:#00f29a;
+  --fz-green-dark:#002014;
+  --fz-green-border:rgba(0,242,154,.62);
 }
 
 html,
@@ -72,7 +85,7 @@ body::after{
   box-shadow:none!important;
 }
 
-/* Preserve hierarchy through borders instead of different fills */
+/* Hierarchy through subtle borders */
 .hero-header,
 .panel,
 .filters,
@@ -125,39 +138,164 @@ td{
 }
 
 tbody tr:hover td{
-  background-color:#101612!important;
+  background-color:#111613!important;
 }
 
-/* Controls stay dark but readable and consistent */
-.search-input,
-select,
-.columns-menu,
-.compare-selected-strip,
-.compare-scope-options,
-.records-subtabs,
+/* ---------------------------------------------------------
+   EXECUTIVE CONTROL SYSTEM
+   Neutral gray = navigation/filter/control
+   Green fill = primary action only
+   Green outline/text = selected/focused state
+   --------------------------------------------------------- */
+
+.btn,
+.btn.outline,
 .filter-btn,
+.analysis-tab,
+.records-subtab,
 .city-quickbar button,
 .compare-level-tab,
 .compare-period-options button,
-.records-subtab{
-  background-color:var(--fz-surface-bg)!important;
+.compare-own-select,
+.search-input,
+.filter-search,
+select,
+.auth-session button,
+.show-more-rows{
+  background-color:var(--fz-control-bg)!important;
+  border-color:var(--fz-control-border)!important;
+  color:var(--fz-control-text)!important;
+  box-shadow:none!important;
+  text-shadow:none!important;
+}
+
+/* Compact, less pill-like controls */
+.btn,
+.filter-btn,
+.analysis-tab,
+.records-subtab,
+.city-quickbar button,
+.compare-level-tab,
+.compare-period-options button,
+.compare-own-select,
+.search-input,
+.filter-search,
+select,
+.auth-session button{
+  border-radius:10px!important;
+}
+
+/* Menus and secondary control containers */
+.columns-menu,
+.filter-menu,
+.compare-selected-strip,
+.compare-scope-options,
+.records-subtabs{
+  background-color:var(--fz-control-bg)!important;
+  border-color:var(--fz-control-border)!important;
   background-image:none!important;
   box-shadow:none!important;
 }
 
-/* Active states retain the FIBRAZO accent */
+/* Neutral hover: do not make every clickable element look like a CTA */
+.btn:not(.primary):hover,
+.btn.outline:hover,
+.filter-btn:hover,
+.analysis-tab:hover,
+.records-subtab:hover,
+.city-quickbar button:hover,
+.compare-level-tab:hover,
+.compare-period-options button:hover,
+.auth-session button:hover{
+  background-color:var(--fz-control-hover)!important;
+  border-color:var(--fz-control-border-hover)!important;
+  color:#f2f5f3!important;
+}
+
+/* Focus and selected state: green signal without a green-filled button */
+.filter-btn:focus,
+.search-input:focus,
+.filter-search:focus,
+select:focus,
 .analysis-tab.active,
 .records-subtab.active,
 .compare-level-tab.active,
 .filter-btn.active,
 .city-quickbar button.active,
-.compare-period-options button.active{
-  border-color:var(--fz-surface-border-accent)!important;
+.compare-period-options button.active,
+.city-quickbar button[aria-pressed="true"],
+.analysis-tab[aria-selected="true"],
+.records-subtab[aria-selected="true"],
+.compare-level-tab[aria-selected="true"]{
+  background-color:var(--fz-control-active)!important;
+  border-color:var(--fz-green-border)!important;
+  color:var(--fz-green)!important;
+  box-shadow:none!important;
 }
 
-/* Remove purely decorative gradients/glows while preserving content */
+/* Primary actions are the only solid green controls */
+.refresh-button,
+.btn.primary,
+.auth-button{
+  background:var(--fz-green)!important;
+  border-color:var(--fz-green)!important;
+  color:var(--fz-green-dark)!important;
+  box-shadow:none!important;
+}
+
+.refresh-button:hover,
+.btn.primary:hover,
+.auth-button:hover{
+  filter:brightness(.94);
+  color:var(--fz-green-dark)!important;
+}
+
+/* Session/logout is intentionally neutral, not a primary green action */
+.auth-session button{
+  color:var(--fz-control-text)!important;
+}
+
+/* Disabled controls recede clearly */
+button:disabled,
+select:disabled,
+.filter-btn:disabled,
+.btn:disabled{
+  background-color:#111412!important;
+  border-color:#252c29!important;
+  color:#66716c!important;
+  opacity:.72!important;
+  cursor:not-allowed!important;
+}
+
+/* Menu option hover stays neutral */
+.filter-option:hover,
+.column-item:hover{
+  background:var(--fz-control-hover)!important;
+}
+
+/* Remove decorative bubbles / glows from KPI cards and header */
+.kpi-card::before,
+.kpi-card::after,
+.mobile-kpi-card::before,
+.mobile-kpi-card::after,
+.network-kpi-card::before,
+.network-kpi-card::after{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+}
+
 .orbit{
-  opacity:.28!important;
+  display:none!important;
+}
+
+/* Keep metric color semantics, but never as control fills */
+.kpi-card,
+.kpi-card.primary,
+.kpi-card.warn,
+.kpi-card.info{
+  background:var(--fz-surface-bg)!important;
+  border-color:var(--fz-surface-border)!important;
   box-shadow:none!important;
 }
 
