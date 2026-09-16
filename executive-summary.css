@@ -1,0 +1,188 @@
+/* FIBRAZO · Executive summaries
+   Compact managerial layer for single-city analysis and comparisons.
+*/
+
+.executive-summary-shell{
+  margin-top:14px;
+  padding:0!important;
+  overflow:hidden;
+  border:1px solid var(--fz-surface-border)!important;
+  background:var(--fz-surface-bg)!important;
+}
+
+#general-executive-summary:empty,
+#fibrazo-city-executive-summary:empty{
+  display:none!important;
+}
+
+.executive-summary-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  min-height:62px;
+  padding:13px 16px;
+}
+
+.executive-summary-head > div{
+  min-width:0;
+}
+
+.executive-summary-head span{
+  display:block;
+  color:#ffffff;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+
+.executive-summary-head h3{
+  margin:4px 0 0;
+  color:#ffffff;
+  font-size:17px;
+  line-height:1.2;
+}
+
+.executive-summary-head small{
+  display:block;
+  margin-top:4px;
+  color:var(--fz-control-muted);
+  font-size:10px;
+  line-height:1.35;
+}
+
+.executive-summary-toggle,
+.executive-fibrazo-toggle{
+  flex:0 0 auto;
+  min-width:104px;
+}
+
+.executive-fibrazo-toggle.active{
+  border-color:var(--fz-green-border)!important;
+  color:var(--fz-green)!important;
+  background:var(--fz-control-active)!important;
+}
+
+.executive-summary-content{
+  border-top:1px solid var(--fz-surface-border);
+  padding:14px 16px 16px;
+}
+
+.executive-summary-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+}
+
+.executive-summary-metric{
+  min-height:96px;
+  padding:12px 13px;
+  border:1px solid var(--fz-control-border);
+  border-radius:11px;
+  background:var(--fz-control-bg);
+}
+
+.executive-summary-metric.wide{
+  grid-column:span 2;
+}
+
+.executive-summary-metric.fibrazo-reference{
+  border-color:var(--fz-green-border);
+}
+
+.executive-summary-metric > span{
+  display:block;
+  color:#ffffff;
+  font-size:9.5px;
+  font-weight:700;
+  letter-spacing:.045em;
+  text-transform:uppercase;
+}
+
+.executive-summary-metric > strong{
+  display:block;
+  margin-top:7px;
+  color:var(--fz-green);
+  font-size:18px;
+  line-height:1.2;
+  overflow-wrap:anywhere;
+}
+
+.executive-summary-metric > small{
+  display:block;
+  margin-top:7px;
+  color:var(--fz-control-muted);
+  font-size:10px;
+  line-height:1.42;
+  overflow-wrap:anywhere;
+}
+
+.executive-summary-conclusion{
+  margin-top:10px;
+  padding:11px 13px;
+  border:1px solid var(--fz-control-border);
+  border-radius:10px;
+  background:var(--fz-surface-bg);
+}
+
+.executive-summary-conclusion strong{
+  color:#ffffff;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+}
+
+.executive-summary-conclusion p{
+  margin:6px 0 0;
+  color:#d8dfdc;
+  font-size:11px;
+  line-height:1.55;
+}
+
+.compare-executive-summary{
+  margin-bottom:12px;
+}
+
+/* Comparator: FIBRAZO only becomes part of the visible comparison when toggled on. */
+#compare-section:not(.include-fibrazo) .fibrazo-benchmark-row.managerial,
+#compare-section:not(.include-fibrazo) .compare-signal-grid{
+  display:none!important;
+}
+
+#compare-section.include-fibrazo .fibrazo-benchmark-row.managerial{
+  border-color:var(--fz-green-border)!important;
+}
+
+#compare-section.include-fibrazo .fibrazo-benchmark-row.managerial span{
+  color:#ffffff!important;
+}
+
+#compare-section.include-fibrazo .fibrazo-benchmark-row.managerial b{
+  color:var(--fz-green)!important;
+}
+
+@media(max-width:1050px){
+  .executive-summary-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .executive-summary-metric.wide{
+    grid-column:span 2;
+  }
+}
+
+@media(max-width:640px){
+  .executive-summary-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .executive-summary-toggle{
+    width:100%;
+  }
+  .executive-summary-grid{
+    grid-template-columns:1fr;
+  }
+  .executive-summary-metric.wide{
+    grid-column:span 1;
+  }
+}
