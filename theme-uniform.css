@@ -302,3 +302,181 @@ select:disabled,
 footer{
   background:transparent!important;
 }
+
+/* ---------------------------------------------------------
+   SHARED FIBRAZO VISUAL STANDARD · 2026-09-16
+   Same hierarchy used in Impacto Social:
+   black canvas -> charcoal section -> raised card -> defined border.
+   White = functional labels/headings.
+   Green = KPI values, selection and primary actions.
+   --------------------------------------------------------- */
+:root{
+  --fz-surface-bg:#101412;
+  --fz-surface-raised:#141a17;
+  --fz-surface-inner:#171d1a;
+  --fz-surface-border:#414d47;
+  --fz-control-bg:#1d2320;
+  --fz-control-hover:#272e2a;
+  --fz-control-active:#222a26;
+  --fz-control-border:#56635d;
+  --fz-control-border-hover:#68756f;
+  --fz-control-text:#f3f7f5;
+  --fz-control-muted:#aab5b0;
+}
+
+/* Structural sections */
+.hero-header,
+.panel,
+.filters,
+.analysis-tabs,
+.chart-panel,
+.records,
+.mobile-filter-panel,
+.mobile-table-panel,
+.comparison-toolbar,
+.fz-executive-panel,
+.compare-setup,
+.compare-step,
+.compare-table-panel,
+.compare-results-head,
+.auth-card{
+  background:var(--fz-surface-bg)!important;
+  border:1px solid var(--fz-surface-border)!important;
+  box-shadow:none!important;
+}
+
+/* Raised cards and contained blocks */
+.kpi-card,
+.mobile-kpi-card,
+.network-kpi-card,
+.network-city-card,
+.network-trunk-card,
+.compare-card,
+.compare-result-card,
+.compare-managerial-card,
+.compare-scope-card,
+.operator-detail-card,
+.operator-detail-panel,
+.market-scope-summary,
+.market-scope-metric,
+.market-scope-chip,
+.fz-executive-card,
+.fz-operator-row,
+.fz-executive-insight,
+.update-cards article,
+.compare-selection-summary{
+  background:var(--fz-surface-raised)!important;
+  border-color:var(--fz-control-border)!important;
+  box-shadow:none!important;
+}
+
+/* Functional typography: crisp white, supporting copy gray */
+.hero-copy h1,
+.section-title h2,
+.section-heading h2,
+.panel-head h3,
+.records-head h2{
+  color:#ffffff!important;
+  text-shadow:none!important;
+}
+
+.section-title span,
+.section-heading span,
+.filter-label{
+  color:#ffffff!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+
+.filter-label{
+  font-weight:600!important;
+}
+
+.filter-btn,
+.search-input,
+.filter-search,
+select{
+  color:#ffffff!important;
+}
+
+/* KPI hierarchy: white label, green value, gray context */
+.kpi-card span,
+.mobile-kpi-card span,
+.network-kpi-card span{
+  color:#f5f7f6!important;
+  opacity:1!important;
+}
+
+.kpi-card strong,
+.kpi-card.primary strong,
+.kpi-card.warn strong,
+.kpi-card.info strong,
+.mobile-kpi-card strong,
+.network-kpi-card strong{
+  color:var(--fz-green)!important;
+  text-shadow:none!important;
+}
+
+.kpi-card small,
+.mobile-kpi-card small,
+.network-kpi-card small{
+  color:#aab5b0!important;
+}
+
+/* Tables: stronger header plane, neutral labels, green only for active sort */
+.table-scroll,
+.table-wrap,
+.mobile-table-wrap,
+.compare-table-wrap,
+table,
+tbody,
+tr,
+td{
+  background:var(--fz-surface-bg)!important;
+}
+
+thead,
+th,
+.table-scroll th{
+  background:var(--fz-surface-inner)!important;
+  color:#f5f7f6!important;
+  border-color:var(--fz-surface-border)!important;
+}
+
+.table-scroll th:has(.sort-mark),
+.sort-mark{
+  color:var(--fz-green)!important;
+}
+
+th,
+td{
+  border-color:var(--fz-surface-border)!important;
+}
+
+tbody tr:hover td{
+  background:#1b211e!important;
+}
+
+/* Controls share the same neutral gray language */
+.btn,
+.btn.outline,
+.filter-btn,
+.analysis-tab,
+.records-subtab,
+.city-quickbar button,
+.compare-level-tab,
+.compare-period-options button,
+.compare-own-select,
+.search-input,
+.filter-search,
+select,
+.auth-session button,
+.show-more-rows,
+.columns-menu,
+.filter-menu,
+.compare-selected-strip,
+.compare-scope-options,
+.records-subtabs{
+  background-color:var(--fz-control-bg)!important;
+  border-color:var(--fz-control-border)!important;
+}
