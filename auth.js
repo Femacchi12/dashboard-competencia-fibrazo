@@ -27,7 +27,7 @@
   };
 
   const dashboardAppVersion = "20260916-02";
-  const executiveSummaryVersion = "20260916-01";
+  const executiveSummaryVersion = "20260916-02";
   const executiveSummaryObserverVersion = "20260916-01";
 
   const installCompactHeader = () => {
