@@ -10,6 +10,11 @@
   background:var(--fz-surface-bg)!important;
 }
 
+#general-executive-summary:empty,
+#fibrazo-city-executive-summary:empty{
+  display:none!important;
+}
+
 .executive-summary-head{
   display:flex;
   align-items:center;
