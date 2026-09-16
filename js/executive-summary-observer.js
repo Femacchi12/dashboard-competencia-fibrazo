@@ -5,6 +5,7 @@
   if(!FZ) return;
 
   const refinementVersion="20260916-03";
+  const visibilityRulesVersion="20260916-01";
   let syncing=false;
   let scheduled=false;
 
@@ -21,6 +22,14 @@
         requestAnimationFrame(()=>{syncing=false;});
       }
     });
+  }
+
+  function loadVisibilityRules(){
+    if(document.querySelector('script[data-temporary-visibility-rules]')) return;
+    const script=document.createElement("script");
+    script.src="js/temporary-visibility-rules.js?v="+encodeURIComponent(visibilityRulesVersion);
+    script.dataset.temporaryVisibilityRules="true";
+    document.body.appendChild(script);
   }
 
   function loadRefinement(){
@@ -44,6 +53,7 @@
       cards.dataset.executiveSummaryObserver="1";
       new MutationObserver(()=>syncComparator()).observe(cards,{childList:true,subtree:false});
     }
+    loadVisibilityRules();
     loadRefinement();
   }
 
