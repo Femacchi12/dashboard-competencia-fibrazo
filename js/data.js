@@ -20,6 +20,25 @@
     return text.replace(/\$?-?\d{1,3}(?:\.\d{3})+(?:,\d+)?/g,value=>value.replace(/\./g,""));
   }
 
+  function normalizeTechnology(value){
+    const raw=clean(value);
+    const normalized=fold(raw);
+    if(!normalized) return "Sin validar";
+
+    const hasFtth=/\bftth\b|\bgpon\b/.test(normalized);
+    const hasHfc=/\bhfc\b|\bdocsis\b/.test(normalized);
+    const hasWireless=/radio|radioenlace|antena|wireless|\bfwa\b|satelit|\bleo\b/.test(normalized);
+    const hasGenericFiber=/fibra/.test(normalized);
+
+    // If the source names more than one incompatible access technology,
+    // the exact technology depends on location and must stay unvalidated.
+    if((hasFtth&&hasHfc)||(hasGenericFiber&&hasWireless)) return "Sin validar";
+    if(hasFtth) return "FTTH";
+    if(hasHfc) return "HFC";
+    if(hasWireless) return "Antena/Wireless";
+    return "Sin validar";
+  }
+
   function parseCSV(text){
     const rows=[]; let row=[],field="",quoted=false;
     for(let i=0;i<text.length;i++){
@@ -64,6 +83,7 @@
         const used=promo!=null&&promo>0?promo:(regular!=null&&regular>0?regular:null);
         return {
           ...r,
+          Tecnologia:normalizeTechnology(r.Tecnologia),
           Fecha_Mes:formatYearMonth(r.Fecha_Relevamiento),
           Periodo_Corte:periodValue(r.Periodo_Corte),
           Periodo_Label:formatPeriod(r.Periodo_Corte),
@@ -91,6 +111,7 @@
         const op=byId.get(clean(r.ID_Operador))||byName.get(fold(r.Operador_Normalizado))||{};
         return {
           ...r,
+          Tecnologia:normalizeTechnology(r.Tecnologia),
           Periodo_Corte:periodValue(r.Periodo_Corte),
           Periodo_Label:formatPeriod(r.Periodo_Corte),
           Grupo_Operador:clean(op.Grupo_Operador)||clean(op.Marca_Comercial)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)
@@ -214,7 +235,7 @@
       throw new Error(S[key].label+": "+state.sourceHealth[key].error);
     }
 
-    if(resultByKey.operators.status==="fulfilled") state.operators=resultByKey.operators.value;
+    if(resultByKey.operators.status==="fulfilled") state.operators=resultByKey.operators.value.map(r=>({...r,Tecnologia_Principal:normalizeTechnology(r.Tecnologia_Principal)}));
     const operators=state.operators;
 
     if(resultByKey.plans.status==="fulfilled") state.plans=buildPlans(resultByKey.plans.value,operators);
@@ -239,5 +260,5 @@
     };
   }
 
-  FZ.data={csvUrl,parseCSV,fetchCsv,buildPlans,buildCoverage,buildOffers,buildMarkets,buildMetrics,buildMobile,buildIndexes,load};
+  FZ.data={csvUrl,parseCSV,fetchCsv,normalizeTechnology,buildPlans,buildCoverage,buildOffers,buildMarkets,buildMetrics,buildMobile,buildIndexes,load};
 })();
