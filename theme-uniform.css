@@ -1,0 +1,166 @@
+/* FIBRAZO · Uniform dark surface theme
+   Page background: pure black
+   Cards / panels: one consistent dark surface
+   Keeps green accents, borders and interactions intact. */
+
+:root{
+  --fz-page-bg:#000000;
+  --fz-surface-bg:#0b0f0d;
+  --fz-surface-border:#24332d;
+  --fz-surface-border-accent:rgba(0,242,154,.34);
+}
+
+html,
+body{
+  background:var(--fz-page-bg)!important;
+  background-image:none!important;
+}
+
+body::before,
+body::after{
+  background:none!important;
+  background-image:none!important;
+}
+
+.app{
+  background:transparent!important;
+}
+
+/* Main structural surfaces */
+.hero-header,
+.panel,
+.filters,
+.analysis-tabs,
+.kpi-card,
+.chart-panel,
+.records,
+.mobile-filter-panel,
+.mobile-table-panel,
+.comparison-toolbar,
+.fz-executive-panel,
+.fz-executive-card,
+.compare-setup,
+.compare-step,
+.compare-table-panel,
+.compare-results-head,
+.compare-selection-summary,
+.update-cards article,
+.auth-card{
+  background:var(--fz-surface-bg)!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+
+/* Dynamically generated cards and blocks */
+.mobile-kpi-card,
+.network-kpi-card,
+.network-city-card,
+.network-trunk-card,
+.compare-card,
+.compare-result-card,
+.compare-managerial-card,
+.compare-scope-card,
+.operator-detail-card,
+.operator-detail-panel,
+.market-scope-summary,
+.market-scope-metric,
+.market-scope-chip,
+.fz-operator-row,
+.fz-executive-insight{
+  background:var(--fz-surface-bg)!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+
+/* Preserve hierarchy through borders instead of different fills */
+.hero-header,
+.panel,
+.filters,
+.analysis-tabs,
+.kpi-card,
+.chart-panel,
+.records,
+.mobile-filter-panel,
+.mobile-table-panel,
+.comparison-toolbar,
+.fz-executive-panel,
+.fz-executive-card,
+.compare-setup,
+.compare-step,
+.compare-table-panel,
+.compare-results-head,
+.update-cards article,
+.auth-card,
+.mobile-kpi-card,
+.network-kpi-card,
+.network-city-card,
+.network-trunk-card,
+.compare-card,
+.compare-result-card,
+.compare-managerial-card,
+.operator-detail-card,
+.market-scope-summary,
+.market-scope-metric{
+  border-color:var(--fz-surface-border)!important;
+}
+
+/* Tables use the same visual surface */
+.table-scroll,
+.table-wrap,
+.mobile-table-wrap,
+.compare-table-wrap,
+table,
+thead,
+tbody,
+tr,
+th,
+td{
+  background-color:var(--fz-surface-bg)!important;
+  background-image:none!important;
+}
+
+th,
+td{
+  border-color:var(--fz-surface-border)!important;
+}
+
+tbody tr:hover td{
+  background-color:#101612!important;
+}
+
+/* Controls stay dark but readable and consistent */
+.search-input,
+select,
+.columns-menu,
+.compare-selected-strip,
+.compare-scope-options,
+.records-subtabs,
+.filter-btn,
+.city-quickbar button,
+.compare-level-tab,
+.compare-period-options button,
+.records-subtab{
+  background-color:var(--fz-surface-bg)!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+
+/* Active states retain the FIBRAZO accent */
+.analysis-tab.active,
+.records-subtab.active,
+.compare-level-tab.active,
+.filter-btn.active,
+.city-quickbar button.active,
+.compare-period-options button.active{
+  border-color:var(--fz-surface-border-accent)!important;
+}
+
+/* Remove purely decorative gradients/glows while preserving content */
+.orbit{
+  opacity:.28!important;
+  box-shadow:none!important;
+}
+
+footer{
+  background:transparent!important;
+}
