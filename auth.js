@@ -28,6 +28,7 @@
 
   const dashboardAppVersion = "20260916-02";
   const executiveSummaryVersion = "20260916-01";
+  const executiveSummaryObserverVersion = "20260916-01";
 
   const installCompactHeader = () => {
     document.querySelector(".hero-copy > p")?.remove();
@@ -109,11 +110,23 @@
 
   installCompactHeader();
 
+  const loadExecutiveSummaryObserver = () => {
+    if (document.querySelector('script[data-executive-summary-observer]')) return;
+    const observerScript = document.createElement("script");
+    observerScript.src = "js/executive-summary-observer.js?v="+encodeURIComponent(executiveSummaryObserverVersion);
+    observerScript.dataset.executiveSummaryObserver = "true";
+    document.body.appendChild(observerScript);
+  };
+
   const loadExecutiveSummary = () => {
-    if (document.querySelector('script[data-executive-summary]')) return;
+    if (document.querySelector('script[data-executive-summary]')) {
+      loadExecutiveSummaryObserver();
+      return;
+    }
     const summaryScript = document.createElement("script");
     summaryScript.src = "js/executive-summary.js?v="+encodeURIComponent(executiveSummaryVersion);
     summaryScript.dataset.executiveSummary = "true";
+    summaryScript.addEventListener("load", loadExecutiveSummaryObserver, { once:true });
     document.body.appendChild(summaryScript);
   };
 
