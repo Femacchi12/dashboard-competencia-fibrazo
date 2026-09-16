@@ -26,7 +26,8 @@
     return normalized === allowedException || normalized.endsWith(allowedDomain);
   };
 
-  const dashboardAppVersion = "20260915-01";
+  const dashboardAppVersion = "20260916-02";
+  const executiveSummaryVersion = "20260916-01";
 
   const installCompactHeader = () => {
     document.querySelector(".hero-copy > p")?.remove();
@@ -108,11 +109,23 @@
 
   installCompactHeader();
 
+  const loadExecutiveSummary = () => {
+    if (document.querySelector('script[data-executive-summary]')) return;
+    const summaryScript = document.createElement("script");
+    summaryScript.src = "js/executive-summary.js?v="+encodeURIComponent(executiveSummaryVersion);
+    summaryScript.dataset.executiveSummary = "true";
+    document.body.appendChild(summaryScript);
+  };
+
   const loadDashboard = () => {
-    if (document.querySelector('script[data-dashboard-app]')) return;
+    if (document.querySelector('script[data-dashboard-app]')) {
+      if (window.FZ?.app) loadExecutiveSummary();
+      return;
+    }
     const script = document.createElement("script");
     script.src = "js/app.js?v="+encodeURIComponent(dashboardAppVersion);
     script.dataset.dashboardApp = "true";
+    script.addEventListener("load", loadExecutiveSummary, { once:true });
     document.body.appendChild(script);
   };
 
