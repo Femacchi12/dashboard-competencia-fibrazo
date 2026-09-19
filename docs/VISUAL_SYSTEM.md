@@ -7,11 +7,12 @@
 
 1. **La información manda.** El diseño debe reducir tiempo de lectura, no decorar.
 2. **FIBRAZO tiene un lenguaje único.** Negro, carbón, blanco, grises y verde FIBRAZO forman la base.
-3. **El verde tiene significado.** Se usa para acción principal, selección, foco y dato ejecutivo que merece énfasis.
-4. **El rojo es excepcional.** Solo aparece ante una alerta crítica o amenaza competitiva directa. No se usa para precio, velocidad, decoración o datos pendientes rutinarios.
-5. **Lo desplegado debe parecer desplegado.** Cualquier capa abierta debe diferenciarse del contenido permanente por fondo, borde y acento.
-6. **Una interacción, un patrón.** “Ver resumen”, detalle de operador, lectura por troncal, menús y “Ver más” deben compartir lógica de estado cerrado/abierto.
-7. **Sin efectos decorativos.** No usar gradientes, brillos, glows ni sombras llamativas.
+3. **El morado identifica acciones de despliegue.** Si un control abre, cierra o revela información adicional, usa morado.
+4. **El verde tiene significado.** Se reserva para FIBRAZO, selección, foco y dato ejecutivo que merece énfasis.
+5. **El rojo es excepcional.** Solo aparece ante una alerta crítica o amenaza competitiva directa. No se usa para precio, velocidad, decoración o datos pendientes rutinarios.
+6. **Lo desplegado debe parecer desplegado.** Cualquier capa abierta debe diferenciarse del contenido permanente por fondo, borde y acento.
+7. **Una interacción, un patrón.** “Ver resumen”, detalle de operador, lectura por troncal, menús y “Ver más” deben compartir lógica de estado cerrado/abierto.
+8. **Sin efectos decorativos.** No usar gradientes, brillos, glows ni sombras llamativas.
 
 ## 2. Paleta
 
@@ -27,6 +28,7 @@
 | Borde estructural | `--fz-surface-border` | `#414d47` |
 | Borde de control | `--fz-control-border` | `#56635d` |
 | Verde FIBRAZO | `--fz-green` | `#00f29a` |
+| Morado acción desplegable | `--fz-action` | `#9d78c6` |
 | Fondo expandido | `--fz-expanded-bg` | `#0c1712` |
 | Cabecera expandida | `--fz-expanded-head` | `#101d17` |
 | Borde expandido | `--fz-expanded-border` | `#315849` |
@@ -53,6 +55,16 @@ Resumen abierto, detalle de operador, detalle de troncal, menú flotante o tabla
 **Regla:** el Nivel 4 debe usar `--fz-expanded-bg`, borde `--fz-expanded-border` y, cuando sea una ampliación relevante, una línea verde lateral o superior.
 
 ## 4. Semántica de color
+
+### Morado
+Usar exclusivamente para **acciones que revelan, despliegan, contraen o amplían información**, por ejemplo:
+- Ver resumen / Ocultar resumen;
+- Ver más / Ver menos;
+- Desplegar / Contraer lectura por troncal;
+- nombre de operador cuando abre su ficha;
+- enlaces internos que abren detalle adicional.
+
+El morado comunica **“puedes ejecutar una acción de ampliación aquí”**. No representa un estado positivo, negativo ni una métrica.
 
 ### Verde
 Usar para:
@@ -95,17 +107,18 @@ No usar rojo para:
 | Estado | Fondo | Borde | Texto/acento |
 |---|---|---|---|
 | Cerrado / neutro | Control neutro | Gris | Blanco/gris |
-| Hover | Gris más claro | Gris fuerte | Blanco |
+| Acción de despliegue | Morado oscuro / morado | Morado | Morado / carbón |
+| Hover de despliegue | Morado más claro | Morado | Morado claro |
 | Seleccionado | Control activo | Verde tenue | Verde |
-| Acción principal | Verde | Verde | Carbón |
+| Acción principal no desplegable | Verde | Verde | Carbón |
 | Abierto / desplegado | Fondo expandido | Verde oscuro | Verde + blanco |
 | Crítico | Rojo muy oscuro | Rojo | Rojo/blanco |
 
 ## 6. Patrones obligatorios
 
 ### Ver resumen
-**Cerrado:** botón verde visible, panel neutro.  
-**Abierto:** botón neutro con borde verde + flecha hacia arriba; contenido con fondo expandido y borde/acento verde.
+**Cerrado:** botón morado visible, panel neutro.  
+**Abierto:** botón morado oscuro con borde/texto morado + flecha hacia arriba; el contenido abierto mantiene fondo expandido y acento estructural verde.
 
 ### Lectura por troncal
 Usar `<details>`:
@@ -122,8 +135,7 @@ Debe mostrar:
 El trigger del operador cambia de estado visual cuando el detalle está abierto.
 
 ### Ver más / Ver menos
-Cerrado: botón neutro.  
-Abierto: borde verde, texto verde y estado `aria-expanded=true`. La tabla permanece estructural; el pie de expansión adopta superficie expandida.
+Cerrado y abierto usan morado como señal de acción. El estado se diferencia por etiqueta, flecha/semántica y `aria-expanded=true`; el pie de expansión adopta superficie expandida.
 
 ### Menús
 Filtros, columnas y “Más ciudades”:
@@ -158,10 +170,11 @@ Rojo. Ejemplo: competidor más barato **y** con velocidad igual/superior a FIBRA
 Antes de crear un nuevo estilo:
 1. determinar si es sección, contenido elevado, control o capa desplegada;
 2. reutilizar los tokens existentes;
-3. evitar un color nuevo salvo necesidad funcional;
-4. incorporar estado hover/focus/open si es interactivo;
-5. incorporar `aria-expanded` o `aria-pressed` cuando corresponda;
-6. reservar rojo para criticidad explícita.
+3. usar morado únicamente cuando el control revela/oculta información;
+4. evitar un color nuevo salvo necesidad funcional;
+5. incorporar estado hover/focus/open si es interactivo;
+6. incorporar `aria-expanded` o `aria-pressed` cuando corresponda;
+7. reservar rojo para criticidad explícita.
 
 ## 10. Implementación
 

@@ -28,7 +28,7 @@
 
   const dashboardAppVersion = "20260916-02";
   const executiveSummaryVersion = "20260916-02";
-  const executiveSummaryObserverVersion = "20260919-01";
+  const executiveSummaryObserverVersion = "20260919-02";
 
   const installCompactHeader = () => {
     document.querySelector(".hero-copy > p")?.remove();

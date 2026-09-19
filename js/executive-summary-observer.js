@@ -6,7 +6,7 @@
 
   const refinementVersion="20260916-03";
   const visibilityRulesVersion="20260916-01";
-  const visualSystemVersion="20260919-01";
+  const visualSystemVersion="20260919-02";
   let syncing=false;
   let scheduled=false;
 
