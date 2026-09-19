@@ -120,6 +120,18 @@ No usar rojo para:
 **Cerrado:** botón morado visible, panel neutro.  
 **Abierto:** botón morado oscuro con borde/texto morado + flecha hacia arriba; el contenido abierto mantiene fondo expandido y acento estructural verde.
 
+### Resumen ejecutivo abierto — Opción B
+Cuando `Ver resumen` está abierto, todo el contenido debe leerse como **un único bloque**:
+
+- fondo verde-carbón uniforme en toda la superficie;
+- cabecera ligeramente más intensa;
+- subtítulos y secciones internas separados por espaciado y divisores;
+- no usar diferentes fondos para Lectura gerencial, Resumen por troncal y Lectura por troncal;
+- el morado permanece únicamente en controles de desplegar/contraer;
+- el verde intenso se mantiene constante en etiquetas y datos destacados de arriba a abajo.
+
+El objetivo es que el usuario distinga inmediatamente **qué pertenece al contenido desplegado** y **qué vuelve a ser parte del dashboard normal**.
+
 ### Lectura por troncal
 Usar `<details>`:
 - cerrado: fila neutra con indicación “Desplegar detalle”;
