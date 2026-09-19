@@ -221,10 +221,13 @@
       const visibleCount=shown.length;
       const hiddenCount=Math.max(0,rows.length-visibleCount);
       const action=rows.length>10?(state.expanded?"Ver menos":"Ver más"):"Filas";
-      $("more-btn").textContent=action+" · "+formatNum(visibleCount)+" en vista · "+formatNum(hiddenCount)+" ocult"+(hiddenCount===1?"a":"as");
-      $("more-btn").style.display="inline-flex";
-      $("more-btn").disabled=rows.length<=10;
-      $("more-btn").setAttribute("aria-label",formatNum(visibleCount)+" filas en vista y "+formatNum(hiddenCount)+" ocult"+(hiddenCount===1?"a":"as"));
+      const moreBtn=$("more-btn");
+      moreBtn.textContent=action+" · "+formatNum(visibleCount)+" en vista · "+formatNum(hiddenCount)+" ocult"+(hiddenCount===1?"a":"as");
+      moreBtn.style.display="inline-flex";
+      moreBtn.disabled=rows.length<=10;
+      moreBtn.setAttribute("aria-label",formatNum(visibleCount)+" filas en vista y "+formatNum(hiddenCount)+" ocult"+(hiddenCount===1?"a":"as"));
+      moreBtn.setAttribute("aria-expanded",state.expanded&&rows.length>10?"true":"false");
+      moreBtn.dataset.state=state.expanded&&rows.length>10?"expanded":"collapsed";
     }
     window.dispatchEvent(new CustomEvent("fibrazo:table-rendered"));
   }
