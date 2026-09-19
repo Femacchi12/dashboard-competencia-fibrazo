@@ -42,6 +42,13 @@
   --fz-expanded-border:#315849;
   --fz-expanded-border-strong:#42775f;
 
+  /* Executive summary open state · option B
+     One continuous green-charcoal surface + a slightly stronger header. */
+  --fz-summary-open-bg:#0b1c14;
+  --fz-summary-open-head:#10271d;
+  --fz-summary-open-border:#3d725a;
+  --fz-summary-open-divider:#2f4e40;
+
   /* Typography */
   --fz-text:#f3f7f5;
   --fz-text-soft:#d2dbd7;
@@ -327,6 +334,105 @@
 .executive-insight-line.territory,
 .executive-insight-line.fibrazo{
   border-left-color:var(--fz-green)!important;
+}
+
+/* =========================================================
+   4B. EXECUTIVE SUMMARY · UNIFIED OPEN SURFACE
+   Option B: one continuous green-charcoal block with a
+   slightly stronger header. Internal sections use spacing,
+   typography and dividers instead of changing backgrounds.
+   ========================================================= */
+
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]){
+  background:var(--fz-summary-open-bg)!important;
+  border-color:var(--fz-summary-open-border)!important;
+  border-left-color:var(--fz-green)!important;
+}
+
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-summary-head{
+  background:var(--fz-summary-open-head)!important;
+  border-bottom:1px solid var(--fz-summary-open-divider)!important;
+}
+
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-summary-content,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-narrative,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-narrative-section,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-managerial-section,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-summary-section,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-managerial-scan,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-highlights,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-highlights > div,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-disclosure,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-disclosure > summary,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-disclosure-body,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-list,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-compare-list,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-row,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-compare-row{
+  background:var(--fz-summary-open-bg)!important;
+}
+
+/* Internal hierarchy is created with separators, not darker cards. */
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-narrative-section,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-disclosure,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-highlights > div,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-row,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-compare-row,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-insight-line{
+  border-color:var(--fz-summary-open-divider)!important;
+}
+
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-highlights{
+  border-color:var(--fz-summary-open-divider)!important;
+}
+
+/* Keep the collapsed trunk disclosure visually inside the same open panel. */
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-disclosure{
+  margin:0!important;
+  border-left:0!important;
+  border-right:0!important;
+  border-bottom:0!important;
+  border-radius:0!important;
+}
+
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-disclosure[open]{
+  border-top:1px solid var(--fz-summary-open-divider)!important;
+}
+
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-disclosure[open] > summary{
+  border-bottom:1px solid var(--fz-summary-open-divider)!important;
+}
+
+/* Hover should signal interactivity without breaking the continuous surface. */
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-insight-line:hover,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-highlights > div:hover,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-row:hover,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-compare-row:hover,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-disclosure > summary:hover{
+  background:#10231a!important;
+}
+
+/* The grid remains structured but no longer looks like separate cards. */
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-highlights{
+  margin-top:10px;
+}
+
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-highlights > div{
+  box-shadow:none!important;
+}
+
+/* Selected FIBRAZO reference remains an accent inside the same surface. */
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-fibrazo-line{
+  background:transparent!important;
+  border-left-color:var(--fz-green)!important;
+}
+
+/* No vertical fade: labels keep the same strong FIBRAZO green throughout. */
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-narrative-label,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-name span,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-highlights strong,
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-insight-line > strong{
+  color:var(--fz-green)!important;
 }
 
 /* =========================================================
