@@ -14,6 +14,15 @@
   --fz-green-soft:#143126;
   --fz-green-border:rgba(0,242,154,.62);
 
+  /* Disclosure action · purple
+     Purple means: this control opens, closes or reveals additional information. */
+  --fz-action:#9d78c6;
+  --fz-action-hover:#b18cda;
+  --fz-action-bg:#1a1420;
+  --fz-action-bg-hover:#241a2d;
+  --fz-action-border:rgba(157,120,198,.72);
+  --fz-action-ink:#130b19;
+
   /* Surface hierarchy */
   --fz-page-bg:#000000;
   --fz-surface-bg:#101412;
@@ -164,7 +173,94 @@
 }
 
 /* =========================================================
-   3. EXECUTIVE SUMMARY — CLOSED vs OPEN
+   3. DISCLOSURE ACTION COLOR
+   Purple is reserved for controls that reveal or hide
+   additional information. It is not a status color.
+   ========================================================= */
+
+.executive-summary-toggle,
+.show-more-rows,
+.operator-detail-trigger,
+.executive-disclosure-action,
+.detail-link{
+  color:var(--fz-action)!important;
+}
+
+.executive-summary-toggle{
+  background:var(--fz-action)!important;
+  border-color:var(--fz-action)!important;
+  color:var(--fz-action-ink)!important;
+}
+
+.executive-summary-toggle:hover{
+  background:var(--fz-action-hover)!important;
+  border-color:var(--fz-action-hover)!important;
+  color:var(--fz-action-ink)!important;
+  filter:none!important;
+}
+
+.executive-summary-toggle[aria-expanded="true"]{
+  background:var(--fz-action-bg)!important;
+  border-color:var(--fz-action-border)!important;
+  color:var(--fz-action)!important;
+}
+
+.show-more-rows{
+  background:var(--fz-action-bg)!important;
+  border-color:var(--fz-action-border)!important;
+  color:var(--fz-action)!important;
+}
+
+.show-more-rows:hover{
+  background:var(--fz-action-bg-hover)!important;
+  border-color:var(--fz-action)!important;
+  color:var(--fz-action-hover)!important;
+}
+
+.show-more-rows[aria-expanded="true"]{
+  background:var(--fz-action-bg-hover)!important;
+  border-color:var(--fz-action)!important;
+  color:var(--fz-action-hover)!important;
+}
+
+.operator-detail-trigger{
+  color:var(--fz-action)!important;
+  text-decoration-color:rgba(157,120,198,.46)!important;
+}
+
+.operator-detail-trigger:hover{
+  color:var(--fz-action-hover)!important;
+  text-decoration-color:var(--fz-action)!important;
+}
+
+.operator-detail-trigger.expanded{
+  color:var(--fz-action-hover)!important;
+  text-decoration-color:var(--fz-action)!important;
+}
+
+.operator-detail-trigger .operator-toggle-arrow,
+.operator-detail-trigger.expanded .operator-toggle-arrow,
+.executive-disclosure-action{
+  color:var(--fz-action)!important;
+}
+
+.executive-trunk-disclosure > summary:hover .executive-disclosure-action{
+  color:var(--fz-action-hover)!important;
+}
+
+.detail-link{
+  border-color:var(--fz-action-border)!important;
+  background:var(--fz-action-bg)!important;
+}
+
+.detail-link:hover{
+  border-color:var(--fz-action)!important;
+  background:var(--fz-action-bg-hover)!important;
+  color:var(--fz-action-hover)!important;
+}
+
+/* =========================================================
+   4. EXECUTIVE SUMMARY — CLOSED vs OPEN
    ========================================================= */
 
 .executive-summary-shell{
@@ -206,9 +302,9 @@
 }
 
 .executive-summary-toggle[aria-expanded="true"]{
-  background:var(--fz-control-active)!important;
-  border-color:var(--fz-green-border)!important;
-  color:var(--fz-green)!important;
+  background:var(--fz-action-bg)!important;
+  border-color:var(--fz-action-border)!important;
+  color:var(--fz-action)!important;
 }
 
 .executive-summary-content:not(.hidden){
@@ -234,7 +330,7 @@
 }
 
 /* =========================================================
-   4. DISCLOSURES / "READ MORE" / TRUNK DETAIL
+   5. DISCLOSURES / "READ MORE" / TRUNK DETAIL
    ========================================================= */
 
 .executive-trunk-disclosure{
@@ -268,7 +364,7 @@
 }
 
 .executive-disclosure-action{
-  color:var(--fz-green)!important;
+  color:var(--fz-action)!important;
 }
 
 /* Base table "Ver más": neutral while closed, selected/open while expanded. */
@@ -278,9 +374,9 @@
 }
 
 .show-more-rows[aria-expanded="true"]{
-  background:var(--fz-control-active)!important;
-  border-color:var(--fz-green-border)!important;
-  color:var(--fz-green)!important;
+  background:var(--fz-action-bg-hover)!important;
+  border-color:var(--fz-action)!important;
+  color:var(--fz-action-hover)!important;
 }
 
 .records:has(.show-more-rows[aria-expanded="true"]) .table-scroll{
@@ -293,20 +389,20 @@
 }
 
 /* =========================================================
-   5. OPERATOR DETAIL INTERACTION
+   6. OPERATOR DETAIL INTERACTION
    ========================================================= */
 
 .operator-detail-trigger{
-  color:var(--fz-green)!important;
+  color:var(--fz-action)!important;
 }
 
 .operator-detail-trigger.expanded{
-  color:var(--fz-text)!important;
-  text-decoration-color:var(--fz-green)!important;
+  color:var(--fz-action-hover)!important;
+  text-decoration-color:var(--fz-action)!important;
 }
 
 .operator-detail-trigger.expanded .operator-toggle-arrow{
-  color:var(--fz-green)!important;
+  color:var(--fz-action)!important;
 }
 
 .operator-detail-slot.open{
@@ -344,7 +440,7 @@
 }
 
 /* =========================================================
-   6. TABLES INSIDE EXPANDED LAYERS
+   7. TABLES INSIDE EXPANDED LAYERS
    ========================================================= */
 
 .operator-detail-table-wrap,
@@ -374,7 +470,7 @@
 }
 
 /* =========================================================
-   7. CONTROL STATE CONSISTENCY
+   8. CONTROL STATE CONSISTENCY
    ========================================================= */
 
 .executive-fibrazo-toggle.active,
@@ -397,7 +493,7 @@
 }
 
 /* =========================================================
-   8. RESPONSIVE
+   9. RESPONSIVE
    ========================================================= */
 
 @media(max-width:640px){
@@ -413,7 +509,7 @@
 }
 
 /* =========================================================
-   9. ACCESSIBILITY / MOTION
+   10. ACCESSIBILITY / MOTION
    ========================================================= */
 
 @media(prefers-reduced-motion:reduce){
