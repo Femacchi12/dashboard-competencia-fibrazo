@@ -1,0 +1,425 @@
+/* FIBRAZO · Visual Interaction System
+   Version: 2026-09-19
+   Purpose:
+   - Keep the dashboard sober, solid and executive.
+   - Make expanded/overlay content immediately recognizable.
+   - Reserve FIBRAZO green for action, selection and emphasis.
+   - Reserve red exclusively for critical alerts and direct competitive threats.
+*/
+
+:root{
+  /* Brand + semantic */
+  --fz-green:#00f29a;
+  --fz-green-ink:#00150d;
+  --fz-green-soft:#143126;
+  --fz-green-border:rgba(0,242,154,.62);
+
+  /* Surface hierarchy */
+  --fz-page-bg:#000000;
+  --fz-surface-bg:#101412;
+  --fz-surface-raised:#141a17;
+  --fz-surface-inner:#171d1a;
+  --fz-control-bg:#1d2320;
+  --fz-control-hover:#272e2a;
+  --fz-control-active:#222a26;
+  --fz-surface-border:#414d47;
+  --fz-control-border:#56635d;
+  --fz-control-border-hover:#68756f;
+
+  /* Expanded / disclosure layer */
+  --fz-expanded-bg:#0c1712;
+  --fz-expanded-head:#101d17;
+  --fz-expanded-inner:#122019;
+  --fz-expanded-border:#315849;
+  --fz-expanded-border-strong:#42775f;
+
+  /* Typography */
+  --fz-text:#f3f7f5;
+  --fz-text-soft:#d2dbd7;
+  --fz-text-muted:#aab5b0;
+
+  /* Critical only */
+  --fz-danger:#ff5f6d;
+  --fz-danger-bg:#1a0d10;
+  --fz-danger-bg-hover:#211014;
+  --fz-danger-border:#713039;
+
+  /* Neutralize legacy semantic colors */
+  --price:var(--fz-green);
+  --speed:var(--fz-text);
+  --warn:var(--fz-text-muted);
+  --blue:var(--fz-text-soft);
+  --alert:var(--fz-danger);
+  --danger:var(--fz-danger);
+}
+
+/* =========================================================
+   1. GLOBAL SEMANTIC COLOR DISCIPLINE
+   ========================================================= */
+
+.kpi-card.warn,
+.kpi-card.info,
+.compare-card.metric-price,
+.compare-card.metric-speed,
+.mobile-kpi.metric-price,
+.mobile-kpi.metric-speed{
+  background:var(--fz-surface-raised)!important;
+  border-color:var(--fz-control-border)!important;
+}
+
+.kpi-card.warn strong,
+.kpi-card.info strong,
+.compare-card.metric-price strong,
+.compare-card.metric-speed strong,
+.mobile-kpi.metric-price strong,
+.mobile-kpi.metric-speed strong,
+.compare-market-grid .metric-price b,
+.compare-market-grid .metric-speed b{
+  color:var(--fz-green)!important;
+}
+
+/* Generic warnings remain neutral. Red is not used for routine uncertainty. */
+.detail-warning,
+.network-trunk-row em.warn,
+.source-health.warn,
+.mobile-kpi.alert{
+  color:var(--fz-text-soft)!important;
+  background:var(--fz-surface-inner)!important;
+  border-color:var(--fz-control-border)!important;
+}
+
+.mobile-kpi.alert strong{color:var(--fz-text)!important;}
+
+/* Critical alerts / direct threats are the only red family. */
+.error-box,
+.critical-alert,
+[data-severity="critical"]{
+  color:#ffd8dc!important;
+  background:var(--fz-danger-bg)!important;
+  border-color:var(--fz-danger-border)!important;
+}
+
+.fz-threat-badge{
+  color:var(--fz-danger)!important;
+}
+
+.fz-compare-data-row.direct-threat td{
+  background:var(--fz-danger-bg)!important;
+  border-color:var(--fz-danger-border)!important;
+}
+
+.fz-compare-data-row.direct-threat:hover td{
+  background:var(--fz-danger-bg-hover)!important;
+}
+
+/* =========================================================
+   2. EXPANDED SURFACE LANGUAGE
+   Same language for summaries, operator details, trunk details,
+   menus and expandable table states.
+   ========================================================= */
+
+.executive-summary-content:not(.hidden),
+.operator-detail-card,
+.trunk-detail-card,
+.operator-chooser,
+.executive-trunk-disclosure[open],
+.filter-menu:not(.hidden),
+.columns-menu:not(.hidden),
+.city-more-menu:not(.hidden){
+  background:var(--fz-expanded-bg)!important;
+  border-color:var(--fz-expanded-border)!important;
+}
+
+/* Clear left/top signal that the user opened a secondary layer. */
+.operator-detail-card,
+.trunk-detail-card,
+.operator-chooser{
+  border:1px solid var(--fz-expanded-border)!important;
+  border-left:3px solid var(--fz-green)!important;
+  background:var(--fz-expanded-bg)!important;
+  box-shadow:none!important;
+}
+
+.operator-detail-head,
+.trunk-detail-head{
+  background:var(--fz-expanded-head)!important;
+  margin:-16px -16px 14px!important;
+  padding:14px 16px!important;
+  border-bottom:1px solid var(--fz-expanded-border)!important;
+}
+
+.operator-detail-head > div > span,
+.trunk-detail-head > div > span{
+  color:var(--fz-green)!important;
+}
+
+/* Floating menus read as temporary windows, not as permanent cards. */
+.filter-menu:not(.hidden),
+.columns-menu:not(.hidden),
+.city-more-menu:not(.hidden){
+  border:1px solid var(--fz-expanded-border-strong)!important;
+  border-top:2px solid var(--fz-green)!important;
+  background:var(--fz-expanded-head)!important;
+  box-shadow:none!important;
+}
+
+/* =========================================================
+   3. EXECUTIVE SUMMARY — CLOSED vs OPEN
+   ========================================================= */
+
+.executive-summary-shell{
+  border:1px solid var(--fz-surface-border)!important;
+  border-left:3px solid var(--fz-surface-border)!important;
+  background:var(--fz-surface-bg)!important;
+  transition:border-color .15s ease, background-color .15s ease;
+}
+
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]){
+  border-color:var(--fz-expanded-border-strong)!important;
+  border-left-color:var(--fz-green)!important;
+  background:var(--fz-expanded-bg)!important;
+}
+
+.executive-summary-head{
+  background:var(--fz-surface-raised)!important;
+}
+
+.executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-summary-head{
+  background:var(--fz-expanded-head)!important;
+  border-bottom:1px solid var(--fz-expanded-border)!important;
+}
+
+.executive-summary-toggle{
+  min-width:138px!important;
+}
+
+.executive-summary-toggle::after{
+  content:"↓";
+  display:inline-block;
+  margin-left:8px;
+  font-size:12px;
+  line-height:1;
+}
+
+.executive-summary-toggle[aria-expanded="true"]::after{
+  content:"↑";
+}
+
+.executive-summary-toggle[aria-expanded="true"]{
+  background:var(--fz-control-active)!important;
+  border-color:var(--fz-green-border)!important;
+  color:var(--fz-green)!important;
+}
+
+.executive-summary-content:not(.hidden){
+  border-top:0!important;
+}
+
+.executive-managerial-section,
+.executive-trunk-summary-section{
+  background:transparent!important;
+}
+
+.executive-insight-line{
+  border-bottom-color:#294137!important;
+}
+
+.executive-insight-line:hover{
+  background:var(--fz-expanded-inner)!important;
+}
+
+.executive-insight-line.territory,
+.executive-insight-line.fibrazo{
+  border-left-color:var(--fz-green)!important;
+}
+
+/* =========================================================
+   4. DISCLOSURES / "READ MORE" / TRUNK DETAIL
+   ========================================================= */
+
+.executive-trunk-disclosure{
+  background:var(--fz-surface-bg)!important;
+  border-top:1px solid var(--fz-surface-border)!important;
+}
+
+.executive-trunk-disclosure > summary{
+  background:var(--fz-surface-raised)!important;
+}
+
+.executive-trunk-disclosure > summary:hover{
+  background:var(--fz-control-hover)!important;
+}
+
+.executive-trunk-disclosure[open]{
+  margin:0 12px 12px;
+  border:1px solid var(--fz-expanded-border)!important;
+  border-left:3px solid var(--fz-green)!important;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.executive-trunk-disclosure[open] > summary{
+  background:var(--fz-expanded-head)!important;
+  border-bottom:1px solid var(--fz-expanded-border)!important;
+}
+
+.executive-trunk-disclosure[open] .executive-trunk-disclosure-body{
+  background:var(--fz-expanded-bg)!important;
+}
+
+.executive-disclosure-action{
+  color:var(--fz-green)!important;
+}
+
+/* Base table "Ver más": neutral while closed, selected/open while expanded. */
+.show-more-rows{
+  border-radius:9px!important;
+  transition:border-color .15s ease, background-color .15s ease, color .15s ease;
+}
+
+.show-more-rows[aria-expanded="true"]{
+  background:var(--fz-control-active)!important;
+  border-color:var(--fz-green-border)!important;
+  color:var(--fz-green)!important;
+}
+
+.records:has(.show-more-rows[aria-expanded="true"]) .table-scroll{
+  border-color:var(--fz-expanded-border)!important;
+}
+
+.records:has(.show-more-rows[aria-expanded="true"]) .records-more{
+  background:var(--fz-expanded-bg)!important;
+  border-top-color:var(--fz-expanded-border)!important;
+}
+
+/* =========================================================
+   5. OPERATOR DETAIL INTERACTION
+   ========================================================= */
+
+.operator-detail-trigger{
+  color:var(--fz-green)!important;
+}
+
+.operator-detail-trigger.expanded{
+  color:var(--fz-text)!important;
+  text-decoration-color:var(--fz-green)!important;
+}
+
+.operator-detail-trigger.expanded .operator-toggle-arrow{
+  color:var(--fz-green)!important;
+}
+
+.operator-detail-slot.open{
+  padding-top:2px;
+}
+
+.operator-detail-row>td{
+  background:var(--fz-expanded-bg)!important;
+  border-bottom-color:var(--fz-expanded-border)!important;
+}
+
+.operator-detail-kpis > div,
+.operator-detail-tags span,
+.operator-choice-list button{
+  background:var(--fz-expanded-inner)!important;
+  border-color:var(--fz-expanded-border)!important;
+}
+
+.operator-detail-close,
+.trunk-detail-close,
+.scatter-tooltip-close{
+  background:var(--fz-control-bg)!important;
+  border:1px solid var(--fz-control-border)!important;
+  color:var(--fz-text-muted)!important;
+  border-radius:8px!important;
+  box-shadow:none!important;
+}
+
+.operator-detail-close:hover,
+.trunk-detail-close:hover,
+.scatter-tooltip-close:hover{
+  background:var(--fz-control-hover)!important;
+  border-color:var(--fz-green-border)!important;
+  color:var(--fz-text)!important;
+}
+
+/* =========================================================
+   6. TABLES INSIDE EXPANDED LAYERS
+   ========================================================= */
+
+.operator-detail-table-wrap,
+.executive-trunk-list,
+.executive-compare-list{
+  border-color:var(--fz-expanded-border)!important;
+  background:var(--fz-expanded-bg)!important;
+}
+
+.operator-detail-table th{
+  background:var(--fz-expanded-head)!important;
+  color:var(--fz-text)!important;
+  border-color:var(--fz-expanded-border)!important;
+}
+
+.operator-detail-table td,
+.executive-trunk-row,
+.executive-compare-row{
+  background:transparent!important;
+  border-color:#294137!important;
+}
+
+.operator-detail-table tbody tr:hover td,
+.executive-trunk-row:hover,
+.executive-compare-row:hover{
+  background:var(--fz-expanded-inner)!important;
+}
+
+/* =========================================================
+   7. CONTROL STATE CONSISTENCY
+   ========================================================= */
+
+.executive-fibrazo-toggle.active,
+.btn[aria-pressed="true"],
+.city-quickbar button[aria-pressed="true"],
+.analysis-tab[aria-selected="true"],
+.records-subtab[aria-selected="true"],
+.compare-level-tab[aria-selected="true"]{
+  background:var(--fz-control-active)!important;
+  border-color:var(--fz-green-border)!important;
+  color:var(--fz-green)!important;
+}
+
+.btn.primary,
+.refresh-button,
+.auth-button{
+  background:var(--fz-green)!important;
+  border-color:var(--fz-green)!important;
+  color:var(--fz-green-ink)!important;
+}
+
+/* =========================================================
+   8. RESPONSIVE
+   ========================================================= */
+
+@media(max-width:640px){
+  .executive-trunk-disclosure[open]{
+    margin:0 8px 8px;
+  }
+
+  .operator-detail-head,
+  .trunk-detail-head{
+    margin:-14px -14px 12px!important;
+    padding:13px 14px!important;
+  }
+}
+
+/* =========================================================
+   9. ACCESSIBILITY / MOTION
+   ========================================================= */
+
+@media(prefers-reduced-motion:reduce){
+  .executive-summary-shell,
+  .show-more-rows,
+  .executive-disclosure-action i{
+    transition:none!important;
+  }
+}

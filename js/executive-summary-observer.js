@@ -6,6 +6,7 @@
 
   const refinementVersion="20260916-03";
   const visibilityRulesVersion="20260916-01";
+  const visualSystemVersion="20260919-01";
   let syncing=false;
   let scheduled=false;
 
@@ -32,6 +33,15 @@
     document.body.appendChild(script);
   }
 
+  function loadVisualSystem(){
+    if(document.getElementById("fibrazo-visual-system-css")) return;
+    const link=document.createElement("link");
+    link.id="fibrazo-visual-system-css";
+    link.rel="stylesheet";
+    link.href="visual-system.css?v="+encodeURIComponent(visualSystemVersion);
+    document.head.appendChild(link);
+  }
+
   function loadRefinement(){
     if(!document.getElementById("executive-summary-refinement-css")){
       const link=document.createElement("link");
@@ -40,6 +50,7 @@
       link.href="executive-summary-refinement.css?v="+encodeURIComponent(refinementVersion);
       document.head.appendChild(link);
     }
+    loadVisualSystem();
     if(document.querySelector('script[data-executive-summary-refinement]')) return;
     const script=document.createElement("script");
     script.src="js/executive-summary-refinement.js?v="+encodeURIComponent(refinementVersion);
