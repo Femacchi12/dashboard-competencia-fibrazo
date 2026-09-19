@@ -27,7 +27,7 @@
 
     const hasFtth=/\bftth\b|\bgpon\b/.test(normalized);
     const hasHfc=/\bhfc\b|\bdocsis\b/.test(normalized);
-    const hasWireless=/radio|radioenlace|antena|wireless|\bfwa\b|satelit|\bleo\b/.test(normalized);
+    const hasWireless=/radio|radioenlace|antena|wireless|\bfwa\b|\bwisp\b|inalambr|satelit|\bleo\b|microonda/.test(normalized);
     const hasGenericFiber=/fibra/.test(normalized);
 
     // If the source names more than one incompatible access technology,
@@ -69,6 +69,26 @@
     return parseCSV(text);
   }
 
+  function operatorShownInDashboard(op){
+    return fold(op?.Mostrar_Dashboard)!=="no";
+  }
+
+  function currentPlanRowAllowed(row,op){
+    if(!operatorShownInDashboard(op)) return false;
+    const vigencia=fold(row?.Estado_Vigencia);
+    const presencia=fold(row?.Estado_Presencia);
+    if(vigencia.includes("inactivo en")) return false;
+    if(presencia.includes("no presta servicio")||presencia.includes("sin presencia")) return false;
+    return true;
+  }
+
+  function coverageRowAllowed(row,op){
+    if(!operatorShownInDashboard(op)) return false;
+    const presencia=fold(row?.Estado_Presencia);
+    if(presencia.includes("no presta servicio")||presencia.includes("sin presencia")||presencia.includes("inactivo")) return false;
+    return true;
+  }
+
   function buildPlans(rawPlans,operators){
     const byId=new Map(),byName=new Map();
     operators.forEach(op=>{
@@ -79,6 +99,7 @@
       .filter(r=>clean(r.ID_Plan_Registro)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado))
       .map(r=>{
         const op=byId.get(clean(r.ID_Operador))||byName.get(fold(r.Operador_Normalizado))||{};
+        if(!currentPlanRowAllowed(r,op)) return null;
         const regular=toNum(r.Precio_Regular_COP),promo=toNum(r.Precio_Promocional_COP);
         const used=promo!=null&&promo>0?promo:(regular!=null&&regular>0?regular:null);
         return {
@@ -96,7 +117,8 @@
           Instagram:clean(op.Instagram),Facebook:clean(op.Facebook),TikTok:clean(op.TikTok),
           Imagenes_Folletos:clean(op.Imagenes_Folletos)
         };
-      });
+      })
+      .filter(Boolean);
   }
 
   function buildCoverage(rawCoverage,operators){
@@ -109,6 +131,7 @@
       .filter(r=>clean(r.ID_Cobertura)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado))
       .map(r=>{
         const op=byId.get(clean(r.ID_Operador))||byName.get(fold(r.Operador_Normalizado))||{};
+        if(!coverageRowAllowed(r,op)) return null;
         return {
           ...r,
           Tecnologia:normalizeTechnology(r.Tecnologia),
@@ -116,7 +139,8 @@
           Periodo_Label:formatPeriod(r.Periodo_Corte),
           Grupo_Operador:clean(op.Grupo_Operador)||clean(op.Marca_Comercial)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado)
         };
-      });
+      })
+      .filter(Boolean);
   }
 
   function buildOffers(raw){
