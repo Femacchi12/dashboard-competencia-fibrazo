@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=20260909-27" />
   <link rel="stylesheet" href="theme-uniform.css?v=20260916-01" />
+  <link rel="stylesheet" href="important-pendings.css?v=20260920-01" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -45,11 +46,32 @@
 
       <div class="auth-session">
         <span id="user-email">—</span>
+        <button id="important-pendings-btn" class="important-pendings-btn" type="button" aria-expanded="false" aria-controls="important-pendings-panel" title="Pendientes importantes">
+          <span class="important-pendings-icon" aria-hidden="true">⚠️</span>
+          <span id="important-pendings-count" class="important-pendings-count">0</span>
+          <span class="sr-only">Pendientes importantes</span>
+        </button>
         <button id="logout-btn" type="button">Cerrar sesión</button>
       </div>
       <div class="orbit" aria-hidden="true"></div>
     </header>
 
+    <div id="important-pendings-backdrop" class="important-pendings-backdrop hidden" aria-hidden="true"></div>
+    <aside id="important-pendings-panel" class="important-pendings-panel hidden" role="dialog" aria-modal="true" aria-labelledby="important-pendings-title">
+      <div class="important-pendings-head">
+        <div>
+          <span>PENDIENTES IMPORTANTES</span>
+          <h2 id="important-pendings-title">Seguimiento operativo</h2>
+          <small>Se alimenta desde Base General · 19_PENDIENTES_IMPORTANTES</small>
+        </div>
+        <button id="important-pendings-close" class="important-pendings-close" type="button" aria-label="Cerrar pendientes">×</button>
+      </div>
+      <div id="important-pendings-list" class="important-pendings-list"></div>
+      <div class="important-pendings-foot">
+        <span>Agrega o cierra pendientes en la hoja 19_PENDIENTES_IMPORTANTES y el dashboard se actualizará automáticamente.</span>
+        <a href="https://docs.google.com/spreadsheets/d/1v2sBVe_w-bTl438b8qWFmvw0gT66bj8TskcXbnY-gbU/edit" target="_blank" rel="noopener noreferrer">Abrir Base General ↗</a>
+      </div>
+    </aside>
 
     <section class="filters panel section">
       <div class="section-title filters-heading">
@@ -289,8 +311,8 @@
   </main>
 
   <script src="js/table-enhancements.js?v=20260909-27"></script>
-  <script src="js/core.js?v=20260919-02"></script>
-  <script src="js/data.js?v=20260919-02"></script>
+  <script src="js/core.js?v=20260920-01"></script>
+  <script src="js/data.js?v=20260920-01"></script>
   <script src="js/temporary-trunk-visibility.js?v=20260916-01"></script>
   <script src="js/filters.js?v=20260909-27"></script>
   <script src="js/charts.js?v=20260909-27"></script>
@@ -299,6 +321,7 @@
   <script src="js/mobile.js?v=20260909-27"></script>
   <script src="js/table.js?v=20260919-01"></script>
   <script src="js/operator-details.js?v=20260909-27"></script>
-  <script src="auth.js?v=20260919-03"></script>
+  <script src="js/important-pendings.js?v=20260920-01"></script>
+  <script src="auth.js?v=20260920-01"></script>
 </body>
 </html>
