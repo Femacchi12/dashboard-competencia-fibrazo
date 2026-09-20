@@ -26,9 +26,9 @@
     return normalized === allowedException || normalized.endsWith(allowedDomain);
   };
 
-  const dashboardAppVersion = "20260916-02";
+  const dashboardAppVersion = "20260920-01";
   const executiveSummaryVersion = "20260916-02";
-  const executiveSummaryObserverVersion = "20260919-03";
+  const executiveSummaryObserverVersion = "20260920-01";
 
   const installCompactHeader = () => {
     document.querySelector(".hero-copy > p")?.remove();
