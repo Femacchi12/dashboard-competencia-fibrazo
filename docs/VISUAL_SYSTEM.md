@@ -89,6 +89,11 @@ Usar para:
 - estados neutrales;
 - incertidumbre no crítica.
 
+### Amarillo
+Usar para **atención operativa pendiente** que requiere seguimiento pero no representa una alerta crítica. El patrón principal es el botón ⚠️ de Pendientes importantes y sus elementos asociados.
+
+No usar amarillo para métricas ordinarias, precios o decoración.
+
 ### Rojo
 Usar únicamente para:
 - error real;

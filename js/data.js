@@ -181,6 +181,17 @@
       };
     });
   }
+  function buildImportantPendings(raw){
+    return raw
+      .filter(r=>clean(r.ID_Pendiente))
+      .map(r=>({
+        ...r,
+        Prioridad:clean(r.Prioridad)||"Media",
+        Estado:clean(r.Estado)||"Pendiente",
+        Mostrar_Dashboard:clean(r.Mostrar_Dashboard)||"Sí"
+      }));
+  }
+
   function buildMobile(raw){
     return raw.filter(r=>clean(r.Periodo_Corte)&&clean(r.Operador)).map((r,index)=>({
       ...r,
@@ -245,7 +256,8 @@
       ["markets",S.markets],
       ["offers",S.offers],
       ["fibrazoMetrics",S.fibrazoMetrics],
-      ["mobile",S.mobile]
+      ["mobile",S.mobile],
+      ["importantPendings",S.importantPendings]
     ];
     const results=await Promise.allSettled(entries.map(([,source])=>fetchCsv(source)));
     const resultByKey=Object.fromEntries(entries.map(([key],i)=>[key,results[i]]));
@@ -268,8 +280,13 @@
     if(resultByKey.offers.status==="fulfilled") state.offers=buildOffers(resultByKey.offers.value);
     if(resultByKey.fibrazoMetrics.status==="fulfilled") state.metrics=buildMetrics(resultByKey.fibrazoMetrics.value);
     if(resultByKey.mobile.status==="fulfilled") state.mobile=buildMobile(resultByKey.mobile.value);
+    if(resultByKey.importantPendings.status==="fulfilled") state.importantPendings=buildImportantPendings(resultByKey.importantPendings.value);
 
     buildIndexes();
+    window.dispatchEvent(new CustomEvent("fz:data-loaded",{detail:{
+      importantPendings:state.importantPendings.length,
+      timestamp:Date.now()
+    }}));
 
     const sourcesOk=Object.values(state.sourceHealth).filter(x=>x.ok).length;
     return {
@@ -278,11 +295,12 @@
       coverage:state.coverage.length,
       metrics:state.metrics.length,
       mobile:state.mobile.length,
+      importantPendings:state.importantPendings.length,
       sourcesOk,
       sourcesTotal:entries.length,
       health:state.sourceHealth
     };
   }
 
-  FZ.data={csvUrl,parseCSV,fetchCsv,normalizeTechnology,buildPlans,buildCoverage,buildOffers,buildMarkets,buildMetrics,buildMobile,buildIndexes,load};
+  FZ.data={csvUrl,parseCSV,fetchCsv,normalizeTechnology,buildPlans,buildCoverage,buildOffers,buildMarkets,buildMetrics,buildMobile,buildImportantPendings,buildIndexes,load};
 })();
