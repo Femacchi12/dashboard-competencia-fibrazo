@@ -308,9 +308,13 @@
     );
   }
 
+  function operationalMetricRows(){
+    return state.indexes?.metricRowsLatest||state.metrics;
+  }
+
   function comparatorCities(){
     const set=new Set();
-    state.metrics.forEach(r=>{
+    operationalMetricRows().forEach(r=>{
       if(toNum(r.HHPP)>0&&clean(r.Ciudad)) set.add(clean(r.Ciudad));
     });
     return [...set].sort((a,b)=>a.localeCompare(b,"es",{numeric:true,sensitivity:"base"}));
@@ -323,7 +327,7 @@
       }));
     }
     const unique=new Map();
-    state.metrics.forEach(r=>{
+    operationalMetricRows().forEach(r=>{
       const city=clean(r.Ciudad),trunk=clean(r.Troncal_FIBRAZO),hhpp=toNum(r.HHPP);
       if(!city||!trunk||!(hhpp>0)) return;
       const key="trunk|"+city+"|"+trunk;
@@ -371,10 +375,12 @@
       };
     }
 
-    const rows=state.metrics.filter(r=>clean(r.Ciudad)===scope.city&&toNum(r.HHPP)>0);
+    const rows=operationalMetricRows().filter(r=>clean(r.Ciudad)===scope.city&&toNum(r.HHPP)>0);
+    const aggregate=FZ.territory?.aggregateMetrics?.(rows);
+    if(aggregate) return {hhpp:aggregate.hhpp,active:aggregate.active,penetration:aggregate.penetration};
     const hhpp=rows.reduce((s,r)=>s+(toNum(r.HHPP)||0),0);
     const active=rows.reduce((s,r)=>s+(toNum(r.Clientes_Activos)||0),0);
-    return {hhpp,active,penetration:hhpp>0?active/hhpp:null};
+    return {hhpp,active,penetration:null};
   }
 
   function comparisonMetrics(scope,period){
