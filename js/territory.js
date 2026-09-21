@@ -7,7 +7,8 @@
   const $=FZ.u.$;
 
   function metricRows(){
-    return state.metrics.filter(r=>FZ.filters.cityScopeAllows(r.Ciudad));
+    const rows=state.indexes?.metricRowsLatest||state.metrics;
+    return rows.filter(r=>FZ.filters.cityScopeAllows(r.Ciudad));
   }
 
   function metricForTrunk(city,trunk){
@@ -68,15 +69,16 @@
   function aggregateMetrics(rows){
     const valid=rows.filter(r=>Number.isFinite(r.HHPP)&&r.HHPP>0);
     const hhpp=valid.reduce((s,r)=>s+r.HHPP,0);
-    const activeForPenetration=valid.reduce((s,r)=>s+(r.Clientes_Activos||0),0);
-    const active=rows.reduce((s,r)=>s+(Number.isFinite(r.Clientes_Activos)?r.Clientes_Activos:0),0);
+    const activityRows=rows.filter(r=>Number.isFinite(r.Clientes_Activos)&&Number.isFinite(r._Actividad_HHPP)&&r._Actividad_HHPP>0);
+    const active=activityRows.reduce((s,r)=>s+r.Clientes_Activos,0);
+    const activityHhpp=activityRows.reduce((s,r)=>s+r._Actividad_HHPP,0);
     return {
       trunks:rows.length,
       hhpp,
       active,
-      activeForPenetration,
-      penetration:hhpp?activeForPenetration/hhpp:null,
-      withData:rows.filter(r=>r.Filas_Fuente_Consolidadas>0).length
+      activityHhpp,
+      penetration:activityHhpp?active/activityHhpp:null,
+      withData:valid.length
     };
   }
 
@@ -165,7 +167,7 @@
     return '<div class="network-trunk-inline-detail">'+
       '<article class="trunk-detail-card">'+
         '<div class="trunk-detail-head">'+
-          '<div><span>TRONCAL FIBRAZO</span><h3>'+escapeHtml(trunk)+'</h3><p>'+escapeHtml(city)+' · corte operativo '+escapeHtml(metric?.Periodo_Corte||"sin dato")+'</p></div>'+
+          '<div><span>TRONCAL FIBRAZO</span><h3>'+escapeHtml(trunk)+'</h3><p>'+escapeHtml(city)+' · HHPP '+escapeHtml(metric?._HHPP_Periodo||metric?.Periodo_Corte||"sin dato")+(metric?._Actividad_Periodo&&metric?._Actividad_Periodo!==(metric?._HHPP_Periodo||metric?.Periodo_Corte)?' · actividad '+escapeHtml(metric._Actividad_Periodo):'')+'</p></div>'+
         '</div>'+
         '<div class="trunk-detail-kpis three">'+
           '<div><span>HHPP</span><b>'+(hhpp==null?"—":formatNum(hhpp))+'</b></div>'+
@@ -268,10 +270,10 @@
 
     const total=aggregateMetrics(rows);
     summary.innerHTML=
-      '<article class="panel network-kpi"><span>Troncales</span><strong>'+formatNum(total.trunks)+'</strong><small>'+formatNum(total.withData)+' con dato junio</small></article>'+
-      '<article class="panel network-kpi"><span>HHPP</span><strong>'+formatNum(total.hhpp)+'</strong><small>Total según filtros activos</small></article>'+
-      '<article class="panel network-kpi"><span>Clientes activos</span><strong>'+formatNum(total.active)+'</strong><small>Total reportado en el corte operativo</small></article>'+
-      '<article class="panel network-kpi primary"><span>Penetración</span><strong>'+(total.penetration==null?"—":formatPct(total.penetration*100).replace("+",""))+'</strong><small>Ponderada por HHPP</small></article>';
+      '<article class="panel network-kpi"><span>Troncales</span><strong>'+formatNum(total.trunks)+'</strong><small>'+formatNum(total.withData)+' con HHPP disponible</small></article>'+
+      '<article class="panel network-kpi"><span>HHPP</span><strong>'+formatNum(total.hhpp)+'</strong><small>Último corte HHPP disponible</small></article>'+
+      '<article class="panel network-kpi"><span>Clientes activos</span><strong>'+formatNum(total.active)+'</strong><small>Último corte de actividad disponible</small></article>'+
+      '<article class="panel network-kpi primary"><span>Penetración</span><strong>'+(total.penetration==null?"—":formatPct(total.penetration*100).replace("+",""))+'</strong><small>Calculada sobre el mismo corte de actividad</small></article>';
 
     const byCity=new Map();
     rows.forEach(r=>{
