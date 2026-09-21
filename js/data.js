@@ -217,7 +217,13 @@
   }
 
   function buildMetricSnapshot(metrics){
-    const grouped=indexRows(metrics,r=>clean(r.Ciudad)+"|"+clean(r.Troncal_FIBRAZO));
+    const eligible=metrics.filter(r=>{
+      const city=clean(r.Ciudad),trunk=clean(r.Troncal_FIBRAZO);
+      if(!city||!trunk||fold(city)===fold(trunk)) return false;
+      if(toNum(r.HHPP)===0) return false;
+      return true;
+    });
+    const grouped=indexRows(eligible,r=>clean(r.Ciudad)+"|"+clean(r.Troncal_FIBRAZO));
     const byKey=new Map();
     const rows=[];
 
