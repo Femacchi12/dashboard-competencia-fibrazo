@@ -47,6 +47,41 @@
     return state.markets.find(m=>clean(m.Ciudad)===value&&marketAppliesToPeriod(m))||null;
   }
 
+  function marketGroupKey(city){
+    return clean(marketForCity(city)?.Grupo_Comparacion);
+  }
+
+  function marketGroupCities(city){
+    const value=clean(city);
+    if(!value) return [];
+    const key=marketGroupKey(value);
+    if(!key) return [value];
+    return state.markets
+      .filter(m=>clean(m.Grupo_Comparacion)===key&&marketAppliesToPeriod(m))
+      .sort((a,b)=>(Number(a.Orden_Dashboard)||999)-(Number(b.Orden_Dashboard)||999)||clean(a.Ciudad).localeCompare(clean(b.Ciudad),"es",{numeric:true}))
+      .map(m=>clean(m.Ciudad))
+      .filter(Boolean);
+  }
+
+  function marketIdentity(city){
+    return marketGroupKey(city)||clean(city);
+  }
+
+  function marketDisplayName(city){
+    const cities=marketGroupCities(city);
+    return cities.length>1?cities.join(" + "):clean(city);
+  }
+
+  function marketRepresentativeCity(city){
+    return marketGroupCities(city)[0]||clean(city);
+  }
+
+  function expandMarketCities(cities=[]){
+    const out=new Set();
+    cities.filter(Boolean).forEach(city=>marketGroupCities(city).forEach(member=>out.add(member)));
+    return [...out];
+  }
+
   function isFibrazoCity(city){
     const market=marketForCity(city);
     return fold(market?.Mercado_FIBRAZO)==="si";
@@ -96,13 +131,22 @@
     return [];
   }
 
-  function selectedSingleCity(){
+  function selectedMarketCities(){
     const cities=comparatorCities();
-    return cities.length===1?cities[0]:"";
+    if(!cities.length) return [];
+    const identities=new Set(cities.map(marketIdentity).filter(Boolean));
+    if(identities.size!==1) return [];
+    const expected=marketGroupCities(cities[0]);
+    return expected.length?expected:cities;
+  }
+
+  function selectedSingleCity(){
+    const cities=selectedMarketCities();
+    return cities.length?marketRepresentativeCity(cities[0]):"";
   }
 
   function effectiveCityCount(){
-    return comparatorCities().length;
+    return new Set(comparatorCities().map(marketIdentity).filter(Boolean)).size;
   }
 
   function isSingleOperatorSingleCity(){
@@ -141,10 +185,11 @@
   }
 
   function territoryCoverageBase(skipKey=null){
-    const city=selectedSingleCity();
-    if(!city) return [];
+    const cities=selectedMarketCities();
+    if(!cities.length) return [];
+    const citySet=new Set(cities);
     return state.coverage.filter(r=>{
-      if(!FZ.u.competitiveCoverageAllowed(r)||clean(r.Ciudad)!==city) return false;
+      if(!FZ.u.competitiveCoverageAllowed(r)||!citySet.has(clean(r.Ciudad))) return false;
       const checks={
         period:clean(r.Periodo_Label),
         operator:clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),
@@ -184,16 +229,16 @@
   function setCityScope(mode,cities=[]){
     state.cityScopeMode=mode;
     state.filters.city.clear();
-    cities.filter(Boolean).forEach(c=>state.filters.city.add(c));
+    expandMarketCities(cities).forEach(c=>state.filters.city.add(c));
     refresh();
   }
 
   function toggleCitySelection(city){
-    const value=clean(city);
-    if(!value) return;
+    const members=marketGroupCities(city);
+    if(!members.length) return;
     state.cityScopeMode="custom";
-    if(state.filters.city.has(value)) state.filters.city.delete(value);
-    else state.filters.city.add(value);
+    const allSelected=members.every(member=>state.filters.city.has(member));
+    members.forEach(member=>allSelected?state.filters.city.delete(member):state.filters.city.add(member));
     if(!state.filters.city.size) state.cityScopeMode="fibrazo";
     refresh();
   }
@@ -212,8 +257,14 @@
     const root=$("city-quickbar");
     if(!root) return;
     root.innerHTML="";
-    const quick=quickMarkets();
-    const quickNames=new Set(quick.map(m=>clean(m.Ciudad)));
+    const seenQuick=new Set();
+    const quick=quickMarkets().filter(m=>{
+      const id=marketIdentity(m.Ciudad);
+      if(!id||seenQuick.has(id)) return false;
+      seenQuick.add(id);
+      return true;
+    });
+    const quickIdentities=new Set(quick.map(m=>marketIdentity(m.Ciudad)));
 
     const makeButton=(label,active,onClick,extraClass="")=>{
       const b=document.createElement("button");
@@ -231,15 +282,16 @@
 
     quick.forEach(m=>{
       const city=clean(m.Ciudad);
-      const active=state.cityScopeMode==="custom"&&state.filters.city.has(city);
+      const members=marketGroupCities(city);
+      const active=state.cityScopeMode==="custom"&&members.length>0&&members.every(member=>state.filters.city.has(member));
       const cls=fold(m.Prioridad_Visual)==="principal"?"principal":"";
-      root.appendChild(makeButton(city,active,()=>toggleCitySelection(city),cls));
+      root.appendChild(makeButton(marketDisplayName(city),active,()=>toggleCitySelection(city),cls));
     });
 
     const wrap=document.createElement("div");
     wrap.className="city-more-wrap";
-    const selectedOther=[...state.filters.city].filter(c=>!quickNames.has(c));
-    const external=allRelevantCities().filter(c=>!quickNames.has(c));
+    const selectedOther=[...state.filters.city].filter(c=>!quickIdentities.has(marketIdentity(c)));
+    const external=allRelevantCities().filter(c=>!quickIdentities.has(marketIdentity(c)));
     const allExternalSelected=external.length>0&&selectedOther.length===external.length;
     const moreLabel=allExternalSelected?"+ Más · Todas":selectedOther.length?"+ Más · "+selectedOther.length:"+ Más";
     const moreBtn=makeButton(moreLabel,selectedOther.length>0,e=>{
@@ -273,18 +325,27 @@
     };
 
     const paint=(q="")=>{
-      const others=allRelevantCities().filter(c=>!quickNames.has(c)&&fold(c).includes(fold(q)));
+      const seen=new Set();
+      const others=allRelevantCities().filter(c=>{
+        const id=marketIdentity(c);
+        if(quickIdentities.has(id)||seen.has(id)||!fold(marketDisplayName(c)).includes(fold(q))) return false;
+        seen.add(id);
+        return true;
+      });
       box.innerHTML="";
       others.forEach(city=>{
+        const members=marketGroupCities(city);
+        const checked=members.length>0&&members.every(member=>state.filters.city.has(member));
         const row=document.createElement("label");
         row.className="city-more-option";
-        row.innerHTML='<input type="checkbox" '+(state.filters.city.has(city)?"checked":"")+'><span>'+escapeHtml(city)+'</span>';
+        row.innerHTML='<input type="checkbox" '+(checked?"checked":"")+'><span>'+escapeHtml(marketDisplayName(city))+'</span>';
         row.querySelector("input").addEventListener("change",e=>{
           state.cityScopeMode="custom";
-          if(e.target.checked) state.filters.city.add(city); else state.filters.city.delete(city);
+          members.forEach(member=>e.target.checked?state.filters.city.add(member):state.filters.city.delete(member));
           if(!state.filters.city.size) state.cityScopeMode="fibrazo";
           state.expanded=false;
           updateMore();
+          renderCityQuickbar();
           renderFilters();
           apply();
         });
@@ -294,12 +355,12 @@
     };
 
     menu.querySelector(".city-all-relevant").addEventListener("click",()=>{
-      allRelevantCities().filter(c=>!quickNames.has(c)).forEach(c=>state.filters.city.add(c));
+      allRelevantCities().filter(c=>!quickIdentities.has(marketIdentity(c))).forEach(c=>marketGroupCities(c).forEach(member=>state.filters.city.add(member)));
       state.cityScopeMode="custom";
       updateMore(); paint(search.value); renderFilters(); apply();
     });
     menu.querySelector(".city-more-clear").addEventListener("click",()=>{
-      [...state.filters.city].filter(c=>!quickNames.has(c)).forEach(c=>state.filters.city.delete(c));
+      [...state.filters.city].filter(c=>!quickIdentities.has(marketIdentity(c))).forEach(c=>state.filters.city.delete(c));
       state.cityScopeMode=state.filters.city.size?"custom":"fibrazo";
       updateMore(); paint(search.value); renderFilters(); apply();
     });
@@ -366,6 +427,20 @@
     root.appendChild(wrap);
     paint();
     updateFilterLabel(wrap,{key,allLabel:"Todos"});
+  }
+
+  function renderMarketGroupNote(){
+    const note=$("city-group-note");
+    if(!note) return;
+    const cities=selectedMarketCities();
+    const grouped=cities.length>1;
+    note.classList.toggle("hidden",!grouped);
+    if(!grouped){
+      note.innerHTML="";
+      return;
+    }
+    const label=marketDisplayName(cities[0]);
+    note.innerHTML='<strong>Mercado agrupado</strong><span>'+escapeHtml(label)+'. Todos los indicadores, gráficos, planes y competidores integran los tres municipios; la base conserva el municipio de origen para trazabilidad.</span>';
   }
 
   function renderFilters(){
@@ -457,6 +532,7 @@
       city?territoryLabelForCity(city):"Troncal / Zona",
       city?territoryFieldForCity(city):"Troncal_FIBRAZO"
     );
+    renderMarketGroupNote();
   }
 
   function apply(){
@@ -467,8 +543,9 @@
 
   FZ.filters={
     availablePeriods,ensurePeriodSelection,selectedPeriodValue,marketAppliesToPeriod,fibrazoMarkets,quickMarkets,
-    marketForCity,isFibrazoCity,territoryFieldForCity,territoryLabelForCity,territoryValue,
-    fibrazoCitySet,allRelevantCities,cityScopeAllows,comparatorCities,selectedSingleCity,effectiveCityCount,
+    marketForCity,marketGroupKey,marketGroupCities,marketIdentity,marketDisplayName,marketRepresentativeCity,expandMarketCities,
+    isFibrazoCity,territoryFieldForCity,territoryLabelForCity,territoryValue,
+    fibrazoCitySet,allRelevantCities,cityScopeAllows,comparatorCities,selectedMarketCities,selectedSingleCity,effectiveCityCount,
     isSingleOperatorSingleCity,normalizeTerritoryFilters,rowPassesFilters,coveragePassesFilters,
     territoryCoverageBase,planMatchesTerritory,planPasses,setCityScope,toggleCitySelection,
     toggleAllFibrazoCities,renderCityQuickbar,renderFilters,apply
