@@ -39,10 +39,11 @@
     state.filtered.forEach(r=>{
       const operator=rowOperator(r);
       const city=clean(r.Ciudad);
+      const marketId=FZ.filters?.marketIdentity?.(city)||city;
       const technology=clean(r.Tecnologia)||"No informado";
       const period=clean(r.Periodo_Label)||"Sin corte";
       if(!operator||!city) return;
-      const key=[period,operator,city,technology].join("||");
+      const key=[period,operator,marketId,technology].join("||");
       if(!groups.has(key)) groups.set(key,{key,plans:[]});
       groups.get(key).plans.push(r);
     });
@@ -58,11 +59,12 @@
       return {
         _groupKey:group.key,
         _plans:plans,
+        _detailCity:clean(first.Ciudad),
         ID_Plan_Registro:clean(first.ID_Plan_Registro),
         Periodo_Label:clean(first.Periodo_Label)||"Sin corte",
         Periodo_Corte:clean(first.Periodo_Corte),
         Grupo_Operador:rowOperator(first),
-        Ciudad:clean(first.Ciudad),
+        Ciudad:FZ.filters?.marketDisplayName?.(first.Ciudad)||clean(first.Ciudad),
         Departamento:uniq(plans.map(r=>r.Departamento)).join(" · ")||"—",
         Tecnologia:clean(first.Tecnologia)||"No informado",
         Precio_Min_COP:prices.length?Math.min(...prices):null,
@@ -90,11 +92,12 @@
     });
 
     return [...groups.entries()].map(([operator,plans])=>{
-      const cities=uniq(plans.map(r=>r.Ciudad));
+      const cities=uniq(plans.map(r=>FZ.filters?.marketDisplayName?.(r.Ciudad)||r.Ciudad));
       const first=plans[0]||{};
       return {
         _groupKey:"contact||"+operator,
         _plans:plans,
+        _detailCity:clean(first.Ciudad),
         ID_Plan_Registro:clean(first.ID_Plan_Registro),
         Grupo_Operador:operator,
         Ciudad:cities.length===1?cities[0]:"",
@@ -156,7 +159,7 @@
   function formatCell(key,value,row){
     if(key==="Grupo_Operador"){
       const op=clean(row.Grupo_Operador)||"—";
-      return '<button type="button" class="operator-detail-trigger" data-operator="'+escapeHtml(op)+'" data-city="'+escapeHtml(clean(row.Ciudad))+'" data-plan-id="'+escapeHtml(clean(row.ID_Plan_Registro))+'" aria-expanded="false"><span class="operator-toggle-arrow" aria-hidden="true">▸</span><span>'+escapeHtml(op)+'</span></button>';
+      return '<button type="button" class="operator-detail-trigger" data-operator="'+escapeHtml(op)+'" data-city="'+escapeHtml(clean(row._detailCity)||clean(row.Ciudad))+'" data-plan-id="'+escapeHtml(clean(row.ID_Plan_Registro))+'" aria-expanded="false"><span class="operator-toggle-arrow" aria-hidden="true">▸</span><span>'+escapeHtml(op)+'</span></button>';
     }
     if(FZ.phoneFields.has(key)) return phoneCell(value);
     if(FZ.linkFields.has(key)) return linkCell(value,key);
