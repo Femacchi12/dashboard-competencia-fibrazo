@@ -40,6 +40,29 @@
     return state.markets.filter(m=>fold(m.Mostrar_Acceso_Rapido)==="si"&&marketAppliesToPeriod(m));
   }
 
+  function marketForCity(city){
+    const value=clean(city);
+    return state.markets.find(m=>clean(m.Ciudad)===value&&marketAppliesToPeriod(m))||null;
+  }
+
+  function isFibrazoCity(city){
+    const market=marketForCity(city);
+    return fold(market?.Mercado_FIBRAZO)==="si";
+  }
+
+  function territoryFieldForCity(city){
+    return isFibrazoCity(city)?"Troncal_FIBRAZO":"Zona_FIBRAZO";
+  }
+
+  function territoryLabelForCity(city){
+    return isFibrazoCity(city)?"Troncal FIBRAZO":"Zona";
+  }
+
+  function territoryValue(r){
+    const field=territoryFieldForCity(clean(r?.Ciudad));
+    return clean(r?.[field]);
+  }
+
   function fibrazoCitySet(){
     return new Set(fibrazoMarkets().map(m=>clean(m.Ciudad)).filter(Boolean));
   }
@@ -105,7 +128,7 @@
       city:clean(r.Ciudad),
       operator:clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),
       technology:clean(r.Tecnologia)||"No informado",
-      trunk:clean(r.Troncal_FIBRAZO)
+      trunk:territoryValue(r)
     };
     if(skipKey!=="city"&&!cityScopeAllows(r.Ciudad)) return false;
     return ["period","city","operator","technology","trunk"].every(key=>{
@@ -124,7 +147,7 @@
         period:clean(r.Periodo_Label),
         operator:clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),
         technology:clean(r.Tecnologia)||"No informado",
-        trunk:clean(r.Troncal_FIBRAZO)
+        trunk:territoryValue(r)
       };
       return ["period","operator","technology","trunk"].every(key=>{
         if(key===skipKey) return true;
@@ -142,7 +165,7 @@
       if(!FZ.u.competitiveCoverageAllowed(c)) return false;
       if(state.filters.period.size&&!state.filters.period.has(clean(c.Periodo_Label))) return false;
       if(state.filters.technology.size&&!state.filters.technology.has(clean(c.Tecnologia)||"No informado")) return false;
-      if(state.filters.trunk.size&&!state.filters.trunk.has(clean(c.Troncal_FIBRAZO))) return false;
+      if(state.filters.trunk.size&&!state.filters.trunk.has(territoryValue(c))) return false;
       return true;
     });
   }
@@ -174,7 +197,7 @@
   }
 
   function toggleAllFibrazoCities(){
-    const quickNames=quickMarkets().map(m=>clean(m.Ciudad)).filter(Boolean);
+    const quickNames=quickMarkets().filter(m=>fold(m.Mercado_FIBRAZO)==="si").map(m=>clean(m.Ciudad)).filter(Boolean);
     const allSelected=quickNames.length>0&&quickNames.every(c=>state.filters.city.has(c));
     state.cityScopeMode="custom";
     if(allSelected) quickNames.forEach(c=>state.filters.city.delete(c));
@@ -199,7 +222,8 @@
       return b;
     };
 
-    const allQuickSelected=quick.length>0&&quick.every(m=>state.filters.city.has(clean(m.Ciudad)));
+    const quickFibrazo=quick.filter(m=>fold(m.Mercado_FIBRAZO)==="si");
+    const allQuickSelected=quickFibrazo.length>0&&quickFibrazo.every(m=>state.filters.city.has(clean(m.Ciudad)));
     const allActive=(state.cityScopeMode==="fibrazo"&&!state.filters.city.size)||allQuickSelected;
     root.appendChild(makeButton("Todas FIBRAZO",allActive,()=>toggleAllFibrazoCities(),"scope-all"));
 
@@ -424,7 +448,13 @@
       updateFilterLabel(wrap,def);
     });
 
-    renderTerritoryFilter(root,"trunk","Troncal FIBRAZO","Troncal_FIBRAZO");
+    const city=selectedSingleCity();
+    renderTerritoryFilter(
+      root,
+      "trunk",
+      city?territoryLabelForCity(city):"Troncal / Zona",
+      city?territoryFieldForCity(city):"Troncal_FIBRAZO"
+    );
   }
 
   function apply(){
@@ -435,6 +465,7 @@
 
   FZ.filters={
     availablePeriods,ensurePeriodSelection,selectedPeriodValue,marketAppliesToPeriod,fibrazoMarkets,quickMarkets,
+    marketForCity,isFibrazoCity,territoryFieldForCity,territoryLabelForCity,territoryValue,
     fibrazoCitySet,allRelevantCities,cityScopeAllows,comparatorCities,selectedSingleCity,effectiveCityCount,
     isSingleOperatorSingleCity,normalizeTerritoryFilters,rowPassesFilters,coveragePassesFilters,
     territoryCoverageBase,planMatchesTerritory,planPasses,setCityScope,toggleCitySelection,
