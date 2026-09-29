@@ -209,7 +209,8 @@
   FZ.columns = [
     ["Periodo_Label","Corte"],
     ["Grupo_Operador","Operador"],
-    ["Ciudad","Ciudad"],
+    ["Ciudad","Mercado / ciudad"],
+    ["Municipios_Observados","Municipios observados"],
     ["Departamento","Departamento"],
     ["Tecnologia","Tecnología"],
     ["Precio_Min_COP","Precio mín."],
