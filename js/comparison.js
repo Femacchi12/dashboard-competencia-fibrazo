@@ -317,13 +317,19 @@
     operationalMetricRows().forEach(r=>{
       if(toNum(r.HHPP)>0&&clean(r.Ciudad)) set.add(clean(r.Ciudad));
     });
+    state.markets.forEach(m=>{
+      const city=clean(m.Ciudad);
+      const visible=fold(m.Es_Default_Scope)==="si"||fold(m.Mostrar_Acceso_Rapido)==="si";
+      if(city&&visible) set.add(city);
+    });
     return [...set].sort((a,b)=>a.localeCompare(b,"es",{numeric:true,sensitivity:"base"}));
   }
 
   function allScopeOptions(level=state.comparison.level){
     if(level==="city"){
       return comparatorCities().map(city=>({
-        key:"city|"+city+"|"+city,level:"city",city,value:city,label:city
+        key:"city|"+city+"|"+city,level:"city",city,value:city,label:city,
+        kind:FZ.filters?.isFibrazoCity?.(city)?"city-fibrazo":"city-zone"
       }));
     }
     const unique=new Map();
@@ -331,7 +337,13 @@
       const city=clean(r.Ciudad),trunk=clean(r.Troncal_FIBRAZO),hhpp=toNum(r.HHPP);
       if(!city||!trunk||!(hhpp>0)) return;
       const key="trunk|"+city+"|"+trunk;
-      unique.set(key,{key,level:"trunk",city,value:trunk,label:city+" · "+trunk,hhpp});
+      unique.set(key,{key,level:"trunk",kind:"trunk",city,value:trunk,label:city+" · "+trunk,hhpp});
+    });
+    state.coverage.forEach(r=>{
+      const city=clean(r.Ciudad),zone=clean(r.Zona_FIBRAZO);
+      if(!city||!zone||FZ.filters?.isFibrazoCity?.(city)) return;
+      const key="trunk|"+city+"|"+zone;
+      if(!unique.has(key)) unique.set(key,{key,level:"trunk",kind:"zone",city,value:zone,label:city+" · "+zone,hhpp:null});
     });
     return [...unique.values()].sort((a,b)=>a.label.localeCompare(b.label,"es",{numeric:true,sensitivity:"base"}));
   }
@@ -354,6 +366,7 @@
   function scopeCoverageRows(scope,period){
     const rows=periodRowsForCity(state.coverage,scope.city,period).filter(FZ.u.competitiveCoverageAllowed);
     if(scope.level==="city") return rows;
+    if(scope.kind==="zone") return rows.filter(r=>clean(r.Zona_FIBRAZO)===scope.value);
     return rows.filter(r=>clean(r.Troncal_FIBRAZO)===scope.value);
   }
 
@@ -366,6 +379,9 @@
   }
 
   function operationalMetrics(scope){
+    if(scope.kind==="zone"||!FZ.filters?.isFibrazoCity?.(scope.city)){
+      return {hhpp:null,active:null,penetration:null};
+    }
     if(scope.level==="trunk"){
       const tm=FZ.territory?.metricForTrunk(scope.city,scope.value);
       return {
@@ -400,7 +416,7 @@
       if(!op) return;
       if(!byOp.has(op)) byOp.set(op,{prices:[],speeds:[],tech:new Set(),plans:[],trunks:new Set()});
       const item=byOp.get(op);
-      const trunk=clean(r.Troncal_FIBRAZO);
+      const trunk=FZ.filters?.territoryValue?.(r)||clean(r.Troncal_FIBRAZO)||clean(r.Zona_FIBRAZO);
       if(trunk) item.trunks.add(trunk);
       if(clean(r.Tecnologia)) item.tech.add(clean(r.Tecnologia));
     });
@@ -521,7 +537,7 @@
     });
 
     if(search){
-      search.placeholder=state.comparison.level==="trunk"?"Buscar troncal…":"Buscar ciudad…";
+      search.placeholder=state.comparison.level==="trunk"?"Buscar troncal o zona…":"Buscar ciudad…";
       if(document.activeElement!==search) search.value=state.comparison.search||"";
       if(search.dataset.boundCompareSearch!=="1"){
         search.dataset.boundCompareSearch="1";
@@ -551,8 +567,8 @@
     if(hint){
       const cutCount=selectedComparisonPeriods().length;
       hint.textContent=state.comparison.level==="trunk"
-        ?"Solo se muestran troncales con HHPP construidos. Puedes comparar uno o dos cortes competitivos."
-        :"Selecciona una o más ciudades. Puedes comparar uno o dos cortes competitivos.";
+        ?"En mercados FIBRAZO se muestran troncales construidas; en ciudades sin despliegue se muestran zonas competitivas. Puedes comparar uno o dos cortes."
+        :"Selecciona una o más ciudades. Las ciudades sin despliegue FIBRAZO muestran mercado competitivo sin HHPP ni penetración propia.";
       if(cutCount>1) hint.textContent+=" Los resultados se separan por corte.";
     }
 
@@ -561,11 +577,12 @@
     optionsRoot.innerHTML=options.map(o=>{
       const checked=state.comparison.items.has(o.key)?"checked":"";
       if(o.level==="trunk"){
+        const territoryMeta=o.kind==="zone"?"Zona competitiva":formatNum(o.hhpp)+" HHPP";
         return '<label class="compare-scope-option compare-scope-option-clean compare-trunk-option">'+
           '<input type="checkbox" data-key="'+escapeHtml(o.key)+'" '+checked+'>'+
           '<span class="compare-trunk-option-content">'+
             '<small class="compare-trunk-city">'+escapeHtml(o.city)+'</small>'+
-            '<span class="compare-trunk-main"><b>'+escapeHtml(o.value)+'</b><em>'+formatNum(o.hhpp)+' HHPP</em></span>'+
+            '<span class="compare-trunk-main"><b>'+escapeHtml(o.value)+'</b><em>'+escapeHtml(territoryMeta)+'</em></span>'+
           '</span>'+
         '</label>';
       }
@@ -644,8 +661,9 @@
         ].filter(Boolean).join(" · ")||"Sin plan estructurado";
         const ctx=contexts.get(itemKey+"|"+fold(o.operator));
         const trunkCount=o.trunks?.length||0;
+        const territoryType=FZ.filters?.isFibrazoCity?.(scope.city)?"troncal":"zona";
         const territory=[
-          trunkCount?("Presencia en "+formatNum(trunkCount)+" troncal"+(trunkCount===1?"":"es")):"Sin troncal identificada",
+          trunkCount?("Presencia en "+formatNum(trunkCount)+" "+territoryType+(trunkCount===1?"":"s")):("Sin "+territoryType+" identificada"),
           ctx&&ctx.shared.length?formatNum(ctx.shared.length)+" compartida"+(ctx.shared.length===1?"":"s"):"",
           ctx&&ctx.only.length?formatNum(ctx.only.length)+" exclusiva"+(ctx.only.length===1?"":"s"):"",
           ctx&&ctx.missing.length?formatNum(ctx.missing.length)+" en otra comparación":""
@@ -653,7 +671,7 @@
         const shared=escapeHtml(JSON.stringify(ctx?.shared||[]));
         const only=escapeHtml(JSON.stringify(ctx?.only||[]));
         const missing=escapeHtml(JSON.stringify(ctx?.missing||[]));
-        return '<button type="button" class="compare-operator-btn" data-compare-operator="'+escapeHtml(o.operator)+'" data-compare-city="'+escapeHtml(scope.city)+'" data-compare-plan="'+escapeHtml(o.planId||"")+'" data-compare-period="'+escapeHtml(period)+'" data-compare-slot="'+escapeHtml(slotId)+'" data-compare-trunk="'+escapeHtml(scope.level==="trunk"?scope.value:"")+'" data-compare-shared="'+shared+'" data-compare-only="'+only+'" data-compare-missing="'+missing+'">'+
+        return '<button type="button" class="compare-operator-btn" data-compare-operator="'+escapeHtml(o.operator)+'" data-compare-city="'+escapeHtml(scope.city)+'" data-compare-plan="'+escapeHtml(o.planId||"")+'" data-compare-period="'+escapeHtml(period)+'" data-compare-slot="'+escapeHtml(slotId)+'" data-compare-trunk="'+escapeHtml(scope.level==="trunk"&&scope.kind!=="zone"?scope.value:"")+'" data-compare-shared="'+shared+'" data-compare-only="'+only+'" data-compare-missing="'+missing+'">'+
           '<b>'+escapeHtml(o.operator)+'</b><small class="compare-operator-commercial">'+escapeHtml(detail)+'</small><small class="compare-operator-territory">'+escapeHtml(territory)+'</small><span>Ver detalle →</span>'+
         '</button>';
       }).join("")+'</div>'+
@@ -664,7 +682,8 @@
     const op=m.operational,fz=m.fz;
     const cheaperPct=percentPart(m.cheaper,m.pricedOperators);
     const fasterPct=percentPart(m.faster,m.speedOperators);
-    const scopeType=scope.level==="trunk"?"TRONCAL":"CIUDAD";
+    const scopeType=scope.level==="trunk"?(scope.kind==="zone"?"ZONA":"TRONCAL"):"CIUDAD";
+    const hasFibrazo=!!FZ.filters?.isFibrazoCity?.(scope.city);
     const itemKey=comparisonItemKey(scope,period);
     const slotId=detailSlotId(scope,period);
 
@@ -673,7 +692,7 @@
         '<div><span>'+scopeType+' · '+escapeHtml(comparisonPeriodLabel(period))+'</span><h3>'+escapeHtml(scope.label)+'</h3></div>'+
       '</div>'+
       '<div class="compare-managerial-block">'+
-        '<span class="compare-block-title">OPERACIÓN FIBRAZO ACTUAL</span>'+
+        '<span class="compare-block-title">'+(hasFibrazo?"OPERACIÓN FIBRAZO ACTUAL":"FIBRAZO · SIN DESPLIEGUE ACTUAL")+'</span>'+
         '<div class="compare-operational-grid">'+
           '<div><span>HHPP</span><b>'+(op.hhpp==null?"—":formatNum(op.hhpp))+'</b></div>'+
           '<div><span>Activos</span><b>'+(op.active==null?"—":formatNum(op.active))+'</b></div>'+
@@ -692,7 +711,7 @@
       operatorListHtml(scope,m,period,itemKey,contexts)+
       '<div id="'+escapeHtml(slotId)+'" class="operator-detail-slot compare-inline-operator-detail"></div>'+
       '<div class="fibrazo-benchmark-row managerial">'+
-        '<div><span>BENCHMARK FIBRAZO ACTUAL</span><b>'+(fz?formatCOP(fz.Precio_COP)+' · '+formatNum(fz.Velocidad_Mbps)+' Mbps':"Sin oferta normalizada")+'</b></div>'+
+        '<div><span>BENCHMARK FIBRAZO ACTUAL</span><b>'+(fz?formatCOP(fz.Precio_COP)+' · '+formatNum(fz.Velocidad_Mbps)+' Mbps':(hasFibrazo?"Sin oferta normalizada":"Sin despliegue actual"))+'</b></div>'+
       '</div>'+
       '<div class="compare-signal-grid">'+
         '<div class="'+(m.cheaper>0?"alert":"ok")+'"><span>Precio</span><b>'+formatNum(m.cheaper)+' competidor'+(m.cheaper===1?"":"es")+' más barato'+(m.cheaper===1?"":"s")+'</b><small>'+(cheaperPct==null?"Sin base comparable":cheaperPct.toFixed(1).replace(".",",")+"% de operadores con precio")+'</small></div>'+
@@ -759,7 +778,7 @@
     if(!uniqueSelected.length){
       benchmark?.classList.add("hidden");
       if(benchmark) benchmark.innerHTML="";
-      cards.innerHTML='<article class="panel compare-empty compare-empty-guided"><strong>Selecciona una ciudad o troncal</strong><span>La primera selección se mostrará inmediatamente y podrás seguir buscando otra para comparar.</span></article>';
+      cards.innerHTML='<article class="panel compare-empty compare-empty-guided"><strong>Selecciona una ciudad, troncal o zona</strong><span>La primera selección se mostrará inmediatamente y podrás seguir buscando otra para comparar.</span></article>';
       return;
     }
 
@@ -767,8 +786,8 @@
       benchmark.classList.remove("hidden");
       const cutsLabel=selectedPeriods.map(comparisonPeriodLabel).join(" · ");
       benchmark.innerHTML='<div><span>RESULTADO</span><h3>'+(uniqueSelected.length===1&&selectedPeriods.length===1?"Vista seleccionada":"Lectura comparativa")+'</h3></div><p>'+
-        formatNum(uniqueSelected.length)+' '+(state.comparison.level==="trunk"?"troncal"+(uniqueSelected.length===1?"":"es"):"ciudad"+(uniqueSelected.length===1?"":"es"))+
-        ' · '+escapeHtml(cutsLabel)+' · FIBRAZO como benchmark actual</p>';
+        formatNum(uniqueSelected.length)+' '+(state.comparison.level==="trunk"?"territorio"+(uniqueSelected.length===1?"":"s"):"ciudad"+(uniqueSelected.length===1?"":"es"))+
+        ' · '+escapeHtml(cutsLabel)+' · comparación competitiva; benchmark FIBRAZO donde aplica</p>';
     }
 
     const resultItems=[];
