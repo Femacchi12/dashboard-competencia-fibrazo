@@ -11,10 +11,17 @@
     const d=state.filtered;
     const operators=new Set([...d.map(r=>clean(r.Grupo_Operador)),...state.filteredCoverage.map(r=>clean(r.Grupo_Operador))].filter(Boolean));
     const cities=new Set([...d.map(r=>clean(r.Ciudad)),...state.filteredCoverage.map(r=>clean(r.Ciudad))].filter(Boolean));
+    const marketIds=new Set([...cities].map(city=>FZ.filters?.marketIdentity?.(city)||city).filter(Boolean));
     const prices=d.map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0);
     const speeds=d.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
     if($("kpi-operators")) $("kpi-operators").textContent=formatNum(operators.size);
-    if($("kpi-cities-note")) $("kpi-cities-note").textContent=formatNum(cities.size)+(cities.size===1?" ciudad con datos":" ciudades con datos");
+    if($("kpi-cities-note")){
+      const firstCity=[...cities][0]||"";
+      const grouped=marketIds.size===1&&firstCity&&(FZ.filters?.marketGroupCities?.(firstCity)||[]).length>1;
+      $("kpi-cities-note").textContent=grouped
+        ?"1 mercado · "+FZ.filters.marketDisplayName(firstCity)
+        :formatNum(marketIds.size)+(marketIds.size===1?" mercado con datos":" mercados con datos");
+    }
     if($("kpi-min-price")) $("kpi-min-price").textContent=prices.length?formatCOP(Math.min(...prices)):"—";
     if($("kpi-max-price")) $("kpi-max-price").textContent=prices.length?formatCOP(Math.max(...prices)):"—";
     if($("kpi-min-speed")) $("kpi-min-speed").textContent=speeds.length?formatNum(Math.min(...speeds)):"—";
