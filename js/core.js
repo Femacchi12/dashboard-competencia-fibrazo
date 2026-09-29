@@ -10,7 +10,7 @@
     plans: { gid:"1372196091", label:"02_PLANES_HISTORICO", range:"A1:AJ1000" },
     operators: { gid:"1091103584", label:"01_OPERADORES", range:"A1:AF300" },
     coverage: { gid:"718563813", label:"03_PRESENCIA", range:"A1:Z2500" },
-    markets: { gid:"1320750580", label:"07_CONFIG · Mercados", range:"X2:AI300" },
+    markets: { gid:"1320750580", label:"07_CONFIG · Mercados", range:"X2:AJ300" },
     offers: { gid:"1320750580", label:"07_CONFIG · Oferta FIBRAZO", range:"AS2:BC300" },
     fibrazoMetrics: { gid:"1344959609", label:"10_FIBRAZO_METRICAS", range:"A1:X400" },
     mobile: { gid:"1227923955", label:"12_COMPETENCIA_MOVIL", range:"A1:S400" },
