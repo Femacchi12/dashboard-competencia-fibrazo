@@ -19,7 +19,9 @@
   }
 
   function trunksForPlan(r){
-    return [...new Set(matchingCoverageForPlan(r).map(c=>clean(c.Troncal_FIBRAZO)).filter(Boolean))]
+    return [...new Set(matchingCoverageForPlan(r).map(c=>
+      FZ.filters?.territoryValue?.(c)||clean(c.Troncal_FIBRAZO)||clean(c.Zona_FIBRAZO)
+    ).filter(Boolean))]
       .sort((a,b)=>a.localeCompare(b,"es",{numeric:true}))
       .join(" · ");
   }
@@ -69,7 +71,7 @@
         Velocidad_Max_Mbps:speeds.length?Math.max(...speeds):null,
         Tipo_Servicio:services.join(" · ")||"—",
         TV_Incluida:tv.join(" · ")||"—",
-        Troncales_Ciudad:uniq(coverage.map(r=>r.Troncal_FIBRAZO)).join(" · ")||"—"
+        Troncales_Ciudad:uniq(coverage.map(r=>FZ.filters?.territoryValue?.(r)||r.Troncal_FIBRAZO||r.Zona_FIBRAZO)).join(" · ")||"—"
       };
     });
   }
