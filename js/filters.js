@@ -317,11 +317,11 @@
     const box=menu.querySelector(".city-more-options");
 
     const updateMore=()=>{
-      const selected=[...state.filters.city].filter(c=>!quickNames.has(c));
-      const all=allRelevantCities().filter(c=>!quickNames.has(c));
-      moreBtn.textContent=all.length&&selected.length===all.length?"+ Más · Todas":selected.length?"+ Más · "+selected.length:"+ Más";
-      moreBtn.classList.toggle("active",selected.length>0);
-      moreBtn.classList.toggle("more-selected",selected.length>0);
+      const selectedIds=new Set([...state.filters.city].map(marketIdentity).filter(id=>id&&!quickIdentities.has(id)));
+      const allIds=new Set(allRelevantCities().map(marketIdentity).filter(id=>id&&!quickIdentities.has(id)));
+      moreBtn.textContent=allIds.size&&selectedIds.size===allIds.size?"+ Más · Todas":selectedIds.size?"+ Más · "+selectedIds.size:"+ Más";
+      moreBtn.classList.toggle("active",selectedIds.size>0);
+      moreBtn.classList.toggle("more-selected",selectedIds.size>0);
     };
 
     const paint=(q="")=>{
@@ -384,7 +384,7 @@
     wrap.className="filter territory-filter"+(city?"":" disabled");
 
     if(!city){
-      wrap.innerHTML='<label class="filter-label">'+escapeHtml(label)+'</label><button class="filter-btn territory-disabled" type="button" disabled><span>Solo con 1 ciudad</span><span>ⓘ</span></button>';
+      wrap.innerHTML='<label class="filter-label">'+escapeHtml(label)+'</label><button class="filter-btn territory-disabled" type="button" disabled><span>Solo con 1 mercado</span><span>ⓘ</span></button>';
       root.appendChild(wrap);
       return;
     }
