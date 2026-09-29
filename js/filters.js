@@ -37,7 +37,9 @@
   }
 
   function quickMarkets(){
-    return state.markets.filter(m=>fold(m.Mostrar_Acceso_Rapido)==="si"&&marketAppliesToPeriod(m));
+    return state.markets
+      .filter(m=>fold(m.Mostrar_Acceso_Rapido)==="si"&&marketAppliesToPeriod(m))
+      .sort((a,b)=>(Number(a.Orden_Dashboard)||999)-(Number(b.Orden_Dashboard)||999));
   }
 
   function marketForCity(city){
