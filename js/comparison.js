@@ -302,8 +302,9 @@
   }
 
   function periodRowsForCity(rows,city,period){
+    const members=new Set(FZ.filters?.marketGroupCities?.(city)||[clean(city)]);
     return rows.filter(r=>
-      clean(r.Ciudad)===clean(city)&&
+      members.has(clean(r.Ciudad))&&
       (!period||clean(r.Periodo_Corte)===clean(period))
     );
   }
@@ -315,35 +316,46 @@
   function comparatorCities(){
     const set=new Set();
     operationalMetricRows().forEach(r=>{
-      if(toNum(r.HHPP)>0&&clean(r.Ciudad)) set.add(clean(r.Ciudad));
+      const raw=clean(r.Ciudad);
+      if(toNum(r.HHPP)>0&&raw) set.add(FZ.filters?.marketRepresentativeCity?.(raw)||raw);
     });
     state.markets.forEach(m=>{
-      const city=clean(m.Ciudad);
+      const raw=clean(m.Ciudad);
       const visible=fold(m.Es_Default_Scope)==="si"||fold(m.Mostrar_Acceso_Rapido)==="si";
-      if(city&&visible) set.add(city);
+      if(raw&&visible) set.add(FZ.filters?.marketRepresentativeCity?.(raw)||raw);
     });
-    return [...set].sort((a,b)=>a.localeCompare(b,"es",{numeric:true,sensitivity:"base"}));
+    return [...set].sort((a,b)=>
+      (FZ.filters?.marketDisplayName?.(a)||a).localeCompare(FZ.filters?.marketDisplayName?.(b)||b,"es",{numeric:true,sensitivity:"base"})
+    );
   }
 
   function allScopeOptions(level=state.comparison.level){
     if(level==="city"){
-      return comparatorCities().map(city=>({
-        key:"city|"+city+"|"+city,level:"city",city,value:city,label:city,
-        kind:FZ.filters?.isFibrazoCity?.(city)?"city-fibrazo":"city-zone"
-      }));
+      return comparatorCities().map(city=>{
+        const id=FZ.filters?.marketIdentity?.(city)||city;
+        const label=FZ.filters?.marketDisplayName?.(city)||city;
+        return {
+          key:"city|"+id+"|"+city,level:"city",city,value:id,label,
+          kind:FZ.filters?.isFibrazoCity?.(city)?"city-fibrazo":"city-zone"
+        };
+      });
     }
     const unique=new Map();
     operationalMetricRows().forEach(r=>{
-      const city=clean(r.Ciudad),trunk=clean(r.Troncal_FIBRAZO),hhpp=toNum(r.HHPP);
+      const rawCity=clean(r.Ciudad),city=FZ.filters?.marketRepresentativeCity?.(rawCity)||rawCity;
+      const trunk=clean(r.Troncal_FIBRAZO),hhpp=toNum(r.HHPP);
       if(!city||!trunk||!(hhpp>0)) return;
       const key="trunk|"+city+"|"+trunk;
       unique.set(key,{key,level:"trunk",kind:"trunk",city,value:trunk,label:city+" · "+trunk,hhpp});
     });
     state.coverage.forEach(r=>{
-      const city=clean(r.Ciudad),zone=clean(r.Zona_FIBRAZO);
-      if(!city||!zone||FZ.filters?.isFibrazoCity?.(city)) return;
-      const key="trunk|"+city+"|"+zone;
-      if(!unique.has(key)) unique.set(key,{key,level:"trunk",kind:"zone",city,value:zone,label:city+" · "+zone,hhpp:null});
+      const rawCity=clean(r.Ciudad),zone=clean(r.Zona_FIBRAZO);
+      if(!rawCity||!zone||FZ.filters?.isFibrazoCity?.(rawCity)) return;
+      const city=FZ.filters?.marketRepresentativeCity?.(rawCity)||rawCity;
+      const id=FZ.filters?.marketIdentity?.(rawCity)||rawCity;
+      const label=FZ.filters?.marketDisplayName?.(rawCity)||rawCity;
+      const key="trunk|"+id+"|"+zone;
+      if(!unique.has(key)) unique.set(key,{key,level:"trunk",kind:"zone",city,value:zone,label:label+" · "+zone,hhpp:null});
     });
     return [...unique.values()].sort((a,b)=>a.label.localeCompare(b.label,"es",{numeric:true,sensitivity:"base"}));
   }
@@ -440,7 +452,8 @@
       maxSpeed:item.speeds.length?Math.max(...item.speeds):null,
       technologies:[...item.tech].sort((a,b)=>a.localeCompare(b,"es",{numeric:true})),
       trunks:[...item.trunks].sort((a,b)=>a.localeCompare(b,"es",{numeric:true,sensitivity:"base"})),
-      planId:clean(item.plans[0]?.ID_Plan_Registro)
+      planId:clean(item.plans[0]?.ID_Plan_Registro),
+      detailCity:clean(item.plans[0]?.Ciudad)||clean(scope.city)
     })).sort(compareOperatorsTraditionalFirst);
 
     const fz=fibrazoOfferForCity(scope.city);
@@ -537,7 +550,7 @@
     });
 
     if(search){
-      search.placeholder=state.comparison.level==="trunk"?"Buscar troncal o zona…":"Buscar ciudad…";
+      search.placeholder=state.comparison.level==="trunk"?"Buscar troncal o zona…":"Buscar ciudad o mercado…";
       if(document.activeElement!==search) search.value=state.comparison.search||"";
       if(search.dataset.boundCompareSearch!=="1"){
         search.dataset.boundCompareSearch="1";
@@ -552,7 +565,7 @@
     if(cityFilter){
       const cities=comparatorCities();
       cityFilter.classList.toggle("hidden",state.comparison.level!=="trunk");
-      cityFilter.innerHTML='<option value="all">Todas las ciudades</option>'+cities.map(city=>'<option value="'+escapeHtml(city)+'">'+escapeHtml(city)+'</option>').join("");
+      cityFilter.innerHTML='<option value="all">Todos los mercados</option>'+cities.map(city=>'<option value="'+escapeHtml(city)+'">'+escapeHtml(FZ.filters?.marketDisplayName?.(city)||city)+'</option>').join("");
       cityFilter.value=state.comparison.cityFilter||"all";
       if(cityFilter.dataset.boundCompareCity!=="1"){
         cityFilter.dataset.boundCompareCity="1";
@@ -568,7 +581,7 @@
       const cutCount=selectedComparisonPeriods().length;
       hint.textContent=state.comparison.level==="trunk"
         ?"En mercados FIBRAZO se muestran troncales construidas; en ciudades sin despliegue se muestran zonas competitivas. Puedes comparar uno o dos cortes."
-        :"Selecciona una o más ciudades. Las ciudades sin despliegue FIBRAZO muestran mercado competitivo sin HHPP ni penetración propia.";
+        :"Selecciona una o más ciudades o mercados agrupados. Los mercados sin despliegue FIBRAZO muestran competencia sin HHPP ni penetración propia.";
       if(cutCount>1) hint.textContent+=" Los resultados se separan por corte.";
     }
 
@@ -581,7 +594,7 @@
         return '<label class="compare-scope-option compare-scope-option-clean compare-trunk-option">'+
           '<input type="checkbox" data-key="'+escapeHtml(o.key)+'" '+checked+'>'+
           '<span class="compare-trunk-option-content">'+
-            '<small class="compare-trunk-city">'+escapeHtml(o.city)+'</small>'+
+            '<small class="compare-trunk-city">'+escapeHtml(FZ.filters?.marketDisplayName?.(o.city)||o.city)+'</small>'+
             '<span class="compare-trunk-main"><b>'+escapeHtml(o.value)+'</b><em>'+escapeHtml(territoryMeta)+'</em></span>'+
           '</span>'+
         '</label>';
@@ -671,7 +684,7 @@
         const shared=escapeHtml(JSON.stringify(ctx?.shared||[]));
         const only=escapeHtml(JSON.stringify(ctx?.only||[]));
         const missing=escapeHtml(JSON.stringify(ctx?.missing||[]));
-        return '<button type="button" class="compare-operator-btn" data-compare-operator="'+escapeHtml(o.operator)+'" data-compare-city="'+escapeHtml(scope.city)+'" data-compare-plan="'+escapeHtml(o.planId||"")+'" data-compare-period="'+escapeHtml(period)+'" data-compare-slot="'+escapeHtml(slotId)+'" data-compare-trunk="'+escapeHtml(scope.level==="trunk"&&scope.kind!=="zone"?scope.value:"")+'" data-compare-shared="'+shared+'" data-compare-only="'+only+'" data-compare-missing="'+missing+'">'+
+        return '<button type="button" class="compare-operator-btn" data-compare-operator="'+escapeHtml(o.operator)+'" data-compare-city="'+escapeHtml(o.detailCity||scope.city)+'" data-compare-plan="'+escapeHtml(o.planId||"")+'" data-compare-period="'+escapeHtml(period)+'" data-compare-slot="'+escapeHtml(slotId)+'" data-compare-trunk="'+escapeHtml(scope.level==="trunk"&&scope.kind!=="zone"?scope.value:"")+'" data-compare-shared="'+shared+'" data-compare-only="'+only+'" data-compare-missing="'+missing+'">'+
           '<b>'+escapeHtml(o.operator)+'</b><small class="compare-operator-commercial">'+escapeHtml(detail)+'</small><small class="compare-operator-territory">'+escapeHtml(territory)+'</small><span>Ver detalle →</span>'+
         '</button>';
       }).join("")+'</div>'+
@@ -682,7 +695,8 @@
     const op=m.operational,fz=m.fz;
     const cheaperPct=percentPart(m.cheaper,m.pricedOperators);
     const fasterPct=percentPart(m.faster,m.speedOperators);
-    const scopeType=scope.level==="trunk"?(scope.kind==="zone"?"ZONA":"TRONCAL"):"CIUDAD";
+    const groupedMarket=(FZ.filters?.marketGroupCities?.(scope.city)||[]).length>1;
+    const scopeType=scope.level==="trunk"?(scope.kind==="zone"?"ZONA":"TRONCAL"):(groupedMarket?"MERCADO AGRUPADO":"CIUDAD");
     const hasFibrazo=!!FZ.filters?.isFibrazoCity?.(scope.city);
     const itemKey=comparisonItemKey(scope,period);
     const slotId=detailSlotId(scope,period);
@@ -789,7 +803,7 @@
       benchmark.classList.remove("hidden");
       const cutsLabel=selectedPeriods.map(comparisonPeriodLabel).join(" · ");
       benchmark.innerHTML='<div><span>RESULTADO</span><h3>'+(uniqueSelected.length===1&&selectedPeriods.length===1?"Vista seleccionada":"Lectura comparativa")+'</h3></div><p>'+
-        formatNum(uniqueSelected.length)+' '+(state.comparison.level==="trunk"?"territorio"+(uniqueSelected.length===1?"":"s"):"ciudad"+(uniqueSelected.length===1?"":"es"))+
+        formatNum(uniqueSelected.length)+' '+(state.comparison.level==="trunk"?"territorio"+(uniqueSelected.length===1?"":"s"):"mercado"+(uniqueSelected.length===1?"":"s"))+
         ' · '+escapeHtml(cutsLabel)+' · comparación competitiva; benchmark FIBRAZO donde aplica</p>';
     }
 
