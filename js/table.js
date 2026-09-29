@@ -54,6 +54,7 @@
       const prices=plans.map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0);
       const speeds=plans.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
       const coverage=plans.flatMap(matchingCoverageForPlan);
+      const municipalities=uniq([...plans.map(r=>r.Ciudad),...coverage.map(r=>r.Ciudad)]);
       const services=uniq(plans.map(r=>r.Tipo_Servicio));
       const tv=uniq(plans.map(r=>normalizeTV(r.TV_Incluida)));
       return {
@@ -65,6 +66,7 @@
         Periodo_Corte:clean(first.Periodo_Corte),
         Grupo_Operador:rowOperator(first),
         Ciudad:FZ.filters?.marketDisplayName?.(first.Ciudad)||clean(first.Ciudad),
+        Municipios_Observados:municipalities.join(" · ")||clean(first.Ciudad)||"—",
         Departamento:uniq(plans.map(r=>r.Departamento)).join(" · ")||"—",
         Tecnologia:clean(first.Tecnologia)||"No informado",
         Precio_Min_COP:prices.length?Math.min(...prices):null,
