@@ -422,24 +422,26 @@
     const speeds=plans.map(r=>toNum(r.Velocidad_Bajada_Mbps)).filter(n=>n>0);
     const byOp=new Map();
 
-    [...ops].forEach(op=>byOp.set(op,{prices:[],speeds:[],tech:new Set(),plans:[],trunks:new Set()}));
+    [...ops].forEach(op=>byOp.set(op,{prices:[],speeds:[],tech:new Set(),plans:[],trunks:new Set(),municipalities:new Set()}));
     coverageRows.forEach(r=>{
       const op=rowOperator(r);
       if(!op) return;
-      if(!byOp.has(op)) byOp.set(op,{prices:[],speeds:[],tech:new Set(),plans:[],trunks:new Set()});
+      if(!byOp.has(op)) byOp.set(op,{prices:[],speeds:[],tech:new Set(),plans:[],trunks:new Set(),municipalities:new Set()});
       const item=byOp.get(op);
       const trunk=FZ.filters?.territoryValue?.(r)||clean(r.Troncal_FIBRAZO)||clean(r.Zona_FIBRAZO);
       if(trunk) item.trunks.add(trunk);
+      if(clean(r.Ciudad)) item.municipalities.add(clean(r.Ciudad));
       if(clean(r.Tecnologia)) item.tech.add(clean(r.Tecnologia));
     });
     plans.forEach(r=>{
       const op=rowOperator(r);
       if(!op) return;
-      if(!byOp.has(op)) byOp.set(op,{prices:[],speeds:[],tech:new Set(),plans:[],trunks:new Set()});
+      if(!byOp.has(op)) byOp.set(op,{prices:[],speeds:[],tech:new Set(),plans:[],trunks:new Set(),municipalities:new Set()});
       const item=byOp.get(op);
       const p=toNum(r.Precio_Usado_COP),s=toNum(r.Velocidad_Bajada_Mbps);
       if(p>0) item.prices.push(p);
       if(s>0) item.speeds.push(s);
+      if(clean(r.Ciudad)) item.municipalities.add(clean(r.Ciudad));
       if(clean(r.Tecnologia)) item.tech.add(clean(r.Tecnologia));
       item.plans.push(r);
     });
@@ -452,6 +454,7 @@
       maxSpeed:item.speeds.length?Math.max(...item.speeds):null,
       technologies:[...item.tech].sort((a,b)=>a.localeCompare(b,"es",{numeric:true})),
       trunks:[...item.trunks].sort((a,b)=>a.localeCompare(b,"es",{numeric:true,sensitivity:"base"})),
+      municipalities:[...item.municipalities].sort((a,b)=>a.localeCompare(b,"es",{numeric:true,sensitivity:"base"})),
       planId:clean(item.plans[0]?.ID_Plan_Registro),
       detailCity:clean(item.plans[0]?.Ciudad)||clean(scope.city)
     })).sort(compareOperatorsTraditionalFirst);
@@ -675,7 +678,12 @@
         const ctx=contexts.get(itemKey+"|"+fold(o.operator));
         const trunkCount=o.trunks?.length||0;
         const territoryType=FZ.filters?.isFibrazoCity?.(scope.city)?"troncal":"zona";
+        const groupedMarket=(FZ.filters?.marketGroupCities?.(scope.city)||[]).length>1;
+        const municipalityText=groupedMarket&&o.municipalities?.length
+          ? "Observado en "+o.municipalities.join(" · ")
+          : "";
         const territory=[
+          municipalityText,
           trunkCount?("Presencia en "+formatNum(trunkCount)+" "+territoryType+(trunkCount===1?"":"s")):("Sin "+territoryType+" identificada"),
           ctx&&ctx.shared.length?formatNum(ctx.shared.length)+" compartida"+(ctx.shared.length===1?"":"s"):"",
           ctx&&ctx.only.length?formatNum(ctx.only.length)+" exclusiva"+(ctx.only.length===1?"":"s"):"",
