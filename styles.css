@@ -2508,3 +2508,30 @@ footer{display:flex;justify-content:space-between;color:#658075;font-size:var(--
   .operator-trunk-compare-head{flex-direction:column}
   .operator-trunk-compare-head small{text-align:left}
 }
+
+
+/* Grouped exploratory markets */
+.city-group-note{
+  margin-top:10px;
+  padding:10px 12px;
+  border:1px solid rgba(51,220,145,.28);
+  border-radius:10px;
+  background:rgba(51,220,145,.07);
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  font-size:12px;
+  line-height:1.45;
+}
+.city-group-note.hidden{display:none}
+.city-group-note strong{
+  flex:0 0 auto;
+  color:#49e6a0;
+  font-size:11px;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.city-group-note span{color:#c9d8d2}
+@media (max-width:760px){
+  .city-group-note{flex-direction:column;gap:4px}
+}
