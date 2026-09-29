@@ -306,11 +306,11 @@
     menu.className="city-more-menu hidden";
     menu.innerHTML=
       '<div class="city-more-actions">'+
-        '<button class="city-all-relevant" type="button">Todas las ciudades relevadas</button>'+
+        '<button class="city-all-relevant" type="button">Todos los mercados relevados</button>'+
         '<button class="city-more-clear" type="button">Limpiar</button>'+
       '</div><div class="city-more-divider"></div>'+
-      '<span class="city-more-title">Otras ciudades relevadas</span>'+
-      '<input class="city-more-search" type="search" placeholder="Buscar ciudad…">'+
+      '<span class="city-more-title">Otros mercados relevados</span>'+
+      '<input class="city-more-search" type="search" placeholder="Buscar ciudad o mercado…">'+
       '<div class="city-more-options"></div>';
     menu.addEventListener("click",e=>e.stopPropagation());
     const search=menu.querySelector(".city-more-search");
