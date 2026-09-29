@@ -714,8 +714,11 @@
         '<div><span>BENCHMARK FIBRAZO ACTUAL</span><b>'+(fz?formatCOP(fz.Precio_COP)+' · '+formatNum(fz.Velocidad_Mbps)+' Mbps':(hasFibrazo?"Sin oferta normalizada":"Sin despliegue actual"))+'</b></div>'+
       '</div>'+
       '<div class="compare-signal-grid">'+
-        '<div class="'+(m.cheaper>0?"alert":"ok")+'"><span>Precio</span><b>'+formatNum(m.cheaper)+' competidor'+(m.cheaper===1?"":"es")+' más barato'+(m.cheaper===1?"":"s")+'</b><small>'+(cheaperPct==null?"Sin base comparable":cheaperPct.toFixed(1).replace(".",",")+"% de operadores con precio")+'</small></div>'+
-        '<div class="'+(m.faster>0?"alert":"ok")+'"><span>Velocidad</span><b>'+formatNum(m.faster)+' competidor'+(m.faster===1?"":"es")+' más rápido'+(m.faster===1?"":"s")+'</b><small>'+(fasterPct==null?"Sin base comparable":fasterPct.toFixed(1).replace(".",",")+"% de operadores con velocidad")+'</small></div>'+
+        (hasFibrazo
+          ? '<div class="'+(m.cheaper>0?"alert":"ok")+'"><span>Precio</span><b>'+formatNum(m.cheaper)+' competidor'+(m.cheaper===1?"":"es")+' más barato'+(m.cheaper===1?"":"s")+'</b><small>'+(cheaperPct==null?"Sin base comparable":cheaperPct.toFixed(1).replace(".",",")+"% de operadores con precio")+'</small></div>'+
+            '<div class="'+(m.faster>0?"alert":"ok")+'"><span>Velocidad</span><b>'+formatNum(m.faster)+' competidor'+(m.faster===1?"":"es")+' más rápido'+(m.faster===1?"":"s")+'</b><small>'+(fasterPct==null?"Sin base comparable":fasterPct.toFixed(1).replace(".",",")+"% de operadores con velocidad")+'</small></div>'
+          : '<div class="neutral"><span>Precio</span><b>Benchmark pendiente</b><small>Sin oferta FIBRAZO local para comparar.</small></div>'+
+            '<div class="neutral"><span>Velocidad</span><b>Benchmark pendiente</b><small>La lectura se limita al mercado competitivo.</small></div>')+
       '</div>'+
     '</article>';
   }
