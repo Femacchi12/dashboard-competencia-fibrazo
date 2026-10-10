@@ -1,0 +1,22 @@
+/* FIBRAZO visual alignment v1.0 — 2026-10-10
+   Source: brand guide #43FFA5 / #000000 / #58595B, Montserrat + Poppins.
+   This overrides only typography and shared design tokens; product-specific indicators remain intact.
+   Source of truth: https://docs.google.com/document/d/1vgYxAB-KhkhHMb-zd-eGJLk_UX6QcSjznZ2WnFRd9m8/edit
+*/
+:root{
+  --brand-primary:#43FFA5;
+  --brand-black:#000000;
+  --brand-gray:#58595B;
+  --brand-purple:#E94CFF;
+  --brand-yellow:#FFB600;
+  --brand-pink:#FF005C;
+  --brand-orange:#FF5400;
+  --fz-green:var(--brand-primary);
+  --fz-green-border:rgba(67,255,165,.58);
+  --fz-green-soft:rgba(67,255,165,.08);
+  --green:var(--brand-primary);
+  --green2:#2ddc91;
+}
+html, body, button, input, select, textarea {font-family:Montserrat,system-ui,sans-serif;}
+table, table button, th, td, .table-scroll, .table-wrap {font-family:Poppins,Montserrat,system-ui,sans-serif;}
+:focus-visible{outline-color:var(--brand-primary);}
