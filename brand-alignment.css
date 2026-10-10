@@ -20,3 +20,35 @@
 html, body, button, input, select, textarea {font-family:Montserrat,system-ui,sans-serif;}
 table, table button, th, td, .table-scroll, .table-wrap {font-family:Poppins,Montserrat,system-ui,sans-serif;}
 :focus-visible{outline-color:var(--brand-primary);}
+
+
+/* FIBRAZO shared shell v1.2: readability + legacy CSS compatibility.
+   Semantic chart colours and status warnings remain governed by app logic. */
+:root{
+ --brand-font-ui:"Montserrat",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+ --brand-font-table:"Poppins","Montserrat",system-ui,sans-serif;
+ --brand-surface:#101211;--brand-surface-raised:#171918;
+ --brand-control:#202222;--brand-text:#F7FAF8;--brand-muted:#BBC1BE;
+ --brand-border:rgba(88,89,91,.72);
+ --fz-page:var(--brand-black);
+ --fz-surface:var(--brand-surface);
+ --fz-surface-raised:var(--brand-surface-raised);
+ --fz-border:var(--brand-border);
+ --fz-border-strong:var(--brand-gray);
+ --fz-text:var(--brand-text);
+ --fz-muted:var(--brand-muted);
+ --bg:var(--brand-black);
+ --panel:var(--brand-surface);
+ --panel2:var(--brand-surface-raised);
+ --border:var(--brand-gray);
+ --text:var(--brand-text);
+ --muted:var(--brand-muted);
+}
+html,body{font-family:var(--brand-font-ui);background-color:var(--brand-black);}
+.hero-brand span,.auth-brand,.section-title>span,.section-heading>span{color:var(--brand-primary);}
+button,input,select,textarea,.btn,.primary-button,.secondary-button,.filter-btn,.analysis-tab,.refresh-button{font-family:var(--brand-font-ui);}
+table,table *, .table-scroll, .table-scroll *, .table-wrap, .table-wrap *, .records table, .records table *{font-family:var(--brand-font-table);}
+.primary-button,.btn.primary{background:var(--brand-primary);border-color:var(--brand-primary);color:#00180d;}
+.view-switch button.active{border-color:var(--brand-primary);color:var(--brand-primary);}
+:focus-visible{outline:2px solid var(--brand-primary);outline-offset:2px;}
+@media(max-width:600px){button,input,select,textarea{min-height:36px;}table{font-size:12px;}}
