@@ -104,11 +104,12 @@
         const used=promo!=null&&promo>0?promo:(regular!=null&&regular>0?regular:null);
         return {
           ...r,
-          Tecnologia:normalizeTechnology(r.Tecnologia),
+          Tecnologia:periodValue(r.Periodo_Corte)==="2026-10"&&["bucaramanga","floridablanca","giron","piedecuesta"].includes(fold(r.Ciudad))?"FTTH":normalizeTechnology(r.Tecnologia),
           Fecha_Mes:formatYearMonth(r.Fecha_Relevamiento),
           Periodo_Corte:periodValue(r.Periodo_Corte),
           Periodo_Label:formatPeriod(r.Periodo_Corte),
-          Grupo_Operador:clean(op.Grupo_Operador)||clean(op.Marca_Comercial)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),
+          Grupo_Operador:/red nova/i.test(clean(op.Grupo_Operador)||clean(r.Operador_Normalizado))?"Red Nova":clean(op.Grupo_Operador)||clean(op.Marca_Comercial)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado),
+          Nombre_Plan:/^Ficha Bucaramanga/i.test(clean(r.Nombre_Plan))?[clean(r.Tipo_Servicio)||"Internet",toNum(r.Velocidad_Bajada_Mbps)?toNum(r.Velocidad_Bajada_Mbps)+" Mbps":""].filter(Boolean).join(" "):r.Nombre_Plan,
           Barrio:clean(r.Barrio)||clean(r.Localidad_Comuna_UPZ),
           Precio_Usado_COP:used==null?"":String(used),
           Sitio_Web:clean(op.Sitio_Web),
@@ -143,7 +144,7 @@
     const contactById=new Map(operatorRows.map(r=>[clean(r.ID_Operador),r]));
     const stagedOperators=operatorRows.map(r=>({
       ID_Operador:clean(r.ID_Operador),Operador_Normalizado:clean(r.Operador),
-      Grupo_Operador:clean(r.Operador),Marca_Comercial:clean(r.Operador),
+      Grupo_Operador:/red nova/i.test(clean(r.Operador))?"Red Nova":clean(r.Operador),Marca_Comercial:clean(r.Operador),_BucaramangaCampo:true,
       Telefono_1:clean(r.Tel_1),Telefono_2:clean(r.Tel_2),
       Sitio_Web:clean(r.Web),Instagram:clean(r.Instagram),Facebook:clean(r.Facebook),
       Tecnologia_Principal:"FTTH",Mostrar_Dashboard:"Sí"
@@ -160,7 +161,7 @@
           Periodo_Corte:"2026-10",Departamento:"Santander",Ciudad:municipality,
           Localidad_Comuna_UPZ:municipality!==place?place:"",
           ID_Operador:clean(r.ID_Operador),Operador_Normalizado:clean(r.Operador),
-          Segmento:"Hogar",Tipo_Servicio:clean(r.Servicio),
+          Segmento:"Hogar",Tipo_Servicio:clean(r.Servicio),TV_Incluida:clean(r.TV),
           Nombre_Plan:clean(r.Servicio)+" "+clean(r.Velocidad_Mbps)+" Mbps",
           Tecnologia:"FTTH",Velocidad_Bajada_Mbps:clean(r.Velocidad_Mbps),
           Precio_Regular_COP:clean(r.Precio_COP),
@@ -384,6 +385,7 @@
       const byId=new Map(staged.operators.map(r=>[clean(r.ID_Operador),r]));
       for(const op of completeOperators){
         const source=byId.get(clean(op.ID_Operador));if(!source)continue;
+        op._BucaramangaCampo=true;
         for(const key of ["Sitio_Web","Telefono_1","Telefono_2","Instagram","Facebook"])
           if(!clean(op[key]))op[key]=clean(source[key]);
       }
