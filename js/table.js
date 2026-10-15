@@ -48,6 +48,18 @@
       groups.get(key).plans.push(r);
     });
 
+    const isBuc=state.filters.city.has("Bucaramanga")||[...state.filters.city].some(c=>fold(c)==="bucaramanga");
+    const october=state.filters.period.has("2026-oct");
+    if(isBuc&&october){
+      for(const op of state.operators.filter(o=>o._BucaramangaCampo)){
+        const label=clean(op.Grupo_Operador)||clean(op.Operador_Normalizado);
+        const exists=[...groups.values()].some(g=>g.plans.some(p=>fold(rowOperator(p))===fold(label)));
+        if(!exists&&label){
+          const key=["2026-oct",label,"Bucaramanga"].join("||");
+          groups.set(key,{key,plans:[{Periodo_Label:"2026-oct",Periodo_Corte:"2026-10",Grupo_Operador:label,Operador_Normalizado:label,Ciudad:"Bucaramanga",Departamento:"Santander",Tecnologia:"FTTH",Tipo_Servicio:"Sin oferta comercial informada",ID_Operador:clean(op.ID_Operador)}]});
+        }
+      }
+    }
     return [...groups.values()].map(group=>{
       const plans=group.plans;
       const first=plans[0]||{};
@@ -65,8 +77,8 @@
         Periodo_Label:clean(first.Periodo_Label)||"Sin corte",
         Periodo_Corte:clean(first.Periodo_Corte),
         Grupo_Operador:rowOperator(first),
-        Ciudad:FZ.filters?.marketDisplayName?.(first.Ciudad)||clean(first.Ciudad),
-        Municipios_Observados:municipalities.join(" · ")||clean(first.Ciudad)||"—",
+        Ciudad:clean(first.Periodo_Corte)==="2026-10"&&uniq(plans.map(r=>r.Departamento)).includes("Santander")?"Bucaramanga":FZ.filters?.marketDisplayName?.(first.Ciudad)||clean(first.Ciudad),
+        Municipios_Observados:clean(first.Periodo_Corte)==="2026-10"&&uniq(plans.map(r=>r.Departamento)).includes("Santander")?"Bucaramanga":municipalities.join(" · ")||clean(first.Ciudad)||"—",
         Departamento:uniq(plans.map(r=>r.Departamento)).join(" · ")||"—",
         Tecnologia:uniq(plans.map(r=>r.Tecnologia)).filter(v=>v!=="Sin validar").join(" · ")||clean(first.Tecnologia)||"No informado",
         Precio_Min_COP:prices.length?Math.min(...prices):null,
