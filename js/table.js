@@ -43,7 +43,7 @@
       const technology=clean(r.Tecnologia)||"No informado";
       const period=clean(r.Periodo_Label)||"Sin corte";
       if(!operator||!city) return;
-      const key=[period,operator,marketId,technology].join("||");
+      const key=[period,operator,marketId].join("||");
       if(!groups.has(key)) groups.set(key,{key,plans:[]});
       groups.get(key).plans.push(r);
     });
@@ -68,7 +68,7 @@
         Ciudad:FZ.filters?.marketDisplayName?.(first.Ciudad)||clean(first.Ciudad),
         Municipios_Observados:municipalities.join(" · ")||clean(first.Ciudad)||"—",
         Departamento:uniq(plans.map(r=>r.Departamento)).join(" · ")||"—",
-        Tecnologia:clean(first.Tecnologia)||"No informado",
+        Tecnologia:uniq(plans.map(r=>r.Tecnologia)).filter(v=>v!=="Sin validar").join(" · ")||clean(first.Tecnologia)||"No informado",
         Precio_Min_COP:prices.length?Math.min(...prices):null,
         Precio_Max_COP:prices.length?Math.max(...prices):null,
         Velocidad_Min_Mbps:speeds.length?Math.min(...speeds):null,
