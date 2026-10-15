@@ -88,16 +88,15 @@
   }
 
   function planRowsHtml(plans){
-    if(!plans.length) return '<tr><td colspan="10" class="detail-empty">Sin planes normalizados para este corte y filtros.</td></tr>';
+    if(!plans.length) return '<tr><td colspan="9" class="detail-empty">Sin planes normalizados para este corte y filtros.</td></tr>';
     return plans.map(r=>{
-      const used=toNum(r.Precio_Usado_COP),regular=toNum(r.Precio_Regular_COP),promo=toNum(r.Precio_Promocional_COP);
+      const used=toNum(r.Precio_Usado_COP),promo=toNum(r.Precio_Promocional_COP);
       return "<tr>"+
-        "<td>"+escapeHtml(clean(r.Nombre_Plan)||clean(r.Tipo_Servicio)||"Plan")+"</td>"+
+        "<td>"+escapeHtml((clean(r.Nombre_Plan)&&!/^Ficha Bucaramanga/i.test(clean(r.Nombre_Plan)))?clean(r.Nombre_Plan):([clean(r.Tipo_Servicio)||"Internet",toNum(r.Velocidad_Bajada_Mbps)?formatNum(toNum(r.Velocidad_Bajada_Mbps))+" Mbps":""].filter(Boolean).join(" ")))+"</td>"+
         "<td>"+escapeHtml(clean(r.Tipo_Servicio)||"—")+"</td>"+
         "<td>"+escapeHtml(clean(r.Tecnologia)||"No informado")+"</td>"+
         "<td>"+escapeHtml(toNum(r.Velocidad_Bajada_Mbps)==null?"—":formatNum(toNum(r.Velocidad_Bajada_Mbps))+" Mbps")+"</td>"+
         "<td><strong>"+escapeHtml(formatCOP(used))+"</strong></td>"+
-        "<td>"+escapeHtml(formatCOP(regular))+"</td>"+
         "<td>"+escapeHtml(formatCOP(promo))+"</td>"+
         "<td>"+escapeHtml(clean(r.Modalidad)||"—")+"</td>"+
         "<td>"+escapeHtml(normalizeTV(r.TV_Incluida))+"</td>"+
@@ -166,7 +165,7 @@
     html+='</div>';
     html+=trunkPresenceHtml(trunks,trunkCompare);
     html+='<div class="detail-table-tools"><input type="search" class="detail-table-search" placeholder="Buscar en la tabla…" autocomplete="off"></div>';
-    html+='<div class="operator-detail-table-wrap"><table class="operator-detail-table"><thead><tr><th>Plan</th><th>Servicio</th><th>Tecnología</th><th>Velocidad</th><th>Precio usado</th><th>Regular</th><th>Promo</th><th>Modalidad</th><th>TV</th><th>Permanencia</th></tr></thead><tbody>'+planRowsHtml(d.plans)+'</tbody></table></div>';
+    html+='<div class="operator-detail-table-wrap"><table class="operator-detail-table"><thead><tr><th>Plan</th><th>Servicio</th><th>Tecnología</th><th>Velocidad</th><th>Precio</th><th>Promo</th><th>Modalidad</th><th>TV</th><th>Permanencia</th></tr></thead><tbody>'+planRowsHtml(d.plans)+'</tbody></table></div>';
     html+='<div class="operator-detail-footer"><div class="operator-detail-contact">';
     if(phones.length) html+='<span>Tel. '+phones.map(escapeHtml).join(" · ")+'</span>';
     if(web) html+='<a href="'+escapeHtml(web)+'" target="_blank" rel="noopener noreferrer">Web ↗</a>';
