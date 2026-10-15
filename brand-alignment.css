@@ -139,3 +139,23 @@ button.active,.btn.active,.analysis-tab.active,.city-chip.active,
  width:max-content!important;
 }
 @media(max-width:850px){.exploration-city-row .exploration-city-buttons{overflow-x:auto!important;flex-wrap:nowrap!important;max-width:100%!important}}
+
+/* Correct DOM layout: exploration row follows the FIBRAZO grid as its own grid */
+.filters.panel.section > .exploration-city-row{
+ display:grid!important;grid-template-columns:118px minmax(0,1fr)!important;
+ align-items:center!important;column-gap:14px!important;
+ padding:12px 0 0!important;margin:12px 0 0!important;
+ width:100%!important;min-height:0!important;
+}
+.filters.panel.section > .exploration-city-row > strong{
+ position:static!important;grid-column:1!important;margin:0!important;
+}
+.filters.panel.section > .exploration-city-row > .exploration-city-buttons{
+ grid-column:2!important;display:flex!important;flex-direction:row!important;
+ flex-wrap:wrap!important;gap:8px!important;align-items:center!important;
+}
+@media(max-width:850px){
+ .filters.panel.section > .exploration-city-row{grid-template-columns:1fr!important}
+ .filters.panel.section > .exploration-city-row > strong,
+ .filters.panel.section > .exploration-city-row > .exploration-city-buttons{grid-column:1!important}
+}
