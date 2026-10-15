@@ -331,7 +331,8 @@
       renderMarketGroupNote();
     }
     explorationCities.forEach(city=>exploreButtons.appendChild(makeButton(city,selectedExploration===city,()=>selectExploration(city),"exploration-chip")));
-    // Keep exploration outside the city-scope grid: otherwise its grid placement stacks the chips.\n    explorationHost.appendChild(explore);
+    // Render exploration below the city-scope grid.
+    explorationHost.appendChild(explore);
 
     const wrap=document.createElement("div");
     wrap.className="city-more-wrap";
