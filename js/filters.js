@@ -337,7 +337,7 @@
     const wrap=document.createElement("div");
     wrap.className="city-more-wrap";
     const selectedOther=[...state.filters.city].filter(c=>!quickIdentities.has(marketIdentity(c))&&!explorationCities.some(e=>fold(e)===fold(c)));
-    const external=allRelevantCities().filter(c=>!quickIdentities.has(marketIdentity(c)));
+    const external=allRelevantCities().filter(c=>!quickIdentities.has(marketIdentity(c))&&!explorationCities.some(e=>fold(e)===fold(c)));
     const allExternalSelected=external.length>0&&selectedOther.length===external.length;
     const moreLabel=allExternalSelected?"+ Más · Todas":selectedOther.length?"+ Más · "+selectedOther.length:"+ Más";
     const moreBtn=makeButton(moreLabel,selectedOther.length>0&&!selectedExploration,e=>{
@@ -364,7 +364,7 @@
 
     const updateMore=()=>{
       const selectedIds=new Set([...state.filters.city].map(marketIdentity).filter(id=>id&&!quickIdentities.has(id)));
-      const allIds=new Set(allRelevantCities().map(marketIdentity).filter(id=>id&&!quickIdentities.has(id)));
+      const allIds=new Set(allRelevantCities().filter(c=>!explorationCities.some(e=>fold(e)===fold(c))).map(marketIdentity).filter(id=>id&&!quickIdentities.has(id)));
       moreBtn.textContent=allIds.size&&selectedIds.size===allIds.size?"+ Más · Todas":selectedIds.size?"+ Más · "+selectedIds.size:"+ Más";
       moreBtn.classList.toggle("active",selectedIds.size>0&&!state.explorationSelection);
       moreBtn.classList.toggle("more-selected",selectedIds.size>0&&!state.explorationSelection);
@@ -374,7 +374,7 @@
       const seen=new Set();
       const others=allRelevantCities().filter(c=>{
         const id=marketIdentity(c);
-        if(quickIdentities.has(id)||seen.has(id)||!fold(marketDisplayName(c)).includes(fold(q))) return false;
+        if(quickIdentities.has(id)||explorationCities.some(e=>fold(e)===fold(c)||fold(e)===fold(marketDisplayName(c)))||seen.has(id)||!fold(marketDisplayName(c)).includes(fold(q))) return false;
         seen.add(id);
         return true;
       });
@@ -401,7 +401,7 @@
     };
 
     menu.querySelector(".city-all-relevant").addEventListener("click",()=>{
-      allRelevantCities().filter(c=>!quickIdentities.has(marketIdentity(c))).forEach(c=>marketGroupCities(c).forEach(member=>state.filters.city.add(member)));
+      allRelevantCities().filter(c=>!quickIdentities.has(marketIdentity(c))&&!explorationCities.some(e=>fold(e)===fold(c))).forEach(c=>marketGroupCities(c).forEach(member=>state.filters.city.add(member)));
       state.cityScopeMode="custom";
       updateMore(); paint(search.value); renderFilters(); apply();
     });
