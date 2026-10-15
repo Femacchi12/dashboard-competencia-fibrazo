@@ -95,7 +95,7 @@
       if(clean(op.ID_Operador)) byId.set(clean(op.ID_Operador),op);
       if(clean(op.Operador_Normalizado)) byName.set(fold(op.Operador_Normalizado),op);
     });
-    return rawPlans
+    const normalized=rawPlans
       .filter(r=>clean(r.ID_Plan_Registro)||clean(r.Grupo_Operador)||clean(r.Operador_Normalizado))
       .map(r=>{
         const op=byId.get(clean(r.ID_Operador))||byName.get(fold(r.Operador_Normalizado))||{};
@@ -119,6 +119,20 @@
         };
       })
       .filter(Boolean);
+    // The field import and the October master can describe the same commercial offer.
+    // For exact matches in operator, city, service, speed and price, prefer the
+    // normalized field offer (FTTH) over the generic October field-card row.
+    const identities=new Set(normalized.filter(r=>clean(r.ID_Plan_Registro).startsWith("BUC_FIELD_")).map(r=>
+      [fold(r.ID_Operador||r.Grupo_Operador),fold(r.Ciudad),fold(r.Tipo_Servicio),
+       toNum(r.Velocidad_Bajada_Mbps),toNum(r.Precio_Usado_COP)].join("|")
+    ));
+    return normalized.filter(r=>{
+      if(clean(r.ID_Plan_Registro).startsWith("BUC_FIELD_"))return true;
+      if(!/^Ficha Bucaramanga/i.test(clean(r.Nombre_Plan)))return true;
+      const key=[fold(r.ID_Operador||r.Grupo_Operador),fold(r.Ciudad),fold(r.Tipo_Servicio),
+        toNum(r.Velocidad_Bajada_Mbps),toNum(r.Precio_Usado_COP)].join("|");
+      return !identities.has(key);
+    });
   }
 
 
