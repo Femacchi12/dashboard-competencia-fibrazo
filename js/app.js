@@ -87,6 +87,8 @@
   }
 
   function renderMarketScopeSummary(){
+    document.getElementById("market-scope-summary")?.remove();
+    return;
     ensureMarketSemanticsStyles();
     const kpis=document.querySelector('.kpi-grid[data-view="general"]');
     if(!kpis) return;
