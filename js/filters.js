@@ -257,6 +257,7 @@
     const root=$("city-quickbar");
     if(!root) return;
     root.innerHTML="";
+    root.parentElement?.querySelector(".exploration-city-row")?.remove();
     const seenQuick=new Set();
     const quick=quickMarkets().filter(m=>{
       const id=marketIdentity(m.Ciudad);
