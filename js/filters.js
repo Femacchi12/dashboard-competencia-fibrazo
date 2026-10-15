@@ -257,6 +257,7 @@
     const root=$("city-quickbar");
     if(!root) return;
     root.innerHTML="";
+    root.parentElement?.querySelector(".exploration-city-row")?.remove();
     const seenQuick=new Set();
     const quick=quickMarkets().filter(m=>{
       const id=marketIdentity(m.Ciudad);
@@ -280,13 +281,41 @@
     const allActive=(state.cityScopeMode==="fibrazo"&&!state.filters.city.size)||allQuickSelected;
     root.appendChild(makeButton("Todas FIBRAZO",allActive,()=>toggleAllFibrazoCities(),"scope-all"));
 
-    quick.forEach(m=>{
+    quick.filter(m=>fold(m.Mercado_FIBRAZO)==="si").forEach(m=>{
       const city=clean(m.Ciudad);
       const members=marketGroupCities(city);
       const active=state.cityScopeMode==="custom"&&members.length>0&&members.every(member=>state.filters.city.has(member));
       const cls=fold(m.Prioridad_Visual)==="principal"?"principal":"";
       root.appendChild(makeButton(marketDisplayName(city),active,()=>toggleCitySelection(city),cls));
     });
+
+    // QA: second row for exploration markets. Do not claim data is up to date until reconciled.
+    const explore=document.createElement("div");
+    explore.className="exploration-city-row";
+    const exploreTitle=document.createElement("strong");
+    exploreTitle.textContent="EXPLORACIÓN";
+    explore.appendChild(exploreTitle);
+    const explorationCities=["Bucaramanga","Cali","Bogotá"];
+    function selectExploration(city){
+      const buc=fold(city)==="bucaramanga";
+      // The October field cut is independent from the web cut in September.
+      if(buc){
+        state.filters.period.clear();
+        state.filters.period.add("2026-10");
+        setCityScope("custom",["Bucaramanga","Floridablanca","Girón","Piedecuesta"]);
+      }else{
+        const available=allRelevantCities().find(value=>fold(value)===fold(city));
+        if(available)setCityScope("custom",marketGroupCities(available));
+        else {state.cityScopeMode="custom";state.filters.city.clear();refresh();}
+      }
+      if(buc)renderMarketGroupNote();
+      else{
+        const n=$("city-group-note");
+        if(n){n.classList.remove("hidden");n.textContent=city+" · En proceso de relevamiento";}
+      }
+    }
+    explorationCities.forEach(city=>explore.appendChild(makeButton(city,false,()=>selectExploration(city),"exploration-chip")));
+    root.after(explore);
 
     const wrap=document.createElement("div");
     wrap.className="city-more-wrap";
@@ -367,7 +396,7 @@
     search.addEventListener("input",()=>paint(search.value));
     paint();
     wrap.appendChild(menu);
-    root.appendChild(wrap);
+    explore.appendChild(wrap);
   }
 
   function updateFilterLabel(wrap,def){
@@ -431,16 +460,26 @@
 
   function renderMarketGroupNote(){
     const note=$("city-group-note");
-    if(!note) return;
+    if(!note)return;
     const cities=selectedMarketCities();
-    const grouped=cities.length>1;
-    note.classList.toggle("hidden",!grouped);
-    if(!grouped){
-      note.innerHTML="";
+    const selected=new Set(cities.map(fold));
+    const amb=["bucaramanga","floridablanca","giron","piedecuesta"];
+    if(state.cityScopeMode==="custom"&&amb.every(city=>selected.has(city))){
+      const ready=state.sourceHealth?.bucOffers?.ok&&state.sourceHealth?.bucContacts?.ok
+        &&state.plans.filter(r=>clean(r.ID_Plan_Registro).startsWith("BUC_FIELD_")).length>=40;
+      note.classList.remove("hidden");
+      note.innerHTML="<strong>"+(ready?"Actualizado · Bucaramanga":"En proceso · Bucaramanga")+"</strong><span>Bucaramanga + Floridablanca + Girón + Piedecuesta. "+(ready?"40 ofertas FTTH con precio y velocidad incorporadas; otras 3 ofertas carecen de velocidad y permanecen pendientes.":"En proceso de carga y validación de ofertas del relevamiento de campo.")+"</span>";
       return;
     }
-    const label=marketDisplayName(cities[0]);
-    note.innerHTML='<strong>Mercado agrupado</strong><span>'+escapeHtml(label)+'. Todos los indicadores, gráficos, planes y competidores integran los tres municipios; la base conserva el municipio de origen para trazabilidad.</span>';
+    if(state.cityScopeMode==="custom"&&cities.length===1&&!amb.includes(fold(cities[0]))){
+      note.classList.remove("hidden");
+      note.innerHTML="<strong>En proceso</strong><span>"+escapeHtml(cities[0])+" · Datos de exploración pendientes de validación.</span>";
+      return;
+    }
+    const grouped=cities.length>1;
+    note.classList.toggle("hidden",!grouped);
+    if(!grouped){note.innerHTML="";return;}
+    note.innerHTML='<strong>Mercado agrupado</strong><span>'+escapeHtml(cities.join(" + "))+'. El conjunto conserva cada municipio de origen.</span>';
   }
 
   function renderFilters(){

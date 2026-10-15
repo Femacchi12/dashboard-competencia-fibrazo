@@ -121,6 +121,45 @@
       .filter(Boolean);
   }
 
+
+  // Bucaramanga field staging, 2026-10. Preserve the original 21/22 tab records.
+  // Only rows with a real plan speed and price are promoted to dashboard plans.
+  function buildBucaramangaInputs(contacts,offers){
+    const operatorRows=contacts.filter(r=>clean(r.ID_Operador)&&clean(r.Operador));
+    const contactById=new Map(operatorRows.map(r=>[clean(r.ID_Operador),r]));
+    const stagedOperators=operatorRows.map(r=>({
+      ID_Operador:clean(r.ID_Operador),Operador_Normalizado:clean(r.Operador),
+      Grupo_Operador:clean(r.Operador),Marca_Comercial:clean(r.Operador),
+      Telefono_1:clean(r.Tel_1),Telefono_2:clean(r.Tel_2),
+      Sitio_Web:clean(r.Web),Instagram:clean(r.Instagram),Facebook:clean(r.Facebook),
+      Tecnologia_Principal:"FTTH",Mostrar_Dashboard:"Sí"
+    }));
+    const stagedPlans=offers.filter(r=>clean(r.ID_Oferta)&&toNum(r.Velocidad_Mbps)>0&&toNum(r.Precio_COP)>0)
+      .map(r=>{
+        const contact=contactById.get(clean(r.ID_Operador))||{};
+        const place=clean(r.Municipio);
+        const municipality=/^(bucaramanga|floridablanca|gir[oó]n|piedecuesta)$/i.test(place)?place:"Bucaramanga";
+        return {
+          ID_Plan_Registro:"BUC_FIELD_"+clean(r.ID_Oferta),
+          Fecha_Relevamiento:clean(r.Fecha_Corte)||"2026-10-13",
+          Fecha_Inicio_Vigencia:clean(r.Fecha_Corte)||"2026-10-13",
+          Periodo_Corte:"2026-10",Departamento:"Santander",Ciudad:municipality,
+          Localidad_Comuna_UPZ:municipality!==place?place:"",
+          ID_Operador:clean(r.ID_Operador),Operador_Normalizado:clean(r.Operador),
+          Segmento:"Hogar",Tipo_Servicio:clean(r.Servicio),
+          Nombre_Plan:clean(r.Servicio)+" "+clean(r.Velocidad_Mbps)+" Mbps",
+          Tecnologia:"FTTH",Velocidad_Bajada_Mbps:clean(r.Velocidad_Mbps),
+          Precio_Regular_COP:clean(r.Precio_COP),
+          Precio_Promocional_COP:clean(r.Precio_Promo_COP),
+          Costo_Instalacion_COP:clean(r.Instalacion_COP),
+          Permanencia_Meses:clean(r.Permanencia_Meses),
+          Fuente:"22_BUC_OFERTAS",Fuente_Detalle:clean(r.Fuente_Pestaña),
+          Sitio_Web:clean(contact.Web)
+        };
+      });
+    return {operators:stagedOperators,plans:stagedPlans};
+  }
+
   function buildCoverage(rawCoverage,operators){
     const byId=new Map(),byName=new Map();
     operators.forEach(op=>{
@@ -304,7 +343,9 @@
       ["offers",S.offers],
       ["fibrazoMetrics",S.fibrazoMetrics],
       ["mobile",S.mobile],
-      ["importantPendings",S.importantPendings]
+      ["importantPendings",S.importantPendings],
+      ["bucContacts",S.bucContacts],
+      ["bucOffers",S.bucOffers]
     ];
     const results=await Promise.allSettled(entries.map(([,source])=>fetchCsv(source)));
     const resultByKey=Object.fromEntries(entries.map(([key],i)=>[key,results[i]]));
@@ -320,8 +361,27 @@
 
     if(resultByKey.operators.status==="fulfilled") state.operators=resultByKey.operators.value.map(r=>({...r,Tecnologia_Principal:normalizeTechnology(r.Tecnologia_Principal)}));
     const operators=state.operators;
+    const stagingAvailable=resultByKey.bucContacts.status==="fulfilled"&&resultByKey.bucOffers.status==="fulfilled";
+    const staged=stagingAvailable?buildBucaramangaInputs(resultByKey.bucContacts.value,resultByKey.bucOffers.value):{operators:[],plans:[]};
+    const knownIds=new Set(operators.map(r=>clean(r.ID_Operador)));
+    const completeOperators=[...operators,...staged.operators.filter(r=>!knownIds.has(clean(r.ID_Operador)))];
+    if(stagingAvailable){
+      // Source rows update contact fields only when the main catalog has no value.
+      const byId=new Map(staged.operators.map(r=>[clean(r.ID_Operador),r]));
+      for(const op of completeOperators){
+        const source=byId.get(clean(op.ID_Operador));if(!source)continue;
+        for(const key of ["Sitio_Web","Telefono_1","Telefono_2","Instagram","Facebook"])
+          if(!clean(op[key]))op[key]=clean(source[key]);
+      }
+    }
+    state.operators=completeOperators;
 
-    if(resultByKey.plans.status==="fulfilled") state.plans=buildPlans(resultByKey.plans.value,operators);
+    if(resultByKey.plans.status==="fulfilled"){
+      const merged=[...resultByKey.plans.value];
+      const seenIds=new Set(merged.map(r=>clean(r.ID_Plan_Registro)));
+      for(const plan of staged.plans)if(!seenIds.has(clean(plan.ID_Plan_Registro)))merged.push(plan);
+      state.plans=buildPlans(merged,completeOperators);
+    }
     if(resultByKey.coverage.status==="fulfilled") state.coverage=buildCoverage(resultByKey.coverage.value,operators);
     if(resultByKey.markets.status==="fulfilled") state.markets=buildMarkets(resultByKey.markets.value);
     if(resultByKey.offers.status==="fulfilled") state.offers=buildOffers(resultByKey.offers.value);
@@ -349,5 +409,5 @@
     };
   }
 
-  FZ.data={csvUrl,parseCSV,fetchCsv,normalizeTechnology,buildPlans,buildCoverage,buildOffers,buildMarkets,buildMetrics,buildMobile,buildImportantPendings,buildMetricSnapshot,buildIndexes,load};
+  FZ.data={csvUrl,parseCSV,fetchCsv,normalizeTechnology,buildBucaramangaInputs,buildPlans,buildCoverage,buildOffers,buildMarkets,buildMetrics,buildMobile,buildImportantPendings,buildMetricSnapshot,buildIndexes,load};
 })();

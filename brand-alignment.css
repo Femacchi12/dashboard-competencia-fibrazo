@@ -52,3 +52,15 @@ table,table *, .table-scroll, .table-scroll *, .table-wrap, .table-wrap *, .reco
 .view-switch button.active{border-color:var(--brand-primary);color:var(--brand-primary);}
 :focus-visible{outline:2px solid var(--brand-primary);outline-offset:2px;}
 @media(max-width:600px){button,input,select,textarea{min-height:36px;}table{font-size:12px;}}
+
+/* FO-COMP-QA-20261015: neutral surfaces from approved FIBRAZO Forms design */
+:root{--brand-primary:#43FFA5;--brand-black:#000;--brand-gray:#58595B;--brand-surface:#151515;--brand-surface-raised:#202020;--brand-control:#242424;--brand-border:#444;--brand-text:#fff;--brand-muted:#d0d0d0}
+html,body{background-color:#000!important;color:#fff!important}
+.hero-header,.panel,.section,.filter-panel,.kpi-card,.chart-card,.summary-card,.table-panel,.modal-content,
+.compare-panel,.network-panel,.auth-card{background-color:#151515!important;color:#fff!important}
+.filters select,.filters input,.filters button,.city-chip,.city-more-menu,.exploration-more,
+input[type=search],select,textarea{background-color:#242424!important;color:#fff!important}
+.city-chip.active,.city-chip:hover,.exploration-chip:hover{color:#43FFA5!important;border-color:#43FFA5!important;background:#242424!important}
+.exploration-city-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #444}
+.exploration-city-row>strong{font:700 11px Montserrat,sans-serif;color:#d0d0d0;letter-spacing:.06em;margin-right:8px}
+.exploration-more{border:1px solid #58595B;border-radius:9px;padding:10px;font-family:Montserrat,sans-serif;min-height:40px}

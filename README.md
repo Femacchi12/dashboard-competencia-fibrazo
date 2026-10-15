@@ -61,3 +61,14 @@ La aplicación reconsulta las siete fuentes activas cada 120 segundos mientras l
 GitHub Pages:
 
 https://femacchi12.github.io/dashboard-competencia-fibrazo/
+
+
+## QA 2026-10-15 — Bucaramanga y estilo de Competencia (en curso)
+- Rama aislada: `feat/competencia-bucaramanga-qa-20261015`. No fusionar a `main` ni publicar en Pages sin verificación.
+- Estilo aprobado: superficies negro/gris neutro, verde corporativo `#43FFA5` solo como acento.
+- Se conserva la fila principal de ciudades FIBRAZO y se agrega fila «EXPLORACIÓN»: Bucaramanga, Cali, Bogotá y menú «+ Más». En Bucaramanga el alcance textual es Bucaramanga + Floridablanca + Girón + Piedecuesta.
+- Todas las ciudades de exploración continúan en estado «En proceso» hasta conciliar datos y probar el dashboard. **No declarar Bucaramanga actualizada solo por existir staging.**
+- Fuente original de campo: `Bucaramanga_competencia_ En campo Edu` (Google Sheets ID `1S1Xce89czOQIsKLWle29eiC1NBU_or94YTAN3-q6h0Y`).
+- Base General: `1v2sBVe_w-bTl438b8qWFmvw0gT66bj8TskcXbnY-gbU`, pestañas 21 a 26 de Bucaramanga. Comprobadas 43 filas de ofertas en `22_BUC_OFERTAS` y 10 operadores en `25_BUC_DASH_VISTA`.
+- **Implementado en rama QA:** el runtime consulta también `21_BUC_CONTACTOS` y `22_BUC_OFERTAS` y consolida sin duplicar por ID 40 ofertas con precio y velocidad, con tecnología `FTTH` (corte `2026-10`); las otras 3 ofertas tienen precio sin velocidad y quedan pendientes de completar. La tecnología histórica de otros mercados no se altera. **Pendiente prioritario:** prueba autenticada del runtime, reconciliación de condiciones/parrillas TV y cobertura/presencia para declarar la carga exhaustivamente validada.
+- Validar que las opciones no FIBRAZO no muestren indicadores de «actualizado» mientras no existan datos comprobados, y verificar que los filtros sobre área metropolitana funcionen con sesión autorizada.
