@@ -492,7 +492,7 @@
     root.innerHTML="";
 
     FZ.filterDefs.forEach(def=>{
-      if(def.key==="city") return;
+      if(def.key==="city"||def.key==="technology") return;
       const key=def.key,getter=def.getter;
       const baseRows=key==="period"?state.plans:state.plans.filter(r=>rowPassesFilters(r,key));
       let options=[...new Set(baseRows.map(getter).filter(Boolean))];
@@ -568,12 +568,7 @@
     });
 
     const city=selectedSingleCity();
-    renderTerritoryFilter(
-      root,
-      "trunk",
-      city?territoryLabelForCity(city):"Troncal / Zona",
-      city?territoryFieldForCity(city):"Troncal_FIBRAZO"
-    );
+    // Zona se mantiene en la lógica de filtros pero no se muestra como control visual.
     renderMarketGroupNote();
   }
 
