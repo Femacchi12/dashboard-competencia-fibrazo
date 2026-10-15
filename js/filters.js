@@ -297,14 +297,22 @@
     explore.appendChild(exploreTitle);
     const explorationCities=["Bucaramanga","Cali","Bogotá"];
     function selectExploration(city){
-      const available=allRelevantCities().find(value=>fold(value)===fold(city));
-      if(available) setCityScope("custom",marketGroupCities(available));
-      else {state.cityScopeMode="custom";state.filters.city.clear();refresh();}
+      const buc=fold(city)==="bucaramanga";
+      // The October field cut is independent from the web cut in September.
+      if(buc){
+        state.filters.period.clear();
+        state.filters.period.add("2026-10");
+        setCityScope("custom",["Bucaramanga","Floridablanca","Girón","Piedecuesta"]);
+      }else{
+        const available=allRelevantCities().find(value=>fold(value)===fold(city));
+        if(available)setCityScope("custom",marketGroupCities(available));
+        else {state.cityScopeMode="custom";state.filters.city.clear();refresh();}
+      }
       const n=$("city-group-note");
       if(n){
         n.classList.remove("hidden");
-        n.textContent=fold(city)==="bucaramanga"
-          ?"Bucaramanga + Floridablanca + Girón + Piedecuesta · En proceso de actualización y verificación"
+        n.textContent=buc
+          ?"Bucaramanga + Floridablanca + Girón + Piedecuesta · En proceso de validación (40 ofertas completas; 3 sin velocidad)"
           :city+" · En proceso de relevamiento";
       }
     }
