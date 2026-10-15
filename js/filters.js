@@ -14,7 +14,10 @@
   function ensurePeriodSelection(){
     if(state.filters.period.size) return;
     const periods=availablePeriods();
-    if(periods.length) state.filters.period.add(formatPeriod(periods[periods.length-1]));
+    const fibrazoCities=new Set(state.markets.filter(m=>fold(m.Mercado_FIBRAZO)==="si").map(m=>fold(m.Ciudad)));
+    const basePeriods=[...new Set(state.plans.filter(p=>fibrazoCities.has(fold(p.Ciudad))&&!clean(p.ID_Plan_Registro).startsWith("BUC_FIELD_")).map(p=>periodValue(p.Periodo_Corte)).filter(Boolean))].sort((a,b)=>periodSortValue(a)-periodSortValue(b));
+    const selected=basePeriods.at(-1)||periods.at(-1);
+    if(selected) state.filters.period.add(formatPeriod(selected));
   }
 
   function selectedPeriodValue(){
@@ -301,7 +304,7 @@
       // The October field cut is independent from the web cut in September.
       if(buc){
         state.filters.period.clear();
-        state.filters.period.add("2026-10");
+        state.filters.period.add(formatPeriod("2026-10"));
         setCityScope("custom",["Bucaramanga","Floridablanca","Girón","Piedecuesta"]);
       }else{
         const available=allRelevantCities().find(value=>fold(value)===fold(city));
