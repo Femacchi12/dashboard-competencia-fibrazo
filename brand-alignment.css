@@ -186,3 +186,9 @@ button.active,.btn.active,.analysis-tab.active,.city-chip.active,
  #exploration-city-host > .exploration-city-row > strong,
  #exploration-city-host .exploration-city-buttons{grid-column:1!important}
 }
+
+/* Market status: black surface, amber pending; updated = green border and label only */
+.city-group-note,.city-group-note:not(.hidden){background:#101010!important;border:1px solid #B58B2B!important;color:#F0E8D2!important}
+.city-group-note:not(.hidden) strong{color:#FFD36B!important}
+.city-group-note.is-updated,.city-group-note.is-updated:not(.hidden){background:#101010!important;border-color:#43FFA5!important}
+.city-group-note.is-updated strong{color:#43FFA5!important}
