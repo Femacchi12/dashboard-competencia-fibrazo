@@ -73,7 +73,7 @@
     return exact||benchmarkOffer(city,false)||state.offers.find(o=>clean(o.Ciudad)===clean(city))||null;
   }
 
-  function selectedCity(){return FZ.filters?.selectedSingleCity?.()||"";}
+  function selectedCity(){return FZ.filters?.selectedSingleCity?.()|| (state.explorationSelection||"") || (state.cityScopeMode==="custom"&&state.filters.city.size===1?[...state.filters.city][0]:"");}
   function validTrunk(value,city){
     const trunk=clean(value),f=fold(value);
     return !!trunk&&f!=="sin troncal validada"&&f!=="sin dato"&&f!==fold(city);
