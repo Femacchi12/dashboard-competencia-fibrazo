@@ -296,7 +296,6 @@
     exploreTitle.textContent="EXPLORACIÓN";
     explore.appendChild(exploreTitle);
     const explorationCities=["Bucaramanga","Cali","Bogotá"];
-    const note=$("city-group-note");
     function selectExploration(city){
       const available=allRelevantCities().find(value=>fold(value)===fold(city));
       if(available) setCityScope("custom",marketGroupCities(available));
@@ -310,14 +309,6 @@
       }
     }
     explorationCities.forEach(city=>explore.appendChild(makeButton(city,false,()=>selectExploration(city),"exploration-chip")));
-    const other=document.createElement("select");
-    other.className="exploration-more";
-    other.setAttribute("aria-label","Más ciudades de exploración");
-    other.innerHTML='<option value="">+ Más</option>'+allRelevantCities()
-      .filter(city=>!explorationCities.some(item=>fold(item)===fold(city))&&!fibrazoCitySet().has(city))
-      .map(city=>'<option value="'+city.replace(/&/g,"&amp;").replace(/"/g,"&quot;")+'">'+city.replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</option>').join("");
-    other.addEventListener("change",()=>{if(other.value)selectExploration(other.value);});
-    explore.appendChild(other);
     root.after(explore);
 
     const wrap=document.createElement("div");
@@ -399,7 +390,7 @@
     search.addEventListener("input",()=>paint(search.value));
     paint();
     wrap.appendChild(menu);
-    root.appendChild(wrap);
+    explore.appendChild(wrap);
   }
 
   function updateFilterLabel(wrap,def){
