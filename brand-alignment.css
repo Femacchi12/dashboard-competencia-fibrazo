@@ -122,3 +122,20 @@ button.active,.btn.active,.analysis-tab.active,.city-chip.active,
 }
 .city-group-note strong{color:#FFD36B!important}
 .city-group-note span{color:#F0E8D2!important}
+
+/* FIX: horizontal exploration buttons; dedicated child container bypasses grid children rules */
+.exploration-city-row .exploration-city-buttons{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ flex-wrap:wrap!important;justify-content:flex-start!important;
+ gap:8px!important;width:auto!important;min-width:0!important;
+ grid-column:2!important;
+}
+.exploration-city-row .exploration-city-buttons>.city-chip,
+.exploration-city-row .exploration-city-buttons>.city-more-wrap{
+ display:inline-flex!important;flex:0 0 auto!important;width:max-content!important;
+ min-width:0!important;margin:0!important;
+}
+.exploration-city-row .exploration-city-buttons>.city-more-wrap>.city-chip{
+ width:max-content!important;
+}
+@media(max-width:850px){.exploration-city-row .exploration-city-buttons{overflow-x:auto!important;flex-wrap:nowrap!important;max-width:100%!important}}
