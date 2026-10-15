@@ -87,83 +87,8 @@
   }
 
   function renderMarketScopeSummary(){
+    // Bloque retirado de la interfaz por decisión visual; limpiar versiones anteriores.
     document.getElementById("market-scope-summary")?.remove();
-    return;
-    ensureMarketSemanticsStyles();
-    const kpis=document.querySelector('.kpi-grid[data-view="general"]');
-    if(!kpis) return;
-    let panel=$("market-scope-summary");
-    if(!panel){
-      panel=document.createElement("section");
-      panel.id="market-scope-summary";
-      panel.className="panel market-scope-summary view-block";
-      panel.dataset.view="general";
-      kpis.insertAdjacentElement("afterend",panel);
-    }
-
-    const planRows=state.filtered||[];
-    const coverageRows=state.filteredCoverage||[];
-    const allOperators=new Map();
-    const commercialOperators=new Set();
-    const pricedCommercialOperators=new Set();
-    const subsidizedOperators=new Set();
-    const coverageByOperator=new Map();
-
-    planRows.forEach(r=>{
-      const op=rowOperator(r),city=clean(r.Ciudad);
-      if(!op) return;
-      const key=city+"|"+op;
-      allOperators.set(key,{op,city});
-      if(r._benchmarkExcluded==="subsidy"||isSubsidizedPlan(r)){
-        subsidizedOperators.add(key);
-        return;
-      }
-      commercialOperators.add(key);
-      if(toNum(r.Precio_Usado_COP)>0) pricedCommercialOperators.add(key);
-    });
-
-    coverageRows.forEach(r=>{
-      const op=rowOperator(r),city=clean(r.Ciudad);
-      if(!op) return;
-      const key=city+"|"+op;
-      allOperators.set(key,{op,city});
-      if(!coverageByOperator.has(key)) coverageByOperator.set(key,[]);
-      coverageByOperator.get(key).push(r);
-    });
-
-    const withoutCommercial=[...allOperators.keys()].filter(key=>!commercialOperators.has(key));
-    const withoutPrice=[...allOperators.keys()].filter(key=>!pricedCommercialOperators.has(key));
-    const subsidyInScope=[...subsidizedOperators];
-
-    const chips=withoutCommercial.slice(0,18).map(key=>{
-      const item=allOperators.get(key);
-      const status=presenceStatus(coverageByOperator.get(key)||[]);
-      const satellite=(coverageByOperator.get(key)||[]).some(r=>fold(r.Tecnologia).includes("satelit"));
-      const label=item.city?item.op+" · "+item.city:item.op;
-      return '<span class="market-scope-chip '+presenceTone(status)+'"><i></i><b>'+escapeHtml(label)+'</b><span>'+escapeHtml(satellite?"Satelital":status)+'</span></span>';
-    }).join("");
-    const more=withoutCommercial.length>18?'<span class="market-scope-chip registered"><i></i><b>+'+(withoutCommercial.length-18)+'</b><span>más</span></span>':"";
-
-    const subsidyPlans=subsidyRows(planRows);
-    const subsidyExamples=[...new Map(subsidyPlans.map(r=>{
-      const op=rowOperator(r),city=clean(r.Ciudad);
-      const price=toNum(r._Original_Precio_Usado_COP??r.Precio_Regular_COP);
-      const speed=toNum(r._Original_Velocidad_Bajada_Mbps??r.Velocidad_Bajada_Mbps);
-      const key=city+"|"+op;
-      const label=[op,city,speed?formatNum(speed)+" Mbps":"",price?formatCOP(price):""].filter(Boolean).join(" · ");
-      return [key,label];
-    })).values()].slice(0,4);
-
-    panel.innerHTML=
-      '<div class="market-scope-head"><div><span>LECTURA DE MERCADO</span><h3>Presencia vs. oferta comercial</h3></div><small>La presencia territorial y la oferta con precio son universos distintos. Las tarifas subsidiadas permanecen visibles en el detalle, pero quedan fuera de los benchmarks comerciales.</small></div>'+
-      '<div class="market-scope-grid">'+
-        '<article class="market-scope-metric"><span>Operadores presentes</span><b>'+formatNum(allOperators.size)+'</b><small>Planes + presencia registrada</small></article>'+
-        '<article class="market-scope-metric"><span>Con oferta comercial</span><b>'+formatNum(commercialOperators.size)+'</b><small>Plan no subsidiado relevado</small></article>'+
-        '<article class="market-scope-metric"><span>Sin tarifa estructurada</span><b>'+formatNum(withoutPrice.length)+'</b><small>Presencia u oferta sin precio comparable</small></article>'+
-        '<article class="market-scope-metric"><span>Oferta subsidiada</span><b>'+formatNum(subsidyInScope.length)+'</b><small>Separada del benchmark</small></article>'+
-      '</div>'+
-      (withoutCommercial.length?'<div class="market-scope-detail"><div class="market-scope-detail-head"><span>Presencia sin oferta comercial estructurada</span><small>'+formatNum(withoutCommercial.length)+' operador-ciudad</small></div><div class="market-scope-chips">'+chips+more+'</div></div>':"")+
-      (subsidyExamples.length?'<div class="market-scope-subsidy"><b>Subsidios excluidos del benchmark:</b> '+escapeHtml(subsidyExamples.join(" · "))+'</div>':"");
   }
 
   function restoreSubsidizedDetailRows(root=document){
