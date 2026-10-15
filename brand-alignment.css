@@ -95,3 +95,30 @@ input[type=search],select,textarea{background-color:#242424!important;color:#fff
 @media(max-width:850px){
  .exploration-city-row{padding-left:0!important;padding-top:36px!important}
 }
+
+/* FO-COMP-VIS-20261015 · neutral backgrounds dashboard-wide; yellow city notice */
+:root{--fz-page:#000;--fz-surface:#151515;--fz-surface-raised:#202020;--fz-surface-inner:#202020;--fz-surface-hover:#292929;--fz-control:#242424;--fz-control-hover:#303030;--fz-control-active:#303030;--fz-border:#444;--brand-surface:#151515;--brand-surface-raised:#202020;--brand-control:#242424}
+body,main,.app{background-color:#000!important}
+.hero-header,.panel,.section,.filters,.kpi-card,.kpi-grid>*,
+.chart-card,.chart-panel,.compare-panel,.network-panel,.summary-card,
+.records,.operator-detail-card,.operator-detail-table-wrap,
+.operator-detail-table th,.operator-detail-table td,.market-scope-summary,
+.fz-executive-card,.fz-executive-insight,.fz-executive-grid>*,
+.operator-trunk-disclosure,.operator-trunk-compare,.operator-trunk-chips>*,
+.filter-menu,.filter-options,.city-more-menu,.analysis-tabs,.table-scroll,
+.compare-table-wrap,.records-table-wrap,.important-pendings-panel,
+.city-more-option,.filter-option{background:#151515!important}
+tbody tr,tbody td,.operator-detail-table tbody tr,
+.compare-table tbody tr,.records table tbody tr{background:#202020!important}
+tbody tr:hover,tbody tr:hover td,.operator-detail-table tbody tr:hover td{background:#292929!important}
+button,.btn,.filter-btn,.city-chip,.refresh-button,.analysis-tab,
+input,select,textarea,.city-more-wrap,.city-more-option,
+.fz-executive-card strong{background-color:#242424!important}
+button.active,.btn.active,.analysis-tab.active,.city-chip.active,
+.filter-btn.active,.city-chip.more.more-selected{background-color:#242424!important}
+.city-group-note,.city-group-note:not(.hidden){
+ background:#2A2517!important;border:1px solid #A88635!important;
+ box-shadow:none!important;color:#F4E7B9!important;
+}
+.city-group-note strong{color:#FFD36B!important}
+.city-group-note span{color:#F0E8D2!important}
