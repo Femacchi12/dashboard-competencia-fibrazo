@@ -280,13 +280,44 @@
     const allActive=(state.cityScopeMode==="fibrazo"&&!state.filters.city.size)||allQuickSelected;
     root.appendChild(makeButton("Todas FIBRAZO",allActive,()=>toggleAllFibrazoCities(),"scope-all"));
 
-    quick.forEach(m=>{
+    quick.filter(m=>fold(m.Mercado_FIBRAZO)==="si").forEach(m=>{
       const city=clean(m.Ciudad);
       const members=marketGroupCities(city);
       const active=state.cityScopeMode==="custom"&&members.length>0&&members.every(member=>state.filters.city.has(member));
       const cls=fold(m.Prioridad_Visual)==="principal"?"principal":"";
       root.appendChild(makeButton(marketDisplayName(city),active,()=>toggleCitySelection(city),cls));
     });
+
+    // QA: second row for exploration markets. Do not claim data is up to date until reconciled.
+    const explore=document.createElement("div");
+    explore.className="exploration-city-row";
+    const exploreTitle=document.createElement("strong");
+    exploreTitle.textContent="EXPLORACIÓN";
+    explore.appendChild(exploreTitle);
+    const explorationCities=["Bucaramanga","Cali","Bogotá"];
+    const note=$("city-group-note");
+    function selectExploration(city){
+      const available=allRelevantCities().find(value=>fold(value)===fold(city));
+      if(available) setCityScope("custom",marketGroupCities(available));
+      else {state.cityScopeMode="custom";state.filters.city.clear();refresh();}
+      const n=$("city-group-note");
+      if(n){
+        n.classList.remove("hidden");
+        n.textContent=fold(city)==="bucaramanga"
+          ?"Bucaramanga + Floridablanca + Girón + Piedecuesta · En proceso de actualización y verificación"
+          :city+" · En proceso de relevamiento";
+      }
+    }
+    explorationCities.forEach(city=>explore.appendChild(makeButton(city,false,()=>selectExploration(city),"exploration-chip")));
+    const other=document.createElement("select");
+    other.className="exploration-more";
+    other.setAttribute("aria-label","Más ciudades de exploración");
+    other.innerHTML='<option value="">+ Más</option>'+allRelevantCities()
+      .filter(city=>!explorationCities.some(item=>fold(item)===fold(city))&&!fibrazoCitySet().has(city))
+      .map(city=>'<option value="'+city.replace(/&/g,"&amp;").replace(/"/g,"&quot;")+'">'+city.replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</option>').join("");
+    other.addEventListener("change",()=>{if(other.value)selectExploration(other.value);});
+    explore.appendChild(other);
+    root.after(explore);
 
     const wrap=document.createElement("div");
     wrap.className="city-more-wrap";
