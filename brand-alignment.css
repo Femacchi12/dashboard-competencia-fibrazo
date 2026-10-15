@@ -81,3 +81,17 @@ input[type=search],select,textarea{background-color:#242424!important;color:#fff
  .exploration-city-row{padding-left:0!important;padding-top:36px!important}
  .exploration-city-row>strong{top:11px!important}
 }
+
+/* FIX 2026-10-15: exploration row must be horizontal like Mercado FIBRAZO */
+.exploration-city-row{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ flex-wrap:wrap!important;justify-content:flex-start!important;
+ column-gap:8px!important;row-gap:8px!important;
+ padding-left:132px!important;width:100%!important;
+}
+.exploration-city-row>.city-chip,
+.exploration-city-row>.city-more-wrap{display:inline-flex!important;flex:0 0 auto!important;width:auto!important}
+.exploration-city-row>.city-more-wrap>.city-chip{width:auto!important}
+@media(max-width:850px){
+ .exploration-city-row{padding-left:0!important;padding-top:36px!important}
+}
