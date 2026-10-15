@@ -300,6 +300,9 @@
     const exploreTitle=document.createElement("strong");
     exploreTitle.textContent="EXPLORACIÓN";
     explore.appendChild(exploreTitle);
+    const exploreButtons=document.createElement("div");
+    exploreButtons.className="exploration-city-buttons";
+    explore.appendChild(exploreButtons);
     const explorationCities=["Bucaramanga","Cali","Bogotá"];
     const selectedExploration=state.explorationSelection||"";
     function selectExploration(city){
@@ -319,7 +322,7 @@
       renderCityQuickbar();
       renderMarketGroupNote();
     }
-    explorationCities.forEach(city=>explore.appendChild(makeButton(city,selectedExploration===city,()=>selectExploration(city),"exploration-chip")));
+    explorationCities.forEach(city=>exploreButtons.appendChild(makeButton(city,selectedExploration===city,()=>selectExploration(city),"exploration-chip")));
     root.after(explore);
 
     const wrap=document.createElement("div");
@@ -401,7 +404,7 @@
     search.addEventListener("input",()=>paint(search.value));
     paint();
     wrap.appendChild(menu);
-    explore.appendChild(wrap);
+    exploreButtons.appendChild(wrap);
   }
 
   function updateFilterLabel(wrap,def){
