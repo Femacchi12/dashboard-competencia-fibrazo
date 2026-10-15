@@ -262,8 +262,15 @@
     const root=$("city-quickbar");
     if(!root) return;
     root.innerHTML="";
-    const explorationHost=$("exploration-city-host");
-    if(explorationHost)explorationHost.replaceChildren();
+    // Compatible with cached HTML: the host may not exist on a client with an older index.
+    let explorationHost=$("exploration-city-host");
+    if(!explorationHost){
+      explorationHost=document.createElement("div");
+      explorationHost.id="exploration-city-host";
+      explorationHost.className="exploration-city-host";
+      root.closest(".city-scope-row")?.insertAdjacentElement("afterend",explorationHost);
+    }
+    explorationHost.replaceChildren();
     const seenQuick=new Set();
     const quick=quickMarkets().filter(m=>{
       const id=marketIdentity(m.Ciudad);
@@ -324,7 +331,7 @@
       renderMarketGroupNote();
     }
     explorationCities.forEach(city=>exploreButtons.appendChild(makeButton(city,selectedExploration===city,()=>selectExploration(city),"exploration-chip")));
-    // Keep exploration outside the city-scope grid: otherwise its grid placement stacks the chips.\n    if(explorationHost)explorationHost.appendChild(explore);
+    // Keep exploration outside the city-scope grid: otherwise its grid placement stacks the chips.\n    explorationHost.appendChild(explore);
 
     const wrap=document.createElement("div");
     wrap.className="city-more-wrap";
