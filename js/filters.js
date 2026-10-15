@@ -262,7 +262,8 @@
     const root=$("city-quickbar");
     if(!root) return;
     root.innerHTML="";
-    root.parentElement?.parentElement?.querySelectorAll(".exploration-city-row").forEach(node=>node.remove());
+    const explorationHost=$("exploration-city-host");
+    if(explorationHost)explorationHost.replaceChildren();
     const seenQuick=new Set();
     const quick=quickMarkets().filter(m=>{
       const id=marketIdentity(m.Ciudad);
@@ -323,7 +324,7 @@
       renderMarketGroupNote();
     }
     explorationCities.forEach(city=>exploreButtons.appendChild(makeButton(city,selectedExploration===city,()=>selectExploration(city),"exploration-chip")));
-    // Keep exploration outside the city-scope grid: otherwise its grid placement stacks the chips.\n    root.parentElement.after(explore);
+    // Keep exploration outside the city-scope grid: otherwise its grid placement stacks the chips.\n    if(explorationHost)explorationHost.appendChild(explore);
 
     const wrap=document.createElement("div");
     wrap.className="city-more-wrap";
