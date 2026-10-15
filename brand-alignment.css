@@ -159,3 +159,30 @@ button.active,.btn.active,.analysis-tab.active,.city-chip.active,
  .filters.panel.section > .exploration-city-row > strong,
  .filters.panel.section > .exploration-city-row > .exploration-city-buttons{grid-column:1!important}
 }
+
+/* Persistent exploration host in filter panel; keep chips on one horizontal line */
+.filters.panel.section > #exploration-city-host{display:block!important;width:100%!important;margin:12px 0 0!important}
+#exploration-city-host > .exploration-city-row{
+ display:grid!important;grid-template-columns:144px minmax(0,1fr)!important;
+ align-items:center!important;column-gap:14px!important;row-gap:0!important;
+ width:100%!important;min-height:52px!important;
+ margin:0!important;padding:12px 0!important;border-top:1px solid #444!important;
+}
+#exploration-city-host > .exploration-city-row > strong{
+ position:static!important;grid-column:1!important;margin:0!important;padding:0!important;
+}
+#exploration-city-host .exploration-city-buttons{
+ display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;
+ justify-content:flex-start!important;align-items:center!important;
+ gap:8px!important;grid-column:2!important;width:100%!important;min-width:0!important;
+}
+#exploration-city-host .exploration-city-buttons > button,
+#exploration-city-host .exploration-city-buttons > .city-more-wrap{
+ flex:0 0 auto!important;display:inline-flex!important;width:auto!important;
+ margin:0!important;min-width:0!important;
+}
+@media(max-width:850px){
+ #exploration-city-host > .exploration-city-row{grid-template-columns:1fr!important;row-gap:10px!important}
+ #exploration-city-host > .exploration-city-row > strong,
+ #exploration-city-host .exploration-city-buttons{grid-column:1!important}
+}
