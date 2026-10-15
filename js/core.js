@@ -14,7 +14,9 @@
     offers: { gid:"1320750580", label:"07_CONFIG · Oferta FIBRAZO", range:"AS2:BC300" },
     fibrazoMetrics: { gid:"1344959609", label:"10_FIBRAZO_METRICAS", range:"A1:X400" },
     mobile: { gid:"1227923955", label:"12_COMPETENCIA_MOVIL", range:"A1:S400" },
-    importantPendings: { gid:"677090106", label:"19_PENDIENTES_IMPORTANTES", range:"A1:P300" }
+    importantPendings: { gid:"677090106", label:"19_PENDIENTES_IMPORTANTES", range:"A1:P300" },
+    bucContacts: { gid:"21101301", label:"21_BUC_CONTACTOS", range:"A1:T400" },
+    bucOffers: { gid:"22101302", label:"22_BUC_OFERTAS", range:"A1:U400" }
   };
 
   FZ.state = {
