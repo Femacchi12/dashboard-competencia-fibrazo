@@ -241,6 +241,7 @@
     const members=marketGroupCities(city);
     if(!members.length) return;
     state.cityScopeMode="custom";
+    state.explorationSelection="";
     const allSelected=members.every(member=>state.filters.city.has(member));
     members.forEach(member=>allSelected?state.filters.city.delete(member):state.filters.city.add(member));
     if(!state.filters.city.size) state.cityScopeMode="fibrazo";
@@ -316,11 +317,7 @@
       }
       state.explorationSelection=city;
       renderCityQuickbar();
-      if(buc)renderMarketGroupNote();
-      else{
-        const n=$("city-group-note");
-        if(n){n.classList.remove("hidden");n.textContent=city+" · En proceso de relevamiento";}
-      }
+      renderMarketGroupNote();
     }
     explorationCities.forEach(city=>explore.appendChild(makeButton(city,selectedExploration===city,()=>selectExploration(city),"exploration-chip")));
     root.after(explore);
@@ -469,25 +466,19 @@
   function renderMarketGroupNote(){
     const note=$("city-group-note");
     if(!note)return;
-    const cities=selectedMarketCities();
-    const selected=new Set(cities.map(fold));
-    const amb=["bucaramanga","floridablanca","giron","piedecuesta"];
-    if(state.cityScopeMode==="custom"&&amb.every(city=>selected.has(city))){
-      const ready=state.sourceHealth?.bucOffers?.ok&&state.sourceHealth?.bucContacts?.ok
-        &&state.plans.filter(r=>clean(r.ID_Plan_Registro).startsWith("BUC_FIELD_")).length>=40;
-      note.classList.remove("hidden");
-      note.innerHTML="<strong>"+(ready?"Actualizado · Bucaramanga":"En proceso · Bucaramanga")+"</strong><span>Bucaramanga + Floridablanca + Girón + Piedecuesta. "+(ready?"40 ofertas FTTH con precio y velocidad incorporadas; otras 3 ofertas carecen de velocidad y permanecen pendientes.":"En proceso de carga y validación de ofertas del relevamiento de campo.")+"</span>";
-      return;
+    const selected=clean(state.explorationSelection);
+    const isBuc=fold(selected)==="bucaramanga";
+    const isExploration=!!selected;
+    const city=selected||selectedMarketCities()[0]||[...state.filters.city][0]||"";
+    if(!city){note.classList.add("hidden");note.innerHTML="";return;}
+    note.classList.remove("hidden");
+    if(isBuc){
+      note.innerHTML='<strong>DATOS ACTUALIZADOS</strong><span>Bucaramanga · Bucaramanga + Floridablanca + Girón + Piedecuesta. Relevamiento de campo incorporado.</span>';
+    }else if(isExploration){
+      note.innerHTML='<strong>EN PROCESO</strong><span>'+escapeHtml(city)+' · En proceso de actualización de datos.</span>';
+    }else{
+      note.innerHTML='<strong>EN PROCESO</strong><span>'+escapeHtml(city)+' · Datos de competencia pendientes de validación.</span>';
     }
-    if(state.cityScopeMode==="custom"&&cities.length===1&&!amb.includes(fold(cities[0]))){
-      note.classList.remove("hidden");
-      note.innerHTML="<strong>En proceso</strong><span>"+escapeHtml(cities[0])+" · Datos de exploración pendientes de validación.</span>";
-      return;
-    }
-    const grouped=cities.length>1;
-    note.classList.toggle("hidden",!grouped);
-    if(!grouped){note.innerHTML="";return;}
-    note.innerHTML='<strong>Mercado agrupado</strong><span>'+escapeHtml(cities.join(" + "))+'. El conjunto conserva cada municipio de origen.</span>';
   }
 
   function renderFilters(){
