@@ -72,3 +72,12 @@ https://femacchi12.github.io/dashboard-competencia-fibrazo/
 - Base General: `1v2sBVe_w-bTl438b8qWFmvw0gT66bj8TskcXbnY-gbU`, pestañas 21 a 26 de Bucaramanga. Comprobadas 43 filas de ofertas en `22_BUC_OFERTAS` y 10 operadores en `25_BUC_DASH_VISTA`.
 - **Implementado en rama QA:** el runtime consulta también `21_BUC_CONTACTOS` y `22_BUC_OFERTAS` y consolida sin duplicar por ID 40 ofertas con precio y velocidad, con tecnología `FTTH` (corte `2026-10`); las otras 3 ofertas tienen precio sin velocidad y quedan pendientes de completar. La tecnología histórica de otros mercados no se altera. **Pendiente prioritario:** prueba autenticada del runtime, reconciliación de condiciones/parrillas TV y cobertura/presencia para declarar la carga exhaustivamente validada.
 - Validar que las opciones no FIBRAZO no muestren indicadores de «actualizado» mientras no existan datos comprobados, y verificar que los filtros sobre área metropolitana funcionen con sesión autorizada.
+
+
+## Ajuste Bucaramanga · 2026-10-15 · operadores y servicios
+- Fuente de campo inspeccionada: 10 fichas de operadores en «Bucaramanga_competencia_ En campo Edu» (TVC, Alpinet, Aysatec, Digitel, Red Nova, Telco, Vitelnet, SM Telecomunicaciones, InfinityPlay y Movistar). En Base General, `21_BUC_CONTACTOS` contiene los 10 y `22_BUC_OFERTAS` contiene 43 ofertas para 9 operadores.
+- De las 43 ofertas, 40 tienen precio y velocidad; 3 no tienen velocidad informada. No se inventan velocidades. Aysatec no tiene oferta con precio y velocidad en `22_BUC_OFERTAS`; el dashboard puede presentarlo como operador relevado sin tarifa.
+- La integración de runtime incluye todos los operadores de campo y preserva las fuentes originales. El resumen del corte Bucaramanga se identifica como «Bucaramanga» tanto en mercado como en municipio observado; no implica borrar el municipio real de cada registro.
+- Red Nova se muestra sin el sufijo «(Móvil)»; los registros de campo de Bucaramanga del corte octubre se clasifican como FTTH por indicación expresa del usuario, sin cambiar otros mercados.
+- La respuesta sobre TV se conserva por plan con `TV_Incluida` desde el campo `TV` de `22_BUC_OFERTAS`; se elimina únicamente la columna TV redundante del resumen.
+- Pendiente: prueba autenticada de GitHub Pages y conciliación detallada de parrillas/condiciones, confirmación de 10 operadores mostrados. Código actualizado no equivale a validación E2E.
