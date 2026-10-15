@@ -231,6 +231,7 @@
 
   function setCityScope(mode,cities=[]){
     state.cityScopeMode=mode;
+    state.explorationSelection="";
     state.filters.city.clear();
     expandMarketCities(cities).forEach(c=>state.filters.city.add(c));
     refresh();
@@ -299,7 +300,9 @@
     exploreTitle.textContent="EXPLORACIÓN";
     explore.appendChild(exploreTitle);
     const explorationCities=["Bucaramanga","Cali","Bogotá"];
+    const selectedExploration=state.explorationSelection||"";
     function selectExploration(city){
+      state.explorationSelection=city;
       const buc=fold(city)==="bucaramanga";
       // The October field cut is independent from the web cut in September.
       if(buc){
@@ -311,27 +314,29 @@
         if(available)setCityScope("custom",marketGroupCities(available));
         else {state.cityScopeMode="custom";state.filters.city.clear();refresh();}
       }
+      state.explorationSelection=city;
+      renderCityQuickbar();
       if(buc)renderMarketGroupNote();
       else{
         const n=$("city-group-note");
         if(n){n.classList.remove("hidden");n.textContent=city+" · En proceso de relevamiento";}
       }
     }
-    explorationCities.forEach(city=>explore.appendChild(makeButton(city,false,()=>selectExploration(city),"exploration-chip")));
+    explorationCities.forEach(city=>explore.appendChild(makeButton(city,selectedExploration===city,()=>selectExploration(city),"exploration-chip")));
     root.after(explore);
 
     const wrap=document.createElement("div");
     wrap.className="city-more-wrap";
-    const selectedOther=[...state.filters.city].filter(c=>!quickIdentities.has(marketIdentity(c)));
+    const selectedOther=[...state.filters.city].filter(c=>!quickIdentities.has(marketIdentity(c))&&!explorationCities.some(e=>fold(e)===fold(c)));
     const external=allRelevantCities().filter(c=>!quickIdentities.has(marketIdentity(c)));
     const allExternalSelected=external.length>0&&selectedOther.length===external.length;
     const moreLabel=allExternalSelected?"+ Más · Todas":selectedOther.length?"+ Más · "+selectedOther.length:"+ Más";
-    const moreBtn=makeButton(moreLabel,selectedOther.length>0,e=>{
+    const moreBtn=makeButton(moreLabel,selectedOther.length>0&&!selectedExploration,e=>{
       e.stopPropagation();
       menu.classList.toggle("hidden");
       search.focus();
     },"more");
-    if(selectedOther.length) moreBtn.classList.add("more-selected");
+    if(selectedOther.length&&!selectedExploration) moreBtn.classList.add("more-selected");
     wrap.appendChild(moreBtn);
 
     const menu=document.createElement("div");
@@ -352,8 +357,8 @@
       const selectedIds=new Set([...state.filters.city].map(marketIdentity).filter(id=>id&&!quickIdentities.has(id)));
       const allIds=new Set(allRelevantCities().map(marketIdentity).filter(id=>id&&!quickIdentities.has(id)));
       moreBtn.textContent=allIds.size&&selectedIds.size===allIds.size?"+ Más · Todas":selectedIds.size?"+ Más · "+selectedIds.size:"+ Más";
-      moreBtn.classList.toggle("active",selectedIds.size>0);
-      moreBtn.classList.toggle("more-selected",selectedIds.size>0);
+      moreBtn.classList.toggle("active",selectedIds.size>0&&!state.explorationSelection);
+      moreBtn.classList.toggle("more-selected",selectedIds.size>0&&!state.explorationSelection);
     };
 
     const paint=(q="")=>{
