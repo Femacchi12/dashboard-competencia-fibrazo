@@ -220,7 +220,6 @@
     ["Velocidad_Min_Mbps","Velocidad mín."],
     ["Velocidad_Max_Mbps","Velocidad máx."],
     ["Tipo_Servicio","Servicio"],
-    ["TV_Incluida","TV"],
     ["Troncales_Ciudad","Troncales / zonas"]
   ];
 
