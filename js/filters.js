@@ -308,12 +308,10 @@
         if(available)setCityScope("custom",marketGroupCities(available));
         else {state.cityScopeMode="custom";state.filters.city.clear();refresh();}
       }
-      const n=$("city-group-note");
-      if(n){
-        n.classList.remove("hidden");
-        n.textContent=buc
-          ?"Bucaramanga + Floridablanca + Girón + Piedecuesta · En proceso de validación (40 ofertas completas; 3 sin velocidad)"
-          :city+" · En proceso de relevamiento";
+      if(buc)renderMarketGroupNote();
+      else{
+        const n=$("city-group-note");
+        if(n){n.classList.remove("hidden");n.textContent=city+" · En proceso de relevamiento";}
       }
     }
     explorationCities.forEach(city=>explore.appendChild(makeButton(city,false,()=>selectExploration(city),"exploration-chip")));
