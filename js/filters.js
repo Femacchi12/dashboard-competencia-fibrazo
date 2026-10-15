@@ -484,6 +484,7 @@
     const city=selected||selectedMarketCities()[0]||[...state.filters.city][0]||"";
     if(!city){note.classList.add("hidden");note.innerHTML="";return;}
     note.classList.remove("hidden");
+    note.classList.toggle("is-updated",isBuc);
     if(isBuc){
       note.innerHTML='<strong>DATOS ACTUALIZADOS</strong><span>Bucaramanga · Bucaramanga + Floridablanca + Girón + Piedecuesta. Relevamiento de campo incorporado.</span>';
     }else if(isExploration){
