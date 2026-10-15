@@ -462,16 +462,26 @@
 
   function renderMarketGroupNote(){
     const note=$("city-group-note");
-    if(!note) return;
+    if(!note)return;
     const cities=selectedMarketCities();
-    const grouped=cities.length>1;
-    note.classList.toggle("hidden",!grouped);
-    if(!grouped){
-      note.innerHTML="";
+    const selected=new Set(cities.map(fold));
+    const amb=["bucaramanga","floridablanca","giron","piedecuesta"];
+    if(state.cityScopeMode==="custom"&&amb.every(city=>selected.has(city))){
+      const ready=state.sourceHealth?.bucOffers?.ok&&state.sourceHealth?.bucContacts?.ok
+        &&state.plans.filter(r=>clean(r.ID_Plan_Registro).startsWith("BUC_FIELD_")).length>=40;
+      note.classList.remove("hidden");
+      note.innerHTML="<strong>"+(ready?"Actualizado · Bucaramanga":"En proceso · Bucaramanga")+"</strong><span>Bucaramanga + Floridablanca + Girón + Piedecuesta. "+(ready?"40 ofertas FTTH con precio y velocidad incorporadas; otras 3 ofertas carecen de velocidad y permanecen pendientes.":"En proceso de carga y validación de ofertas del relevamiento de campo.")+"</span>";
       return;
     }
-    const label=marketDisplayName(cities[0]);
-    note.innerHTML='<strong>Mercado agrupado</strong><span>'+escapeHtml(label)+'. Todos los indicadores, gráficos, planes y competidores integran los tres municipios; la base conserva el municipio de origen para trazabilidad.</span>';
+    if(state.cityScopeMode==="custom"&&cities.length===1&&!amb.includes(fold(cities[0]))){
+      note.classList.remove("hidden");
+      note.innerHTML="<strong>En proceso</strong><span>"+escapeHtml(cities[0])+" · Datos de exploración pendientes de validación.</span>";
+      return;
+    }
+    const grouped=cities.length>1;
+    note.classList.toggle("hidden",!grouped);
+    if(!grouped){note.innerHTML="";return;}
+    note.innerHTML='<strong>Mercado agrupado</strong><span>'+escapeHtml(cities.join(" + "))+'. El conjunto conserva cada municipio de origen.</span>';
   }
 
   function renderFilters(){
