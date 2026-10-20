@@ -34,6 +34,16 @@
     return state.tableMode==="contact"?FZ.contactColumns:FZ.columns;
   }
 
+  // Field observations are presentation rows only: never counted as priced plans.
+  function presenceOnlyRows(){
+    const byId=new Map(state.operators.map(op=>[clean(op.ID_Operador),op]));
+    return (state.filteredCoverage||[]).filter(r=>clean(r.ID_Cobertura).startsWith('CVF_')).map(r=>({
+      ...(byId.get(clean(r.ID_Operador))||{}),...r,_PresenceOnly:true,
+      Tipo_Servicio:'Relevado · sin oferta comercial',Precio_Usado_COP:null,Velocidad_Bajada_Mbps:null,
+      TV_Incluida:'',_SourceEvidence:clean(r.ID_Fuente)
+    }));
+  }
+
   function buildSummaryRows(){
     const groups=new Map();
     state.filtered.forEach(r=>{
@@ -48,6 +58,14 @@
       groups.get(key).plans.push(r);
     });
 
+    for(const r of presenceOnlyRows()){
+      const operator=rowOperator(r),city=clean(r.Ciudad),marketId=FZ.filters?.marketIdentity?.(city)||city;
+      if(!operator||!city)continue;
+      const key=[clean(r.Periodo_Label)||'Sin corte',operator,marketId].join('||');
+      if(!groups.has(key))groups.set(key,{key,plans:[]});
+      const group=groups.get(key);
+      if(!group.plans.some(p=>!p._PresenceOnly))group.plans.push(r);
+    }
     const isBuc=state.filters.city.has("Bucaramanga")||[...state.filters.city].some(c=>fold(c)==="bucaramanga");
     const october=state.filters.period.has("2026-oct");
     if(isBuc&&october){
@@ -98,7 +116,7 @@
 
   function buildContactRows(){
     const groups=new Map();
-    state.filtered.forEach(r=>{
+    [...state.filtered,...presenceOnlyRows()].forEach(r=>{
       const operator=rowOperator(r);
       if(!operator) return;
       if(!groups.has(operator)) groups.set(operator,[]);
@@ -266,7 +284,7 @@
   }
 
   FZ.table={
-    matchingCoverageForPlan,trunksForPlan,buildSummaryRows,buildContactRows,
+    presenceOnlyRows,matchingCoverageForPlan,trunksForPlan,buildSummaryRows,buildContactRows,
     tableRows,currentColumns,render,renderColumns
   };
 })();

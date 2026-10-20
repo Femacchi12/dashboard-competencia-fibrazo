@@ -7,7 +7,7 @@
   const $=FZ.u.$;
 
   function availablePeriods(){
-    return [...new Set(state.plans.map(r=>periodValue(r.Periodo_Corte)).filter(Boolean))]
+    return [...new Set([...state.plans,...state.coverage].map(r=>periodValue(r.Periodo_Corte)).filter(Boolean))]
       .sort((a,b)=>periodSortValue(a)-periodSortValue(b));
   }
 
@@ -22,7 +22,7 @@
 
   function selectedPeriodValue(){
     const label=[...state.filters.period][0]||"";
-    const row=state.plans.find(r=>r.Periodo_Label===label);
+    const row=[...state.plans,...state.coverage].find(r=>r.Periodo_Label===label);
     return row?.Periodo_Corte||availablePeriods().at(-1)||"";
   }
 
@@ -515,9 +515,10 @@
       }
 
       if(key==="period"){
+        options=[...new Set([...options,...state.coverage.filter(r=>coveragePassesFilters(r,"period")).map(r=>r.Periodo_Label).filter(Boolean)])];
         options.sort((a,b)=>{
-          const ar=state.plans.find(r=>r.Periodo_Label===a)?.Periodo_Corte||"";
-          const br=state.plans.find(r=>r.Periodo_Label===b)?.Periodo_Corte||"";
+          const ar=[...state.plans,...state.coverage].find(r=>r.Periodo_Label===a)?.Periodo_Corte||"";
+          const br=[...state.plans,...state.coverage].find(r=>r.Periodo_Label===b)?.Periodo_Corte||"";
           return periodSortValue(br)-periodSortValue(ar);
         });
       }else options.sort((a,b)=>a.localeCompare(b,"es",{numeric:true}));
@@ -597,3 +598,4 @@
     toggleAllFibrazoCities,renderCityQuickbar,renderFilters,apply
   };
 })();
+
