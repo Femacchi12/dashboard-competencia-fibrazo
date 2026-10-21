@@ -45,6 +45,10 @@
       .sort((a,b)=>(Number(a.Orden_Dashboard)||999)-(Number(b.Orden_Dashboard)||999));
   }
 
+  function quickBarMarkets(){
+    return quickMarkets().filter(m=>fold(m.Mercado_FIBRAZO)==="si");
+  }
+
   function marketForCity(city){
     const value=clean(city);
     return state.markets.find(m=>clean(m.Ciudad)===value&&marketAppliesToPeriod(m))||null;
@@ -272,7 +276,7 @@
     }
     explorationHost.replaceChildren();
     const seenQuick=new Set();
-    const quick=quickMarkets().filter(m=>{
+    const quick=quickBarMarkets().filter(m=>{
       const id=marketIdentity(m.Ciudad);
       if(!id||seenQuick.has(id)) return false;
       seenQuick.add(id);
@@ -590,7 +594,7 @@
 
   FZ.filters={
     availablePeriods,ensurePeriodSelection,selectedPeriodValue,marketAppliesToPeriod,fibrazoMarkets,quickMarkets,
-    marketForCity,marketGroupKey,marketGroupCities,marketIdentity,marketDisplayName,marketRepresentativeCity,expandMarketCities,
+    quickBarMarkets,marketForCity,marketGroupKey,marketGroupCities,marketIdentity,marketDisplayName,marketRepresentativeCity,expandMarketCities,
     isFibrazoCity,territoryFieldForCity,territoryLabelForCity,territoryValue,
     fibrazoCitySet,allRelevantCities,cityScopeAllows,comparatorCities,selectedMarketCities,selectedSingleCity,effectiveCityCount,
     isSingleOperatorSingleCity,normalizeTerritoryFilters,rowPassesFilters,coveragePassesFilters,

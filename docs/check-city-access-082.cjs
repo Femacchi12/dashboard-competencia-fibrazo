@@ -1,0 +1,10 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const path=require('path'),root=path.resolve(__dirname,'..');
+const ctx={window:{},document:{},console};vm.createContext(ctx);
+for(const p of ['js/core.js','js/filters.js'])vm.runInContext(fs.readFileSync(path.join(root,p),'utf8'),ctx);
+const F=ctx.window.FZ;F.state.plans=[];F.state.coverage=[{Ciudad:'Villavicencio',Periodo_Corte:'2026-10'}];F.state.metrics=[];
+F.state.markets=[{Ciudad:'Cartagena',Mercado_FIBRAZO:'Sí',Mostrar_Acceso_Rapido:'Sí'},{Ciudad:'Villavicencio',Mercado_FIBRAZO:'No',Mostrar_Acceso_Rapido:'Sí'}];
+assert(F.filters.allRelevantCities().includes('Villavicencio'));
+assert.deepStrictEqual(Array.from(F.filters.quickBarMarkets(),x=>x.Ciudad),['Cartagena']);
+assert(!F.filters.quickBarMarkets().some(m=>m.Ciudad==='Villavicencio'),'non-rendered quick market must remain available in More');
+console.log('PASS city access: exploration flagged quick remains in More; Fibrazo quick markets retained');
