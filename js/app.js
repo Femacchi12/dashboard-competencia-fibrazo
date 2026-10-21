@@ -167,7 +167,7 @@
       el.classList.remove("warn");
       return;
     }
-    el.textContent="Fuentes "+ok+"/"+total;
+    el.textContent="Fuentes "+ok+"/"+total+" · "+(result?.coverage??state.coverage.length)+" presencias";
     el.classList.toggle("warn",ok<total);
     if(ok<total){
       const failed=Object.values(state.sourceHealth||{}).filter(x=>!x?.ok).map(x=>x.label).filter(Boolean);

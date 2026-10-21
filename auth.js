@@ -26,7 +26,7 @@
     return normalized === allowedException || normalized.endsWith(allowedDomain);
   };
 
-  const dashboardAppVersion = "20261015-simplify01";
+  const dashboardAppVersion = "20261020-forms082";
   const executiveSummaryVersion = "20261015-08";
   const executiveSummaryObserverVersion = "20260920-01";
 
