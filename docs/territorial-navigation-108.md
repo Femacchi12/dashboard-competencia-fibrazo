@@ -28,3 +28,7 @@ Pruebas automatizadas nuevas de resolución, alias, ausencias, ambigüedad, XSS,
 Validar Preview en navegador antes de publicar. Probar protección HTTP real por separado de la sesión simulada. No atribuir a la prueba sintética una sesión real de Edu, prueba de GPS físico, sincronización de Android ni acceso de otras cuentas.
 
 Reversión: restaurar commits anteriores de ambos repositorios y release PWA. No hay migraciones, cambios de Sheets de datos, reglas de estratos, rutas de sincronización, fotos, IndexedDB ni automatizaciones. Los únicos escritos externos del alcance son registros de cambios y manuales.
+
+## Estado real de entrega (26/10/2026)
+
+Implementación en ramas QA de ambos repositorios. Suite Forms completa y pruebas específicas 108 aprobadas, incluidos permisos del catálogo y alternativa de portapapeles. Preview Forms: `dpl_HQ2CFpW6gJrR7bHG8m6ifUypZumg`, commit de código `623e44b56462df277e507e1abd6e467456539f60`. Competencia commit `b5c8b0ddbaa7d1a2a152224c2566d4959e107e8c`. Vercel responde 403 al solicitar acceso al Preview con el equipo correcto; no hay CLI ni credencial configurada para la alternativa autorizada. No se cambió la protección ni se intentó eludirla. La revisión visual con el escenario sintético y una sesión real sigue pendiente. Producción no se modifica por esta entrega hasta superar ese control. Los tres manuales y los registros de cambios quedan actualizados a EN QA / acceso bloqueado.
