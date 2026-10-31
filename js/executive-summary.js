@@ -5,7 +5,7 @@
   if(!FZ) return;
   const state=FZ.state;
   const {$,clean,fold,escapeHtml,toNum,formatCOP,formatNum,formatPct,normalizeTV,rowOperator}=FZ.u;
-  const VERSION="20260916-02";
+  const VERSION="20261031-115";
 
   function ensureStyles(){
     if(document.getElementById("executive-summary-css")) return;

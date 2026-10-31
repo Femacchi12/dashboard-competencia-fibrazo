@@ -27,8 +27,8 @@
   };
 
   const dashboardAppVersion = "20261020-forms082";
-  const executiveSummaryVersion = "20261015-08";
-  const executiveSummaryObserverVersion = "20260920-01";
+  const executiveSummaryVersion = "20261031-115";
+  const executiveSummaryObserverVersion = "20261031-115";
 
   window.FibrazoExecutiveShell.init();
 

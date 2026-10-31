@@ -4,9 +4,9 @@
   const FZ=window.FZ;
   if(!FZ) return;
 
-  const refinementVersion="20260916-03";
+  const refinementVersion="20261031-115";
   const visibilityRulesVersion="20260916-01";
-  const visualSystemVersion="20260919-03";
+  const visualSystemVersion="20261031-115";
   let syncing=false;
   let scheduled=false;
 

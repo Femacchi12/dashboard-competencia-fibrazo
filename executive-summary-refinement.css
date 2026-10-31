@@ -17,7 +17,7 @@
 }
 
 .executive-managerial-section{
-  background:#0f1411;
+  background:#242424;
 }
 
 .executive-managerial-scan{
@@ -36,7 +36,7 @@
 }
 
 .executive-insight-line:last-child{border-bottom:0;}
-.executive-insight-line:hover{background:#121915;}
+.executive-insight-line:hover{background:#303030;}
 
 .executive-insight-line > span{
   color:#ffffff;
@@ -74,7 +74,7 @@
 }
 
 .executive-trunk-summary-section{
-  background:#0c110e;
+  background:#242424;
 }
 
 .executive-trunk-highlights{
@@ -90,10 +90,10 @@
   padding:10px 12px;
   border-right:1px solid var(--fz-control-border);
   border-bottom:1px solid var(--fz-control-border);
-  background:#101612;
+  background:#242424;
 }
 
-.executive-trunk-highlights > div:hover{background:#141b17;}
+.executive-trunk-highlights > div:hover{background:#303030;}
 
 .executive-trunk-highlights > div.wide{
   grid-column:span 1;
@@ -126,7 +126,7 @@
 
 .executive-trunk-disclosure{
   border-top:1px solid var(--fz-surface-border);
-  background:#0d120f;
+  background:#242424;
 }
 
 .executive-trunk-disclosure > summary{
@@ -142,7 +142,7 @@
 }
 
 .executive-trunk-disclosure > summary::-webkit-details-marker{display:none;}
-.executive-trunk-disclosure > summary:hover{background:#131a16;}
+.executive-trunk-disclosure > summary:hover{background:#303030;}
 
 .executive-trunk-disclosure > summary > div{
   min-width:0;

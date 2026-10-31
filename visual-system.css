@@ -409,7 +409,7 @@
 .executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-row:hover,
 .executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-compare-row:hover,
 .executive-summary-shell:has(.executive-summary-toggle[aria-expanded="true"]) .executive-trunk-disclosure > summary:hover{
-  background:#10231a!important;
+  background:#303030!important;
 }
 
 /* The grid remains structured but no longer looks like separate cards. */
