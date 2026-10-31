@@ -211,3 +211,8 @@ Cada cambio visual futuro debe responder tres preguntas:
 3. ¿Se parece al resto del dashboard o introduce un lenguaje nuevo innecesario?
 
 Si la respuesta a cualquiera es “no”, el componente debe ajustarse antes de publicarse.
+
+
+## Actualización aprobada 31/10/2026 — VIS-115
+
+La solicitud más reciente de Edu sustituye los fondos verde-carbón por grises neutros, tanto en superficies cerradas como abiertas. Tokens efectivos: superficie #181818, elevada/expandida #242424, cabecera expandida #2b2b2b, control #282828, borde #58595B. El acento de selección es #43FFA5. Se mantienen los colores funcionales y las reglas de criticidad. La capa executive-shell.css tiene scope body.executive-shell para prevalecer sobre hojas cargadas dinámicamente. Cabecera, cuenta y navegación siguen el diseño de Forms. Ver shared-visual-system-115.md.
