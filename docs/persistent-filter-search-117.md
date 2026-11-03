@@ -7,3 +7,8 @@ Competencia conserva texto, apertura y desplazamiento de cada filtro durante su 
 Validación: prueba de eventos DOM con jsdom26 sobre scripts reales, cuatro selectores de mapa: selección múltiple/desmarcado, chips, Escape, salida/entrada al campo, opciones añadidas asíncronamente, sin coincidencias y limpiar. Competencia: seleccionar/desmarcar con búsqueda activa y reconstrucción, búsqueda de ciudades y limpieza explícita. Suite Forms completa aprobada; se actualizó la comprobación antigua que exigía borrar la búsqueda, según la nueva decisión de Edu. Tres controles existentes de Competencia aprobados. No se afirma prueba autenticada ni teléfono físico.
 
 Reversión: restaurar archivos de UI y caché desde los commits previos (Forms c19152181469fecf7a8d6fdefc893512252d0a06; Competencia 38e0086), sin borrar IndexedDB ni colas. Publicación y cotejo de archivos se registran después del despliegue.
+
+Código publicado: Forms 5508ca81cf522d57d4be377548659007a7f69447; Competencia 13396e99d4efa4829d88aae01f9b0273880c9751. Competencia: index.html, auth.js, js/app.js y js/filters.js descargados del sitio oficial coinciden byte a byte. Manuales corporativos Forms, Exploración y Competencia actualizados y leídos de vuelta.
+
+Cierre productivo: Forms 0.8.169, despliegue dpl_9HBkvJ2shVKno4QgXHQcc6VuPDhX READY con alias oficial fibrazo-forms.vercel.app. Consulta inicial de logs: una advertencia de Node DEP0169 en /api/map por url.parse, registrada en stderr como error; no es una excepción de estos filtros. Ventana corta, no certifica ausencia futura de errores.
+Cotejo final Forms: HTML, app.js, map-controls-ui.js, map-v01.js, service-worker.js y version.json descargados del dominio oficial coinciden byte a byte con los archivos probados.
