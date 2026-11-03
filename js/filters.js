@@ -6,6 +6,36 @@
   const {clean,fold,escapeHtml,periodValue,periodSortValue,formatPeriod}=FZ.u;
   const $=FZ.u.$;
 
+  // FO-CHG-117: UI search is independent from the selected filter values.
+  const searchUi=new Map();
+  function rememberSearches(root){
+    root?.querySelectorAll("[data-filter-search-key]").forEach(wrap=>{
+      const input=wrap.querySelector("input.filter-search,input.city-more-search");
+      if(!input)return;
+      const menu=wrap.querySelector(".filter-menu,.city-more-menu");
+      const list=wrap.querySelector(".filter-options,.city-more-options");
+      searchUi.set(wrap.dataset.filterSearchKey,{value:input.value,open:!menu.classList.contains("hidden"),scroll:list?.scrollTop||0,focus:wrap.contains(document.activeElement),start:input.selectionStart,end:input.selectionEnd});
+    });
+  }
+  function restoreSearches(root){
+    root?.querySelectorAll("[data-filter-search-key]").forEach(wrap=>{
+      const saved=searchUi.get(wrap.dataset.filterSearchKey);
+      const input=wrap.querySelector("input.filter-search,input.city-more-search");
+      if(!saved||!input)return;
+      input.value=saved.value;
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+      const menu=wrap.querySelector(".filter-menu,.city-more-menu");
+      menu.classList.toggle("hidden",!saved.open);
+      if(saved.focus&&saved.open){input.focus({preventScroll:true});if(input.type!=="search")input.setSelectionRange(saved.start,saved.end);}
+      const list=wrap.querySelector(".filter-options,.city-more-options");
+      if(list)list.scrollTop=saved.scroll;
+    });
+  }
+  function clearSearches(){
+    searchUi.clear();
+    document.querySelectorAll("[data-filter-search-key] input.filter-search,[data-filter-search-key] input.city-more-search").forEach(input=>{input.value="";input.dispatchEvent(new Event("input",{bubbles:true}));});
+  }
+
   function availablePeriods(){
     return [...new Set([...state.plans,...state.coverage].map(r=>periodValue(r.Periodo_Corte)).filter(Boolean))]
       .sort((a,b)=>periodSortValue(a)-periodSortValue(b));
@@ -265,6 +295,7 @@
   function renderCityQuickbar(){
     const root=$("city-quickbar");
     if(!root) return;
+    rememberSearches($("exploration-city-host"));
     root.innerHTML="";
     // Compatible with cached HTML: the host may not exist on a client with an older index.
     let explorationHost=$("exploration-city-host");
@@ -340,6 +371,7 @@
 
     const wrap=document.createElement("div");
     wrap.className="city-more-wrap";
+    wrap.dataset.filterSearchKey="city-more";
     const selectedOther=[...state.filters.city].filter(c=>!quickIdentities.has(marketIdentity(c))&&!explorationCities.some(e=>fold(e)===fold(c)));
     const external=allRelevantCities().filter(c=>!quickIdentities.has(marketIdentity(c))&&!explorationCities.some(e=>fold(e)===fold(c)));
     const allExternalSelected=external.length>0&&selectedOther.length===external.length;
@@ -410,6 +442,7 @@
       updateMore(); paint(search.value); renderFilters(); apply();
     });
     menu.querySelector(".city-more-clear").addEventListener("click",()=>{
+      search.value="";
       [...state.filters.city].filter(c=>!quickIdentities.has(marketIdentity(c))).forEach(c=>state.filters.city.delete(c));
       state.cityScopeMode=state.filters.city.size?"custom":"fibrazo";
       updateMore(); paint(search.value); renderFilters(); apply();
@@ -418,6 +451,7 @@
     paint();
     wrap.appendChild(menu);
     exploreButtons.appendChild(wrap);
+    restoreSearches(explorationHost);
   }
 
   function updateFilterLabel(wrap,def){
@@ -432,6 +466,7 @@
     const city=selectedSingleCity();
     const wrap=document.createElement("div");
     wrap.className="filter territory-filter"+(city?"":" disabled");
+    wrap.dataset.filterSearchKey=key;
 
     if(!city){
       wrap.innerHTML='<label class="filter-label">'+escapeHtml(label)+'</label><button class="filter-btn territory-disabled" type="button" disabled><span>Solo con 1 mercado</span><span>ⓘ</span></button>';
@@ -502,6 +537,7 @@
     normalizeTerritoryFilters();
     const root=$("filters");
     if(!root) return;
+    rememberSearches(root);
     root.innerHTML="";
 
     FZ.filterDefs.forEach(def=>{
@@ -533,6 +569,7 @@
 
       const wrap=document.createElement("div");
       wrap.className="filter";
+      wrap.dataset.filterSearchKey=key;
       wrap.innerHTML='<label class="filter-label">'+escapeHtml(def.label)+'</label>'+
         '<button class="filter-btn" type="button"><span data-label>'+escapeHtml(def.allLabel||"Todos")+'</span><span>⌄</span></button>'+
         '<div class="filter-menu hidden"><input class="filter-search" placeholder="Buscar…"><div class="filter-options"></div></div>';
@@ -584,6 +621,7 @@
     const city=selectedSingleCity();
     // Zona se mantiene en la lógica de filtros pero no se muestra como control visual.
     renderMarketGroupNote();
+    restoreSearches(root);
   }
 
   function apply(){
@@ -599,7 +637,7 @@
     fibrazoCitySet,allRelevantCities,cityScopeAllows,comparatorCities,selectedMarketCities,selectedSingleCity,effectiveCityCount,
     isSingleOperatorSingleCity,normalizeTerritoryFilters,rowPassesFilters,coveragePassesFilters,
     territoryCoverageBase,planMatchesTerritory,planPasses,setCityScope,toggleCitySelection,
-    toggleAllFibrazoCities,renderCityQuickbar,renderFilters,apply
+    toggleAllFibrazoCities,renderCityQuickbar,renderFilters,clearSearches,apply
   };
 })();
 

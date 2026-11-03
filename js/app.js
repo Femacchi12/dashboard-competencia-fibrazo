@@ -286,6 +286,7 @@
   }
 
   function resetAll(){
+    FZ.filters.clearSearches();
     FZ.details?.clear?.();
     Object.values(state.filters).forEach(s=>s.clear());
     state.cityScopeMode="fibrazo";
@@ -302,6 +303,7 @@
   }
 
   function clearFilters(){
+    FZ.filters.clearSearches();
     FZ.details?.clear?.();
     Object.entries(state.filters).forEach(([key,set])=>{if(key!=="period")set.clear();});
     state.cityScopeMode="fibrazo";
