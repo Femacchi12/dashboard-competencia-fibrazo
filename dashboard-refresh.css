@@ -57,4 +57,7 @@ body.executive-shell.executive-shell :is(.filter-menu,.columns-menu,.city-more-m
 body.executive-shell.executive-shell .fbz-chat-form button {
   background:#087451!important; border-color:#087451!important; color:#fff!important;
 }
+body.executive-shell.executive-shell .fbz-chat-launch {
+  background:#087451!important; border-color:#087451!important; color:#fff!important; font-weight:700!important;
+}
 body.executive-shell.executive-shell :is(.fbz-chat-question,.fbz-chat-panel th) { background:#202522!important; }
