@@ -40,3 +40,21 @@ body.executive-shell :is(button,summary,a,input,select,textarea):focus-visible {
 @media(max-width:600px) {
   body.executive-shell.executive-shell :is(.panel,.filters,.chart-panel,.kpi-card,.compare-card,.mobile-kpi) { border-radius:16px!important; }
 }
+
+/* Floating windows and the shared assistant follow the same neutral card surface. */
+body.executive-shell.executive-shell :is(.filter-menu,.columns-menu,.city-more-menu,
+  .operator-detail-panel,.executive-summary-content,.important-pendings-panel,
+  .scatter-interactive-tooltip,.modal-content,.fbz-chat-panel,.fbz-chat-answer) {
+  background:#101312!important; color:#f5f8f6!important; border-color:#353b38!important;
+  border-radius:18px!important;
+}
+body.executive-shell.executive-shell :is(.important-pendings-panel,.scatter-interactive-tooltip,
+  .fbz-chat-panel) { font-family:Montserrat,system-ui,sans-serif!important; }
+body.executive-shell.executive-shell :is(.filter-menu,.columns-menu,.city-more-menu,
+  .important-pendings-panel,.scatter-interactive-tooltip,.fbz-chat-panel) button {
+  border-radius:999px!important;
+}
+body.executive-shell.executive-shell .fbz-chat-form button {
+  background:#087451!important; border-color:#087451!important; color:#fff!important;
+}
+body.executive-shell.executive-shell :is(.fbz-chat-question,.fbz-chat-panel th) { background:#202522!important; }
