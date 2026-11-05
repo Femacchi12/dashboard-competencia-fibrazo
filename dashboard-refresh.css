@@ -1,0 +1,42 @@
+/* Visual 2026-11: shared dashboard language; data and chart colors remain semantic. */
+body.executive-shell {
+  --panel:#0e1211; --panel2:#171d1a; --control:#202724; --border:#39453e;
+  --brand-surface:#0e1211; --brand-surface-raised:#171d1a; --brand-control:#202724;
+  --fz-surface-bg:#0e1211; --fz-surface-raised:#171d1a; --fz-surface-inner:#171d1a;
+  --fz-control-bg:#202724; --fz-control-border:#536159; --fz-expanded-bg:#171d1a;
+  --fz-expanded-head:#202724; --fz-expanded-inner:#171d1a; --fz-expanded-border:#536159;
+  --fz-summary-open-bg:#171d1a; --fz-summary-open-head:#202724; --fz-summary-open-border:#536159;
+  --fz-text:#f5f8f6; --fz-text-muted:#b2bdb7; --text:#f5f8f6; --muted:#b2bdb7;
+  background:#000!important; color:#f5f8f6; font-family:Montserrat,system-ui,sans-serif;
+}
+body.executive-shell.executive-shell :is(.panel,.filters,.chart-panel,.records,.compare-table-panel,.kpi-card,.compare-card,.mobile-kpi,.auth-card,.user-menu-card) {
+  background:#0e1211!important; border:1px solid #343c38!important; border-radius:20px!important; box-shadow:none!important;
+}
+body.executive-shell.executive-shell :is(.filter-menu,.columns-menu,.city-more-menu,.operator-detail-panel,.executive-summary-content) {
+  background:#171d1a!important; border-color:#536159!important; border-radius:16px!important;
+}
+body.executive-shell :is(h1,h2,h3,h4) { color:#f5f8f6; font-weight:800; letter-spacing:-.025em; }
+body.executive-shell .hero-copy h1 { font-size:clamp(18px,2vw,24px)!important; font-weight:800!important; }
+body.executive-shell.executive-shell :is(.section-title h2,.section-heading h2) { font-size:clamp(19px,1.7vw,25px); line-height:1.2; }
+body.executive-shell :is(button,.btn,select,input:not([type=checkbox]):not([type=radio]),textarea) {
+  font-family:Montserrat,system-ui,sans-serif; border-radius:999px!important;
+}
+body.executive-shell textarea { border-radius:18px!important; }
+body.executive-shell.executive-shell :is(.filter-btn,.filter-search,.search-input,.comparison-toolbar select,.city-chip,.btn.outline,.records-subtab) {
+  background:#1b211e!important; border:1px solid #536159!important; color:#f5f8f6!important; border-radius:999px!important;
+}
+body.executive-shell :is(input,textarea)::placeholder { color:#b2bdb7; opacity:1; }
+body.executive-shell.executive-shell :is(.btn.primary,.refresh-button) {
+  background:#087451!important; border:1px solid #087451!important; color:#fff!important; font-weight:700!important;
+}
+body.executive-shell.executive-shell :is(.product-nav :is(a,span),.analysis-tab) {
+  border:1px solid #36423b!important; border-radius:999px!important; background:#141b17!important;
+  color:#e1e8e4!important; margin:2px; font-weight:700!important;
+}
+body.executive-shell.executive-shell :is(.product-nav [aria-current],.analysis-tab.active,.filter-btn.active,.city-chip.active,.records-subtab.active) {
+  background:#087451!important; border-color:#087451!important; color:#fff!important;
+}
+body.executive-shell :is(button,summary,a,input,select,textarea):focus-visible { outline:2px solid #43ffa5!important; outline-offset:3px; }
+@media(max-width:600px) {
+  body.executive-shell.executive-shell :is(.panel,.filters,.chart-panel,.kpi-card,.compare-card,.mobile-kpi) { border-radius:16px!important; }
+}
