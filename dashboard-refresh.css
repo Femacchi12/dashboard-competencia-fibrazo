@@ -61,3 +61,9 @@ body.executive-shell.executive-shell .fbz-chat-launch {
   background:#087451!important; border-color:#087451!important; color:#fff!important; font-weight:700!important;
 }
 body.executive-shell.executive-shell :is(.fbz-chat-question,.fbz-chat-panel th) { background:#202522!important; }
+
+/* Neutral surfaces; keep green as an accent and preserve semantic chart colors. */
+body.executive-shell {--panel:#111;--panel2:#1a1a1a;--control:#242424;--border:#3c3c3c;--brand-surface:#111;--brand-surface-raised:#1a1a1a;--fz-surface-bg:#111;--fz-surface-raised:#1a1a1a;--fz-surface-inner:#1a1a1a;--fz-control-bg:#242424;--fz-expanded-bg:#1a1a1a;--fz-expanded-head:#242424;--fz-expanded-inner:#1a1a1a;--fz-summary-open-bg:#1a1a1a;--fz-summary-open-head:#242424}
+body.executive-shell.executive-shell :is(.panel,.filters,.chart-panel,.records,.compare-table-panel,.kpi-card,.compare-card,.mobile-kpi,.auth-card,.user-menu-card){background:#111!important;border-color:#363636!important}
+body.executive-shell.executive-shell :is(.filter-menu,.columns-menu,.city-more-menu,.operator-detail-panel,.executive-summary-content,.important-pendings-panel,.scatter-interactive-tooltip,.modal-content,.fbz-chat-panel,.fbz-chat-answer){background:#191919!important;border-color:#3a3a3a!important}
+body.executive-shell.executive-shell :is(.filter-btn,.filter-search,.search-input,.comparison-toolbar select,.city-chip,.btn.outline,.records-subtab){background:#242424!important;border-color:#505050!important}
