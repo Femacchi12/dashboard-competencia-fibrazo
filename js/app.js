@@ -181,7 +181,7 @@
     const inGeneral=state.analysisView==="general";
     const hideRankings=FZ.filters.isSingleOperatorSingleCity();
     ["operator-price-panel","operator-speed-panel"].forEach(id=>$(id)?.classList.toggle("hidden",!inGeneral||hideRankings));
-    document.querySelector(".filters")?.classList.toggle("hidden",state.analysisView==="compare"||state.analysisView==="mobile");
+    document.querySelector(".filters")?.classList.toggle("hidden",state.analysisView==="compare"||state.analysisView==="mobile"||state.analysisView==="reports");
   }
 
   function renderAll(){
@@ -230,6 +230,7 @@
       FZ.table?.render?.();
       renderMarketScopeSummary();
     }
+    if(view==="reports") window.FibrazoReports?.show();
     if(view==="network") FZ.territory?.renderFibrazo?.();
     if(view==="fibrazo"){
       FZ.comparison?.renderFibrazoComparison?.();

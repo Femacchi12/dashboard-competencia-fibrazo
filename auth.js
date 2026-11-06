@@ -26,7 +26,7 @@
     return normalized === allowedException || normalized.endsWith(allowedDomain);
   };
 
-  const dashboardAppVersion = "20261103-search117";
+  const dashboardAppVersion = "20261106-reports120";
   const executiveSummaryVersion = "20261031-115";
   const executiveSummaryObserverVersion = "20261031-115";
 
