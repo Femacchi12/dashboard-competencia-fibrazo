@@ -1,0 +1,21 @@
+/* FIBRAZO VIS-021 | 2026-11-06 · aprobado por Edu */
+:root{--v21-page:#000;--v21-panel:#101312;--v21-raised:#171a19;--v21-button:#050605;--v21-border:#353b38;--v21-title:#f7f8f7;--v21-muted:#a8b0ab;--v21-accent:#00E69A;}
+:is(html body,html body.executive-shell.executive-shell){background-color:var(--v21-page)!important;background-image:none!important}
+:is(html body,html body.executive-shell.executive-shell) :is(.panel,.filters,.chart-panel,.records,.compare-table-panel,.kpi-card,.compare-card,.mobile-kpi,.auth-card,.user-menu-card,.form-card,.operator-library-card,.competition-point,.chart-card,.connectivity,.school-size,.review-panel,.detail-section,.locations-map-panel,.fz-executive-panel,.fz-executive-card,.analysis-tabs,.filter-grid,.filters-grid,.map-layers-panel,.map-filters-panel,.map-point-legend-card,.form-user-card,.filter-section,.summary-card,.dashboard-card,.metric-card,.info-card){
+background-color:var(--v21-panel)!important;background-image:none!important;border-color:var(--v21-border)!important;box-shadow:none!important}
+:is(html body,html body.executive-shell.executive-shell) :is(.panel,.filters,.records,.form-card,.chart-panel,.review-panel,.detail-section) :is(.card,.field-card,.filter-card,.stat-card,.operator-detail-card,.fz-research-field){background-color:var(--v21-raised)!important;background-image:none!important;border-color:var(--v21-border)!important}
+:is(html body,html body.executive-shell.executive-shell) :is(h1,h2,h3,h4,h5,h6,.panel-title,.section-title,.panel-header h2,.panel-head h2){color:var(--v21-title)!important}
+:is(html body,html body.executive-shell.executive-shell) :is(p,.muted,.muted-text,.description,.help-text,.helper-text,.subtitle,.section-subtitle,.card-description,.panel-description,.text-secondary){color:var(--v21-muted)}
+/* Neutral buttons are black / white; preserve semantic warnings, maps and disabled controls */
+:is(html body,html body.executive-shell.executive-shell) :is(button,.btn,.primary-button,.secondary-button,.auth-button,.auth-primary-button,.auth-secondary-button,.refresh-button,.form-open-button,.city-chip,.filter-btn,.records-subtab,.analysis-tab,.review-tab,.table-show-more):not(.danger):not(.error):not(.destructive):not(.status-danger):not(.status-warning):not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out){
+background-color:var(--v21-button)!important;background-image:none!important;color:#fff!important;border-color:#48514c!important}
+/* Selected actions and intentional green call-to-action: vivid fill with black letters */
+:is(html body,html body.executive-shell.executive-shell) :is(button,.btn,.city-chip,.filter-btn,.records-subtab,.analysis-tab,.review-tab):is(.active,.selected,.is-active,[aria-pressed="true"],[aria-selected="true"],[aria-current="page"]),
+:is(html body,html body.executive-shell.executive-shell) :is(.btn.primary,.primary-button,.auth-primary-button,.form-open-button,.refresh-button,.auth-button:not(.secondary)){
+background-color:var(--v21-accent)!important;background-image:none!important;color:#000!important;border-color:var(--v21-accent)!important}
+:is(html body,html body.executive-shell.executive-shell) :is(button,.btn):is(.yellow,.pink,.accent-yellow,.accent-pink,.warning,.highlight-pink){color:#000!important}
+:is(html body,html body.executive-shell.executive-shell) :is(input,textarea)::placeholder{color:#9aa29d}
+:is(html body,html body.executive-shell.executive-shell) :is(button,.btn,a,input,select,textarea,summary):focus-visible{outline:2px solid #43FFA5!important;outline-offset:3px}
+:is(html body,html body.executive-shell.executive-shell) :is(button,.btn):disabled{opacity:.55;cursor:not-allowed}
+/* Controls of the map stay visually distinguishable */
+:is(html body,html body.executive-shell.executive-shell) .leaflet-container :is(.leaflet-control-zoom-in,.leaflet-control-zoom-out){background-color:#101312!important;color:#fff!important}
