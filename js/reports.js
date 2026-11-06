@@ -59,9 +59,8 @@
     }catch(e){console.warn('REPORT_LOAD_ERROR',e?.message||'unknown');host.innerHTML='<h2>Informe no disponible</h2><p>No fue posible consultar el documento corporativo. Puedes volver a intentar o abrir la fuente directamente.</p><button type="button" id="report-retry">Reintentar</button> <a href="https://docs.google.com/document/d/1XDJCVQtxBvyWfqKU4Z5IhtQDLJwKQNqwE4vhIHMAo5M/edit" target="_blank" rel="noopener noreferrer">Abrir documento fuente ↗</a>';document.getElementById('report-retry').addEventListener('click',show);}
     finally{loading=false;}
   }
-  const catalogToggle=document.getElementById('report-catalog-toggle'),catalog=document.getElementById('reports-catalog'),layout=document.querySelector('.reports-layout'),reportSection=document.querySelector('.reports-section'),widthToggle=document.getElementById('report-width-toggle');
-  catalogToggle?.addEventListener('click',()=>{const hidden=!catalog.hidden;catalog.hidden=hidden;catalogToggle.setAttribute('aria-expanded',String(!hidden));catalogToggle.textContent=hidden?'Mostrar listado':'Ocultar listado';layout.classList.toggle('catalog-collapsed',hidden);});
-  widthToggle?.addEventListener('click',()=>{const wide=reportSection.classList.toggle('is-wide');widthToggle.setAttribute('aria-pressed',String(wide));widthToggle.textContent=wide?'Restablecer ancho':'Ampliar informe';});
+  const catalogToggle=document.getElementById('report-catalog-toggle'),catalog=document.getElementById('reports-catalog'),layout=document.querySelector('.reports-layout');
+  catalogToggle?.addEventListener('click',()=>{const hidden=!catalog.hidden;catalog.hidden=hidden;catalogToggle.setAttribute('aria-expanded',String(!hidden));const label=hidden?'Mostrar listado':'Ocultar listado';catalogToggle.setAttribute('aria-label',label);catalogToggle.title=label;catalogToggle.querySelector('span').textContent=hidden?'›':'‹';layout.classList.toggle('catalog-collapsed',hidden);});
   document.getElementById('report-villavicencio')?.addEventListener('click',show);
   document.getElementById('report-load')?.addEventListener('click',show);
   window.FibrazoReports={show};

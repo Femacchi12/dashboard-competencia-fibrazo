@@ -1,0 +1,7 @@
+/* Ajustes visuales aprobados: controles, avatar y subtítulos. */
+html body.executive-shell .user-avatar{width:42px;height:42px;box-sizing:border-box;background:#050605!important;color:#fff!important;border:0!important;box-shadow:none!important}
+html body.executive-shell .product-nav :is(a,button){background:#050605!important;color:#fff!important;border:1px solid #484848!important;border-radius:999px!important}
+html body.executive-shell .product-nav button[aria-current=page],html body.executive-shell :is(.analysis-tabs,.records-subtabs,.reports-categories) button.active,html body.executive-shell .city-chip.active{background:#00e69a!important;color:#000!important;border-color:#00e69a!important}
+html body.executive-shell :is(.section-title,.section-heading)>div>span,html body.executive-shell .reports-top>div>span{color:#43ffa5!important}
+html body.executive-shell .mobile-page-heading>div>span,html body.executive-shell .report-heading>span{color:#ffcf40!important}
+html body.executive-shell .compare-page-heading>div>span,html body.executive-shell .network-section-heading>div>span{color:#c6a2ff!important}
