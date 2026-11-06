@@ -61,12 +61,17 @@
   }
 
   async function fetchCsv(source){
-    const res=await fetch(csvUrl(source),{cache:"no-store"});
+    const user=window.firebase?.auth()?.currentUser;
+    if(!user) throw new Error("Inicia sesión para consultar las fuentes.");
+    const token=await user.getIdToken();
+    const key=source.gid+":"+(source.range||"");
+    const res=await fetch("https://fibrazo-forms.vercel.app/api/isps?dataset="+encodeURIComponent(key),{cache:"no-store",headers:{Authorization:"Bearer "+token}});
     if(!res.ok) throw new Error(source.label+": HTTP "+res.status);
-    let text=await res.text();
-    if(/<!doctype html>|<html/i.test(text)) throw new Error(source.label+": la hoja no es accesible como CSV desde el navegador.");
-    if(source.gid==="1372196091") text=normalizeThousands(text);
-    return parseCSV(text);
+    const payload=await res.json();
+    if(!Array.isArray(payload.values)) throw new Error(source.label+": respuesta inválida.");
+    const [header=[],...rows]=payload.values;
+    const headers=header.map(clean);
+    return rows.filter(row=>row.some(v=>v!==""&&v!=null)).map(row=>Object.fromEntries(headers.map((h,i)=>[h,clean(row[i]??"")])));
   }
 
   function operatorShownInDashboard(op){
