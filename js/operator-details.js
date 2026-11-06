@@ -41,7 +41,11 @@
     const meta=state.operators.find(o=>opId&&clean(o.ID_Operador)===opId)
       ||state.operators.find(o=>fold(clean(o.Operador_Normalizado)||clean(o.Marca_Comercial))===fold(operator))
       ||{};
-    return {reference,period,plans,coverage,meta};
+    const targetCity=clean(city)||clean(reference?.Ciudad)||clean(plans[0]?.Ciudad);
+    const research=(state.researchDetails||[]).find(r=>clean(r.ID_base)===opId&&fold(r.Ciudad_fuente)===fold(targetCity))
+      ||(state.researchDetails||[]).find(r=>fold(r.Operador_referencia)===fold(operator)&&fold(r.Ciudad_fuente)===fold(targetCity))
+      ||null;
+    return {reference,period,plans,coverage,meta,research};
   }
 
   function removeEntry(entry){
@@ -135,6 +139,44 @@
     return html;
   }
 
+  // Show normalized research as supplemental operator detail, without invented values.
+  function researchDetailsHtml(record){
+    if(!record) return "";
+    const sections=[
+      ["Televisión y entretenimiento",[
+        "TV ofrecida / incluida","Tipo de televisión y medio de transmisión","Parrilla / canales",
+        "Cantidad de canales","Puntos de TV incluidos","Puntos adicionales / condiciones",
+        "Equipos / decodificador / TDT","Aplicaciones / streaming","Modalidades con TV",
+        "Costo mensual adicional de TV (COP)","Costo instalación / puntos TV (COP)"
+      ]],
+      ["Permanencia y cancelación",[
+        "Cláusula de permanencia (sí / no)","Duración de permanencia",
+        "Cargo por cancelación anticipada","Costo cláusula / penalidad (COP)",
+        "Decrecimiento del cargo por permanencia","Fórmula de cobro / condiciones de retiro",
+        "Devolución de equipos"
+      ]],
+      ["Requisitos y condiciones",[
+        "Requisitos de inscripción","Instalación / afiliación y costo","Facturación / primer pago",
+        "Plazo de instalación","Requisitos técnicos / cobertura","Cobertura / barrios",
+        "Equipos y comodato","Promociones / descuentos","Beneficios y TV"
+      ]]
+    ];
+    let out='<details class="fz-research-card" open><summary>Información comercial completa <span>TV · Permanencia · Inscripción · Condiciones</span></summary>';
+    let nonempty=0;
+    for(const [heading,fields] of sections){
+      const items=fields.map(label=>[label,clean(record[label])]).filter(([,value])=>value);
+      if(!items.length) continue;
+      nonempty+=items.length;
+      out+='<section class="fz-research-section"><h4>'+escapeHtml(heading)+'</h4><dl>';
+      for(const [label,value] of items) out+='<div class="fz-research-field"><dt>'+escapeHtml(label)+'</dt><dd>'+escapeHtml(value).replace(/\n/g,"<br>")+'</dd></div>';
+      out+='</dl></section>';
+    }
+    const url=safeUrl(clean(record.URL_Ficha_Base),"Sitio_Web");
+    if(url)out+='<div class="fz-research-source"><a href="'+escapeHtml(url)+'" target="_blank" rel="noopener noreferrer">Consultar ficha consolidada ↗</a></div>';
+    if(!nonempty) out+='<p class="fz-research-empty">Sin condiciones adicionales documentadas para este operador.</p>';
+    return out+'</details>';
+  }
+
   function panelHtml(operator,city,planId,periodOverride="",trunkOverride="",trunkCompare=null){
     const d=detailData(operator,city,planId,periodOverride,trunkOverride);
     const prices=d.plans.map(r=>toNum(r.Precio_Usado_COP)).filter(n=>n>0);
@@ -164,6 +206,7 @@
     html+='<span><b>Tecnología:</b> '+escapeHtml(technologies.join(" · ")||"No informado")+'</span>';
     html+='</div>';
     html+=trunkPresenceHtml(trunks,trunkCompare);
+    html+=researchDetailsHtml(d.research);
     html+='<div class="detail-table-tools"><input type="search" class="detail-table-search" placeholder="Buscar en la tabla…" autocomplete="off"></div>';
     html+='<div class="operator-detail-table-wrap"><table class="operator-detail-table"><thead><tr><th>Plan</th><th>Servicio</th><th>Tecnología</th><th>Velocidad</th><th>Precio</th><th>Promo</th><th>Modalidad</th><th>TV</th><th>Permanencia</th></tr></thead><tbody>'+planRowsHtml(d.plans)+'</tbody></table></div>';
     html+='<div class="operator-detail-footer"><div class="operator-detail-contact">';
