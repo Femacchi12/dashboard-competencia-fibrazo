@@ -8,7 +8,7 @@
     const lines=String(content).split(/\r?\n|\u000b/).map(x=>x.trim()).filter(Boolean);
     const groups=[];let group={title:'Contexto',lines:[]};
     for(const line of lines){
-      if(/^\d+\.\s+[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(line)&&line.length<100){if(group.lines.length)groups.push(group);group={title:line,lines:[]};}
+      if(/^[1-7]\.\s+[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(line)&&line.length<100){if(group.lines.length)groups.push(group);group={title:line,lines:[]};}
       else group.lines.push(line);
     }
     if(group.lines.length)groups.push(group);
