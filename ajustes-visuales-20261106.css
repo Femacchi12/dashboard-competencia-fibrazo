@@ -29,5 +29,5 @@ html body:not(#fz-vis-a):not(#fz-vis-b) .product-nav :is(a,button):not(.active):
 html body main:has(> :is(.product-nav,.fz-social-nav)){position:relative!important}
 html body :is(.product-nav,.fz-social-nav){box-sizing:border-box!important;min-width:0!important;min-height:46px!important;align-items:center!important;flex-wrap:nowrap!important;gap:2px!important;padding:2px!important;background:#101311!important;border:1px solid #343a37!important;border-radius:20px!important;overflow-x:auto!important;scrollbar-width:thin}
 html body :is(.product-nav,.fz-social-nav)>:is(button,a){flex:0 0 auto!important;white-space:nowrap!important}
-@media(min-width:900px){html body main> :is(.product-nav,.fz-social-nav){position:absolute!important;z-index:10!important;left:240px!important;right:100px!important;top:10px!important;width:auto!important;margin:0!important}}
+@media(min-width:900px){html body main> :is(.product-nav,.fz-social-nav){position:absolute!important;z-index:1100!important;left:240px!important;right:100px!important;top:10px!important;width:auto!important;margin:0!important}}
 @media(max-width:899px){html body main> :is(.product-nav,.fz-social-nav){position:relative!important;left:auto!important;right:auto!important;top:auto!important;width:100%!important;margin:0 0 12px!important}}
