@@ -22,3 +22,11 @@ body.executive-shell.executive-shell .product-nav button{display:inline-flex;ali
 body.executive-shell.executive-shell .product-nav button[aria-current]{background:#087451;color:#fff;border-color:#087451}
 body.executive-shell .report-scatter{height:360px}
 body.executive-shell #report-scatter-choices button{margin:4px;padding:9px 12px;color:#fff;background:#252525;border:1px solid #585858}
+
+/* Lectura ampliada y listado plegable sin abandonar el informe. */
+body.executive-shell .reports-reading-controls{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin:-8px 0 16px}
+body.executive-shell .reports-reading-controls button{min-height:40px;padding:8px 14px;font:600 12px Montserrat,system-ui,sans-serif}
+body.executive-shell .reports-layout.catalog-collapsed{grid-template-columns:minmax(0,1fr)}
+body.executive-shell .reports-catalog[hidden]{display:none!important}
+body.executive-shell .reports-section.is-wide{position:relative;left:50%;transform:translateX(-50%);width:calc(100vw - 32px);max-width:none}
+@media(max-width:800px){body.executive-shell .reports-section.is-wide{width:calc(100vw - 16px)}body.executive-shell .reports-reading-controls{justify-content:flex-start}}

@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="executive-shell.css?v=115" />
   <link rel="stylesheet" href="dashboard-refresh.css?v=20261106-visual" />
   <link rel="stylesheet" href="research-details.css?v=20261106-wrap02" />
-  <link rel="stylesheet" href="reports.css?v=20261106-visual2" />
+  <link rel="stylesheet" href="reports.css?v=20261106-lectura" />
   <link rel="stylesheet" href="visual-transversal-20261106.css?v=VIS021-20261106" />
   <link rel="stylesheet" href="selected-state-20261106.css?v=1" />
 </head>
@@ -108,8 +108,9 @@
     <section class="section view-block hidden reports-section" data-view="reports" aria-label="Informes">
       <div class="reports-top"><div><span>CONOCIMIENTO TERRITORIAL</span><h2>Informes</h2><p>Relevamientos y análisis para tomar decisiones.</p></div><a class="reports-source-link" href="https://docs.google.com/document/d/1b4L9U8KfmUh3FlxHhj66Q-6vY5WZbHlwl1EZNlT1zSE/edit" target="_blank" rel="noopener noreferrer">Guía de informes ↗</a></div>
       <nav class="reports-categories" aria-label="Categorías de informes"><button type="button" class="active" aria-current="page">Relevamientos</button></nav>
+      <div class="reports-reading-controls" aria-label="Opciones de lectura"><button type="button" id="report-catalog-toggle" aria-controls="reports-catalog" aria-expanded="true">Ocultar listado</button><button type="button" id="report-width-toggle" aria-pressed="false">Ampliar informe</button></div>
       <div class="reports-layout">
-        <aside class="reports-catalog"><span>RELEVAMIENTOS</span><button type="button" class="report-active" id="report-villavicencio"><strong>Villavicencio</strong><small>Exploración y operadores · oct. 2026</small><em>Borrador para revisión</em></button></aside>
+        <aside class="reports-catalog" id="reports-catalog"><span>RELEVAMIENTOS</span><button type="button" class="report-active" id="report-villavicencio"><strong>Villavicencio</strong><small>Exploración y operadores · oct. 2026</small><em>Borrador para revisión</em></button></aside>
         <article class="report-content" aria-live="polite"><div id="report-content"><h2>Villavicencio</h2><p>Selecciona el informe para cargarlo.</p><button type="button" id="report-load">Abrir informe</button></div></article>
       </div>
     </section>
@@ -341,7 +342,7 @@
   <script src="js/operator-navigation.js?v=108"></script>
   <script src="js/operator-deeplink.js?v=108"></script>
   <script src="js/executive-shell.js?v=20261106-reportes"></script>
-  <script src="js/reports.js?v=20261106-scatter"></script>
+  <script src="js/reports.js?v=20261106-lectura"></script>
   <script src="auth.js?v=117"></script>
   <script src="https://fibrazo-forms.vercel.app/dashboard-chat.js?v=107" data-scope="competition"></script>
 </body>
