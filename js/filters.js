@@ -346,7 +346,7 @@
     const exploreButtons=document.createElement("div");
     exploreButtons.className="exploration-city-buttons";
     explore.appendChild(exploreButtons);
-    const explorationCities=["Bucaramanga","Cali","Bogotá"];
+    const explorationCities=["Bucaramanga","Neiva","Villavicencio","Cali","Bogotá"];
     const selectedExploration=state.explorationSelection||"";
     function selectExploration(city){
       state.explorationSelection=city;
@@ -356,6 +356,11 @@
         state.filters.period.clear();
         state.filters.period.add(formatPeriod("2026-10"));
         setCityScope("custom",["Bucaramanga","Floridablanca","Girón","Piedecuesta"]);
+      }else if(["neiva","villavicencio"].includes(fold(city))){
+        // New accepted commercial cut. Do not infer FIBRAZO service coverage.
+        state.filters.period.clear();
+        state.filters.period.add(formatPeriod("2026-11"));
+        setCityScope("custom",[city]);
       }else{
         const available=allRelevantCities().find(value=>fold(value)===fold(city));
         if(available)setCityScope("custom",marketGroupCities(available));
