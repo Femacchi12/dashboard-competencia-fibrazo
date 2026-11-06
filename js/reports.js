@@ -36,27 +36,7 @@
       '<section class="report-block"><h2>Informe de campo</h2><p>Abre cada sección para consultar su contenido. Esta versión se alimenta del documento fuente y puede contener tablas presentadas como texto.</p>'+sections.map(s=>'<details><summary>'+esc(s.title)+'</summary>'+s.lines.map(p).join('')+'</details>').join('')+'</section>'+
       '<section class="report-block report-limit"><h2>Alcance y fuentes</h2><p>El relevamiento corresponde al 19 y 20 de octubre de 2026. Las observaciones puntuales no demuestran cobertura total o ausencia de operadores en un barrio completo. El documento original se consulta como fuente y esta presentación continúa en revisión.</p><a href="'+esc(data.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Abrir documento fuente ↗</a></section>';
     if(stat&&window.Chart){if(chart)chart.destroy();chart=new Chart(document.getElementById('report-permanence'),{type:'bar',data:{labels:['Sin permanencia','Con permanencia','Mixta','Sin dato'],datasets:[{label:'ISP locales',data:stat.values,backgroundColor:['#16a46f','#4582ce','#e3a24c','#a0aaa5'],borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:true}},scales:{x:{beginAtZero:true,grid,ticks:{precision:0,color:tickColor,font:axisFont}},y:{grid:{display:false},ticks:{color:tickColor,font:axisFont,autoSkip:false}}}}});}
-    if(parsed.prices.length&&window.Chart){if(priceChart)priceChart.destroy();const offers=parsed.prices.filter(r=>r.price!==null);priceChart=new Chart(document.getElementById('report-prices'),{type:'bar',data:{labels:offers.map(r=>r.name),datasets:[{label:'Menor tarifa · COP',data:offers.map(r=>r.price),backgroundColor:'#16a46f',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid,ticks:{color:tickColor,font:axisFont,callback:v=>'}});}
-  }
-  async function show(){
-    if(loaded||loading)return;
-    const user=window.firebase?.auth()?.currentUser;if(!user){host.textContent='Inicia sesión para consultar el informe.';return;}
-    loading=true;host.innerHTML='<p role="status">Cargando el informe desde la fuente corporativa…</p>';
-    try{
-      const token=await user.getIdToken();
-      const preview=location.hostname==='fibrazo-competencia-qa-git-feat-vis-4f6fa2-fernandoemacchi-9206.vercel.app';
-      const endpoint=preview?'/api/report-preview?report=villavicencio':'https://fibrazo-forms.vercel.app/api/isps?report=villavicencio';
-      const response=await fetch(endpoint,{headers:{Authorization:'Bearer '+token},cache:'no-store'});
-      if(!response.ok)throw Error('REPORT_HTTP_'+response.status);
-      render(await response.json());loaded=true;
-    }catch(e){console.warn('REPORT_LOAD_ERROR',e?.message||'unknown');host.innerHTML='<h2>Informe no disponible</h2><p>No fue posible consultar el documento corporativo. Puedes volver a intentar o abrir la fuente directamente.</p><button type="button" id="report-retry">Reintentar</button> <a href="https://docs.google.com/document/d/1XDJCVQtxBvyWfqKU4Z5IhtQDLJwKQNqwE4vhIHMAo5M/edit" target="_blank" rel="noopener noreferrer">Abrir documento fuente ↗</a>';document.getElementById('report-retry').addEventListener('click',show);}
-    finally{loading=false;}
-  }
-  document.getElementById('report-villavicencio')?.addEventListener('click',show);
-  document.getElementById('report-load')?.addEventListener('click',show);
-  window.FibrazoReports={show};
-})();
-+Number(v).toLocaleString('es-CO')}},y:{grid:{display:false},ticks:{color:tickColor,font:axisFont,autoSkip:false}}}}});}
+    if(parsed.prices.length&&window.Chart){if(priceChart)priceChart.destroy();const offers=parsed.prices.filter(r=>r.price!==null);priceChart=new Chart(document.getElementById('report-prices'),{type:'bar',data:{labels:offers.map(r=>r.name),datasets:[{label:'Menor tarifa · COP',data:offers.map(r=>r.price),backgroundColor:'#16a46f',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid,ticks:{color:tickColor,font:axisFont,callback:v=>'$'+Number(v).toLocaleString('es-CO')}},y:{grid:{display:false},ticks:{color:tickColor,font:axisFont,autoSkip:false}}}}});}
   }
   async function show(){
     if(loaded||loading)return;
