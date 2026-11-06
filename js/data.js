@@ -65,7 +65,7 @@
     if(!user) throw new Error("Inicia sesión para consultar las fuentes.");
     const token=await user.getIdToken();
     const key=source.gid+":"+(source.range||"");
-    const base=location.hostname==="fibrazo-competencia-qa-git-fix-comp-9b26a5-fernandoemacchi-9206.vercel.app"?"https://fibrazo-forms-git-fix-competencia-d-6d1922-fernandoemacchi-9206.vercel.app":"https://fibrazo-forms.vercel.app";
+    const base="https://fibrazo-forms.vercel.app";
     const res=await fetch(base+"/api/isps?dataset="+encodeURIComponent(key),{cache:"no-store",headers:{Authorization:"Bearer "+token}});
     if(!res.ok) throw new Error(source.label+": HTTP "+res.status);
     const payload=await res.json();
