@@ -8,3 +8,17 @@ html body.executive-shell .compare-page-heading>div>span,html body.executive-she
 
 /* Mantener visible la selección frente a reglas heredadas. */
 html body:not(#fz-excepcion-visual):not(#fz-excepcion-visual-2) :is(.view-switch,.mini-switch,.analysis-tabs,.product-nav,.reports-categories,.records-subtabs,.city-scope-row) :is(button,a):is(.active,.selected,.is-active,[aria-pressed="true"],[aria-selected="true"],[aria-current="page"]){background:#00e69a!important;background-image:none!important;color:#000!important;border-color:#00e69a!important}
+
+/* Encabezado y navegación con las medidas de FIBRAZO Forms. */
+html body :is(.hero-header,.fz-shared-header) :is(.hero-brand,.brand-lockup){display:flex!important;align-items:center!important;gap:13px!important;height:30px!important}
+html body :is(.hero-header,.fz-shared-header) :is(.hero-brand>span,.brand-wordmark){font:800 29px Montserrat,Inter,system-ui,sans-serif!important;letter-spacing:-1.74px!important;color:#43ffa5!important;line-height:normal!important}
+html body :is(.hero-header,.fz-shared-header) :is(.hero-brand>i,.brand-divider){display:block!important;width:1px!important;height:22px!important;background:#6e7772!important}
+html body :is(.hero-header,.fz-shared-header) :is(.hero-brand>b,.brand-area){font:700 12px Montserrat,Inter,system-ui,sans-serif!important;letter-spacing:2.88px!important;color:#fff!important}
+html body :is(.hero-header,.fz-shared-header) :is(.hero-copy h1,.header-main .badge){display:block!important;font:800 24px Montserrat,system-ui,sans-serif!important;letter-spacing:-.6px!important;line-height:normal!important;color:#f7f8f7!important;margin:3px 0 0!important;padding:0!important;background:transparent!important;border:0!important}
+
+html body :is(.product-nav,.fz-social-nav){display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:2px!important;padding:0!important;margin:0 0 12px!important;border:0!important;background:transparent!important;box-shadow:none!important}
+html body :is(.product-nav,.fz-social-nav) :is(button,a){font:700 13px/15.6px Montserrat,Inter,system-ui,sans-serif!important;padding:9px 12px!important;border-radius:999px!important;min-height:0!important;box-shadow:none!important;text-decoration:none!important}
+html body:not(#fz-vis-a):not(#fz-vis-b) :is(.product-nav,.fz-social-nav) :is(button,a):is(.active,[aria-current="page"],[aria-selected="true"],[aria-pressed="true"]){background:#00e69a!important;background-image:none!important;color:#000!important;border-color:#00e69a!important}
+
+/* Los mercados de exploración usan aria-pressed, también sin clase active. */
+html body:not(#fz-vis-a):not(#fz-vis-b) button.city-chip[aria-pressed="true"]{background:#00e69a!important;background-image:none!important;color:#000!important;border-color:#00e69a!important}
