@@ -319,6 +319,7 @@
       const b=document.createElement("button");
       b.type="button";
       b.className=("city-chip "+extraClass+" "+(active?"active":"")).trim();
+      b.setAttribute("aria-pressed",String(active));
       b.textContent=label;
       b.addEventListener("click",onClick);
       return b;
