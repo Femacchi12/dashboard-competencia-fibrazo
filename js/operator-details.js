@@ -91,7 +91,22 @@
     return openEntries.some(entry=>entry.key===key);
   }
 
-  function planRowsHtml(plans){
+  function tvTechnologyLabel(plan,research){
+    const included=fold(normalizeTV(plan.TV_Incluida));
+    if(included!=="si"&&included!=="sí") return normalizeTV(plan.TV_Incluida);
+    const source=clean(plan.Tipo_TV)||clean(plan.Tecnologia_TV)||clean(research?.["Tipo de televisión y medio de transmisión"]);
+    const normalized=fold(source);
+    // A default classification is not proof of transmission technology.
+    if(!normalized||/criterio|no confirmad|no verificad|no especificad|no precisad|por confirmar|pendiente|no informad/.test(normalized)) return "Tecnología pendiente";
+    if(/iptv/.test(normalized)) return "IPTV";
+    if(/online|aplicaci[oó]n|streaming/.test(normalized)) return "TV online / app";
+    if(/coaxial|hfc/.test(normalized)) return "TV digital coaxial";
+    if(/fibra/.test(normalized)) return "TV digital por fibra";
+    if(/tdt/.test(normalized)) return "TV digital TDT";
+    return "Tecnología pendiente";
+  }
+
+  function planRowsHtml(plans,research){
     if(!plans.length) return '<tr><td colspan="9" class="detail-empty">Sin planes normalizados para este corte y filtros.</td></tr>';
     return plans.map(r=>{
       const used=toNum(r.Precio_Usado_COP),promo=toNum(r.Precio_Promocional_COP);
@@ -103,7 +118,7 @@
         "<td><strong>"+escapeHtml(formatCOP(used))+"</strong></td>"+
         "<td>"+escapeHtml(formatCOP(promo))+"</td>"+
         "<td>"+escapeHtml(clean(r.Modalidad)||"—")+"</td>"+
-        "<td>"+escapeHtml(normalizeTV(r.TV_Incluida))+"</td>"+
+        "<td>"+escapeHtml(tvTechnologyLabel(r,research))+"</td>"+
         "<td>"+escapeHtml(clean(r.Permanencia_Meses)||"—")+"</td>"+
       "</tr>";
     }).join("");
@@ -213,9 +228,9 @@
     html+='<span><b>Tecnología:</b> '+escapeHtml(technologies.join(" · ")||"No informado")+'</span>';
     html+='</div>';
     html+=trunkPresenceHtml(trunks,trunkCompare);
-    html+=researchDetailsHtml(d.research);
     html+='<div class="detail-table-tools"><input type="search" class="detail-table-search" placeholder="Buscar en la tabla…" autocomplete="off"></div>';
-    html+='<div class="operator-detail-table-wrap"><table class="operator-detail-table"><thead><tr><th>Plan</th><th>Servicio</th><th>Tecnología</th><th>Velocidad</th><th>Precio</th><th>Promo</th><th>Modalidad</th><th>TV</th><th>Permanencia</th></tr></thead><tbody>'+planRowsHtml(d.plans)+'</tbody></table></div>';
+    html+='<div class="operator-detail-table-wrap"><table class="operator-detail-table"><thead><tr><th>Plan</th><th>Servicio</th><th>Tecnología</th><th>Velocidad</th><th>Precio</th><th>Promo</th><th>Modalidad</th><th>TV</th><th>Permanencia</th></tr></thead><tbody>'+planRowsHtml(d.plans,d.research)+'</tbody></table></div>';
+    html+=researchDetailsHtml(d.research);
     html+='<div class="operator-detail-footer"><div class="operator-detail-contact">';
     if(phones.length) html+='<span>Tel. '+phones.map(escapeHtml).join(" · ")+'</span>';
     if(web) html+='<a href="'+escapeHtml(web)+'" target="_blank" rel="noopener noreferrer">Web ↗</a>';
