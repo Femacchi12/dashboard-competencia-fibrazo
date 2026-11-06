@@ -17,3 +17,8 @@ body.executive-shell .report-chart{background:#191919;border:1px solid #383838;b
 body.executive-shell .report-table-scroll{max-height:400px;overflow:auto}
 body.executive-shell .report-block table{font-family:Poppins,Montserrat,system-ui,sans-serif}
 @media(max-width:800px){body.executive-shell .reports-section{padding:16px}body.executive-shell .reports-top{gap:12px}body.executive-shell .report-content{padding:18px}.report-chart-tall{height:760px}}
+
+body.executive-shell.executive-shell .product-nav button{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-height:44px;padding:10px 14px;margin:2px;background:#141414;color:#e1e1e1;border:1px solid #444;border-radius:999px!important;font:700 12px Montserrat,system-ui,sans-serif;cursor:pointer}
+body.executive-shell.executive-shell .product-nav button[aria-current]{background:#087451;color:#fff;border-color:#087451}
+body.executive-shell .report-scatter{height:360px}
+body.executive-shell #report-scatter-choices button{margin:4px;padding:9px 12px;color:#fff;background:#252525;border:1px solid #585858}
