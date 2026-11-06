@@ -52,8 +52,8 @@
     reports.type = 'button';
     reports.textContent = 'Informes';
     const selectProduct = view => {
-      current.toggleAttribute('aria-current', view !== 'reports');
-      reports.toggleAttribute('aria-current', view === 'reports');
+      if (view === 'reports') { current.removeAttribute('aria-current'); reports.setAttribute('aria-current','page'); }
+      else { reports.removeAttribute('aria-current'); current.setAttribute('aria-current','page'); }
       window.FZ?.app?.setAnalysisView(view);
     };
     current.addEventListener('click', () => selectProduct('general'));
