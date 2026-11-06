@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    {"source":"/api/report-preview","destination":"https://fibrazo-forms-git-feat-visual-dashb-fff851-fernandoemacchi-9206.vercel.app/api/isps"}
+  ]
+}
