@@ -44,9 +44,9 @@
       const preview=location.hostname==='fibrazo-competencia-qa-git-feat-vis-4f6fa2-fernandoemacchi-9206.vercel.app';
       const base=preview?'https://fibrazo-forms-git-feat-visual-dashb-fff851-fernandoemacchi-9206.vercel.app':'https://fibrazo-forms.vercel.app';
       const response=await fetch(base+'/api/isps?report=villavicencio',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
-      if(!response.ok)throw Error('REPORT_UNAVAILABLE');
+      if(!response.ok)throw Error('REPORT_HTTP_'+response.status);
       render(await response.json());loaded=true;
-    }catch(e){host.innerHTML='<h2>Informe no disponible</h2><p>No fue posible consultar el documento corporativo. Puedes volver a intentar o abrir la fuente directamente.</p><button type="button" id="report-retry">Reintentar</button> <a href="https://docs.google.com/document/d/1XDJCVQtxBvyWfqKU4Z5IhtQDLJwKQNqwE4vhIHMAo5M/edit" target="_blank" rel="noopener noreferrer">Abrir documento fuente ↗</a>';document.getElementById('report-retry').addEventListener('click',show);}
+    }catch(e){console.warn('REPORT_LOAD_ERROR',e?.message||'unknown');host.innerHTML='<h2>Informe no disponible</h2><p>No fue posible consultar el documento corporativo. Puedes volver a intentar o abrir la fuente directamente.</p><button type="button" id="report-retry">Reintentar</button> <a href="https://docs.google.com/document/d/1XDJCVQtxBvyWfqKU4Z5IhtQDLJwKQNqwE4vhIHMAo5M/edit" target="_blank" rel="noopener noreferrer">Abrir documento fuente ↗</a>';document.getElementById('report-retry').addEventListener('click',show);}
     finally{loading=false;}
   }
   document.getElementById('report-villavicencio')?.addEventListener('click',show);
