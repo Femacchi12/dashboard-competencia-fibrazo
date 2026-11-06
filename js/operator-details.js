@@ -168,7 +168,14 @@
       if(!items.length) continue;
       nonempty+=items.length;
       out+='<section class="fz-research-section"><h4>'+escapeHtml(heading)+'</h4><dl>';
-      for(const [label,value] of items) out+='<div class="fz-research-field"><dt>'+escapeHtml(label)+'</dt><dd>'+escapeHtml(value).replace(/\n/g,"<br>")+'</dd></div>';
+      const wideFields=new Set(["Parrilla / canales","Fórmula de cobro / condiciones de retiro",
+        "Requisitos de inscripción","Requisitos técnicos / cobertura","Beneficios y TV",
+        "Promociones / descuentos","Cobertura / barrios","Instalación / afiliación y costo",
+        "Cláusula de permanencia (sí / no)"]);
+      for(const [label,value] of items){
+        const cls=wideFields.has(label)?"fz-research-field wide":"fz-research-field";
+        out+='<div class="'+cls+'"><dt>'+escapeHtml(label)+'</dt><dd>'+escapeHtml(value).replace(/\n/g,"<br>")+'</dd></div>';
+      }
       out+='</dl></section>';
     }
     const url=safeUrl(clean(record.URL_Ficha_Base),"Sitio_Web");
