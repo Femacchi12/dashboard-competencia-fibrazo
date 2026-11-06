@@ -40,8 +40,8 @@
   }
 
   function chartDefaults(){
-    Chart.defaults.color="#8FA9A0";
-    Chart.defaults.font.family="Inter";
+    Chart.defaults.color="#c8ceca";
+    Chart.defaults.font.family="Montserrat, system-ui, sans-serif";
     Chart.defaults.font.size=11;
     return {
       responsive:true,
