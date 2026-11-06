@@ -11,3 +11,7 @@ Se igualan la tipografía, tamaño de marca y título del encabezado con Forms. 
 ## Barra de navegación junto a la marca
 
 Por solicitud de Edu, la navegación de secciones se sitúa junto a la marca en pantallas amplias, con barra y perfil en la misma línea siguiendo Forms. En pantallas estrechas permanece debajo del encabezado y permite desplazamiento horizontal. Pendiente revisión visual de Edu.
+
+## Espaciado de Mercado — 6 de noviembre de 2026
+
+A petición de Edu, se equilibró la separación superior e inferior de las pestañas de análisis, se dejó el fondo negro entre las tarjetas de gráficos y se añadió un margen interior al título Mercado / Planes y precios. Las tarjetas mantienen sus propios fondos y bordes. Pendiente revisión visual del usuario.

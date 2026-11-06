@@ -31,3 +31,8 @@ html body :is(.product-nav,.fz-social-nav){box-sizing:border-box!important;min-w
 html body :is(.product-nav,.fz-social-nav)>:is(button,a){flex:0 0 auto!important;white-space:nowrap!important}
 @media(min-width:900px){html body main> :is(.product-nav,.fz-social-nav){position:absolute!important;z-index:1100!important;left:240px!important;right:100px!important;top:10px!important;width:auto!important;margin:0!important}}
 @media(max-width:899px){html body main> :is(.product-nav,.fz-social-nav){position:relative!important;left:auto!important;right:auto!important;top:auto!important;width:100%!important;margin:0 0 12px!important}}
+
+/* Separación de la vista de mercado solicitada por Edu. */
+html body:not(#fz-espacio-a):not(#fz-espacio-b) .analysis-tabs{margin:12px 0!important}
+html body:not(#fz-espacio-a):not(#fz-espacio-b) .market-section,html body:not(#fz-espacio-a):not(#fz-espacio-b) .market-section .charts-grid{background:#000!important;background-image:none!important;box-shadow:none!important}
+html body:not(#fz-espacio-a):not(#fz-espacio-b) .market-section>.section-heading{padding:0 8px!important;margin-bottom:12px!important}
