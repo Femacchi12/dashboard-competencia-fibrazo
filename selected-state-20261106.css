@@ -1,0 +1,8 @@
+/* VIS-021: selected market and category controls */
+html body.executive-shell.executive-shell button.city-chip.active,
+html body.executive-shell.executive-shell button.city-chip[aria-pressed="true"],
+html body.executive-shell.executive-shell .analysis-tabs button.analysis-tab.active,
+html body.executive-shell.executive-shell .product-nav button[aria-current="page"]{
+background:#00e69a!important;background-image:none!important;border-color:#00e69a!important;color:#000!important}
+html body.executive-shell.executive-shell button.city-chip.active *,
+html body.executive-shell.executive-shell button.city-chip[aria-pressed="true"] *{color:#000!important}
