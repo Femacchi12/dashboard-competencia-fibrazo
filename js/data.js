@@ -353,6 +353,7 @@
     const entries=[
       ["plans",S.plans],
       ["operators",S.operators],
+      ["researchDetails",S.researchDetails],
       ["coverage",S.coverage],
       ["markets",S.markets],
       ["offers",S.offers],
@@ -375,6 +376,7 @@
     }
 
     if(resultByKey.operators.status==="fulfilled") state.operators=resultByKey.operators.value.map(r=>({...r,Tecnologia_Principal:normalizeTechnology(r.Tecnologia_Principal)}));
+    if(resultByKey.researchDetails?.status==="fulfilled") state.researchDetails=resultByKey.researchDetails.value.filter(r=>clean(r.ID_base)&&clean(r.Ciudad_fuente));
     const operators=state.operators;
     const stagingAvailable=resultByKey.bucContacts.status==="fulfilled"&&resultByKey.bucOffers.status==="fulfilled";
     const staged=stagingAvailable?buildBucaramangaInputs(resultByKey.bucContacts.value,resultByKey.bucOffers.value):{operators:[],plans:[]};
