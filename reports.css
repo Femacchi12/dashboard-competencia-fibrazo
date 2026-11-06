@@ -30,3 +30,9 @@ body.executive-shell .reports-layout.catalog-collapsed{grid-template-columns:min
 body.executive-shell .reports-catalog[hidden]{display:none!important}
 body.executive-shell .reports-section.is-wide{position:relative;left:50%;transform:translateX(-50%);width:calc(100vw - 32px);max-width:none}
 @media(max-width:800px){body.executive-shell .reports-section.is-wide{width:calc(100vw - 16px)}body.executive-shell .reports-reading-controls{justify-content:flex-start}}
+
+/* Ancho completo por defecto y control accesible del listado. */
+body.executive-shell .reports-section{position:relative;left:50%;transform:translateX(-50%);width:calc(100vw - 32px);max-width:none}
+body.executive-shell .reports-reading-controls{justify-content:flex-start}
+body.executive-shell #report-catalog-toggle{min-width:40px;font-size:24px;line-height:1}
+@media(max-width:800px){body.executive-shell .reports-section{width:calc(100vw - 16px)}}
