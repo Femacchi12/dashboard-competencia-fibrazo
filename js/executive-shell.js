@@ -44,10 +44,25 @@
     const map = document.createElement('a');
     map.href = 'https://fibrazo-forms.vercel.app/?view=map';
     map.textContent = 'Mapa ↗';
-    const current = document.createElement('span');
+    const current = document.createElement('button');
+    current.type = 'button';
     current.textContent = 'Competencia';
     current.setAttribute('aria-current', 'page');
-    nav.append(forms, map, current);
+    const reports = document.createElement('button');
+    reports.type = 'button';
+    reports.textContent = 'Informes';
+    const selectProduct = view => {
+      current.toggleAttribute('aria-current', view !== 'reports');
+      reports.toggleAttribute('aria-current', view === 'reports');
+      window.FZ?.app?.setAnalysisView(view);
+    };
+    current.addEventListener('click', () => selectProduct('general'));
+    reports.addEventListener('click', () => selectProduct('reports'));
+    document.querySelectorAll('.analysis-tabs .analysis-tab').forEach(button => button.addEventListener('click', () => {
+      current.setAttribute('aria-current', 'page');
+      reports.removeAttribute('aria-current');
+    }));
+    nav.append(forms, map, current, reports);
     header.after(nav);
     const update = () => {
       const value = email?.textContent.trim() || '';
