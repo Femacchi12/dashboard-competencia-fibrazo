@@ -22,3 +22,5 @@ html body:not(#fz-vis-a):not(#fz-vis-b) :is(.product-nav,.fz-social-nav) :is(but
 
 /* Los mercados de exploración usan aria-pressed, también sin clase active. */
 html body:not(#fz-vis-a):not(#fz-vis-b) button.city-chip[aria-pressed="true"]{background:#00e69a!important;background-image:none!important;color:#000!important;border-color:#00e69a!important}
+
+html body:not(#fz-vis-a):not(#fz-vis-b) .product-nav :is(a,button):not(.active):not([aria-current="page"]):not([aria-pressed="true"]){background:#050605!important;color:#fff!important}
