@@ -81,3 +81,15 @@ https://femacchi12.github.io/dashboard-competencia-fibrazo/
 - Red Nova se muestra sin el sufijo «(Móvil)»; los registros de campo de Bucaramanga del corte octubre se clasifican como FTTH por indicación expresa del usuario, sin cambiar otros mercados.
 - La respuesta sobre TV se conserva por plan con `TV_Incluida` desde el campo `TV` de `22_BUC_OFERTAS`; se elimina únicamente la columna TV redundante del resumen.
 - Pendiente: prueba autenticada de GitHub Pages y conciliación detallada de parrillas/condiciones, confirmación de 10 operadores mostrados. Código actualizado no equivale a validación E2E.
+
+
+## Corte comercial Neiva y Villavicencio · 2026-11-06
+
+- Fuente maestra del dashboard: `Base General-Dash_Competencia` (`1v2sBVe_w-bTl438b8qWFmvw0gT66bj8TskcXbnY-gbU`).
+- `02_PLANES_HISTORICO`: se retiraron **233 filas comerciales anteriores** de Neiva y Villavicencio y se incorporaron **182 ofertas con precio** del corte noviembre/2026 (**131 Villavicencio; 51 Neiva**). RedyDatos conserva ficha sin inventar plan/precio.
+- `01_OPERADORES`: 40 fichas de operador ciudad actualizadas; Claro, Movistar y Conextel Colombia reutilizan su identidad global; diez identidades históricas relacionadas con puntos de campo se conservaron sin presencia comercial en el dashboard.
+- `30_CONSOL_FICHAS` y `31_CONSOL_OFERTAS`: 43 fichas detalladas y 183 registros de investigación (incluye RedyDatos provisional). Sección ampliada del detalle de operador: televisión, permanencia, penalidades, instalación, requisitos, facturación y beneficios.
+- En **EXPLORACIÓN**, accesos rápidos a **Neiva** y **Villavicencio** seleccionan automáticamente corte **2026-11**. No implica cobertura FIBRAZO en esas ciudades.
+- Respaldos reversibles (ocultos): `BK_20261106_NVA_VVC_PLANES` y `BK_20261106_NVA_VVC_OPS`. Otras ciudades y registros georreferenciados de `03_PRESENCIA` preservados.
+- Los vínculos `IMPORTRANGE` de `33`–`36` requieren autorización de Google. Las tablas activas `01`/`02` y la fotografía `30` **no sincronizan automáticamente** cambios futuros hasta implementar y verificar un refresco. Próxima revisión comercial de las bases: mayo/2027.
+- Revisión: conteos y claves reconciliadas, sintaxis de `core.js`, `data.js`, `filters.js` y `operator-details.js` validada. **La publicación en Pages no sustituye una prueba E2E autenticada**.
