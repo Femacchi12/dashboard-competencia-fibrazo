@@ -15,3 +15,9 @@ Por solicitud de Edu, la navegación de secciones se sitúa junto a la marca en 
 ## Espaciado de Mercado — 6 de noviembre de 2026
 
 A petición de Edu, se equilibró la separación superior e inferior de las pestañas de análisis, se dejó el fondo negro entre las tarjetas de gráficos y se añadió un margen interior al título Mercado / Planes y precios. Las tarjetas mantienen sus propios fondos y bordes. Pendiente revisión visual del usuario.
+
+## Favicon Competencia — Radar señal (opción E) — 7 de noviembre de 2026
+
+**Decisión aprobada:** reemplazar el favicon Radar Lucide de múltiples trazos por la opción E («Radar señal») elegida por el usuario. Mantener el concepto radar, simplificado para 16 × 16 px: fondo negro redondeado, circunferencia exterior, punto central, línea diagonal de barrido y un arco corto de señal en verde institucional #43FFA5. Evitar texto y detalles de línea adicionales.
+
+**Alcance:** únicamente favicon SVG `favicon-radar.svg` y versión de su referencia en `index.html`. No cambiar iconos de navegación, logotipo, controles ni otros dashboards. Se preserva el nombre del archivo para no romper enlaces; versión `20261107-radar-e01` para evitar caché antigua. Comprobar en pestaña de Chrome a 16 px y 32 px y que Vercel publique el commit final. GitHub integrado no equivale a producción READY ni a prueba visual de navegador.
