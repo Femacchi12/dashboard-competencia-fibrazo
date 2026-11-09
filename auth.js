@@ -21,10 +21,13 @@
   const auth = firebase.auth();
   auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
 
-  const isAllowed = (email = "") => {
-    const normalized = String(email).trim().toLowerCase();
-    return normalized === allowedException || normalized.endsWith(allowedDomain);
-  };
+  async function isAllowed(user) {
+    if(!user?.emailVerified)return false;
+    const token=await user.getIdToken();
+    const response=await fetch("https://fibrazo-forms.vercel.app/api/dashboard-permissions?dashboard=competencia",{headers:{Authorization:"Bearer "+token},cache:"no-store"});
+    if(!response.ok)throw new Error("POLICY_UNAVAILABLE");
+    return !!(await response.json()).allowed;
+  }
 
   const dashboardAppVersion = "20261106-reports120";
   const executiveSummaryVersion = "20261031-115";
@@ -80,13 +83,17 @@
 
   auth.onAuthStateChanged(async (user) => {
     if (!user) {
+      window.dispatchEvent(new Event("fibrazo-dashboard-signout"));
       app.classList.add("hidden");
       authGate.classList.remove("hidden");
       userEmail.textContent = "—";
       return;
     }
 
-    if (!isAllowed(user.email)) {
+    let allowed;
+    try { allowed=await isAllowed(user); }
+    catch (_) { message.textContent="No fue posible verificar los permisos. Intenta nuevamente."; return; }
+    if (!allowed) {
       message.textContent = "Acceso denegado. Usa una cuenta @fibrazo.com autorizada.";
       await auth.signOut();
       return;
@@ -96,5 +103,6 @@
     authGate.classList.add("hidden");
     app.classList.remove("hidden");
     loadDashboard();
+    window.dispatchEvent(new CustomEvent("fibrazo-dashboard-auth",{detail:{user,dashboard:"competencia"}}));
   });
 })();
